@@ -86,8 +86,17 @@ void setLevelCount(int levelCount) {
 	Mod::get()->setSavedValue("levelCount", levelCount);
 }
 
-Deaths getDeaths(GJGameLevel* level) {
+std::string getLevelId(GJGameLevel* level) {
 	auto levelId = std::to_string(level->m_levelID.value());
+
+	if (level->m_levelType != GJLevelType::Saved)
+		levelId += "-local";
+
+	return levelId;
+}
+
+Deaths getDeaths(GJGameLevel* level) {
+	auto levelId = getLevelId(level);
 	auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 
 	// default deaths to progresses x1
@@ -105,7 +114,7 @@ Deaths getDeaths(GJGameLevel* level) {
 }
 
 void setDeaths(GJGameLevel* level, Deaths deaths) {
-	auto levelId = std::to_string(level->m_levelID.value());
+	auto levelId = getLevelId(level);
 	Mod::get()->setSavedValue(levelId, deaths);
 }
 
@@ -150,6 +159,12 @@ CCNode* infoAlert = nullptr;
 GJGameLevel* level = nullptr;
 auto winSize = CCDirector::sharedDirector()->getWinSize();
 
+void resetDTPopup() {
+	showDTButtonLayer = false;
+	infoAlert = nullptr;
+	level = nullptr;
+}
+
 class DTPopup : public Popup<CCSize> {
 protected:
 	CCSize m_popupSize;
@@ -167,9 +182,9 @@ protected:
 		this->setTitle("Deaths", "goldFont.fnt", 0.9f);
 
 		// fix some misc default menu customization
-		auto titleNode = this->m_title;
+		auto titleNode = m_title;
 		titleNode->setPositionY(titleNode->getPositionY() - 4);
-		this->m_closeBtn->setVisible(false);
+		m_closeBtn->setVisible(false);
 
 		// get deaths
 		m_deaths = getDeaths(level);
@@ -395,7 +410,7 @@ protected:
 		auto btn = CCMenuItemSpriteExtra::create(
 			btnSprite,
 			this,
-			menu_selector(DTButtonLayer::onOpen)
+			menu_selector(DTButtonLayer::onOpenDTPopup)
 		);
 
 		auto menu = CCMenu::create();
@@ -415,12 +430,6 @@ protected:
 		return true;
 	}
 
-	virtual void onExit() {
-		CCLayer::onExit();
-		infoAlert = nullptr;
-		level = nullptr;
-	}
-
 public:
 	static DTButtonLayer* create() {
 		auto ret = new DTButtonLayer();
@@ -434,7 +443,11 @@ public:
 		return nullptr;
 	}
 
-	void onOpen(CCObject* sender) {
+	void onOpenDTPopup(CCObject* sender) {
+		// just in case
+		if (infoAlert == nullptr || level == nullptr)
+			return;
+
 		infoAlert->setVisible(false);
 
 		auto deaths = getDeaths(level);
@@ -452,9 +465,9 @@ public:
 // ----------------------------
 class $modify(LevelInfoLayer) {
 	void onLevelInfo(CCObject* sender) {
-		if (!this->m_level->isPlatformer()) {
+		if (!m_level->isPlatformer()) {
 			showDTButtonLayer = true;
-			level = this->m_level;
+			level = m_level;
 		}
 
 		LevelInfoLayer::onLevelInfo(sender);
@@ -463,9 +476,9 @@ class $modify(LevelInfoLayer) {
 
 class $modify(EditLevelLayer) {
 	void onLevelInfo(CCObject* sender) {
-		if (!this->m_level->isPlatformer()) {
+		if (!m_level->isPlatformer()) {
 			showDTButtonLayer = true;
-			level = this->m_level;
+			level = m_level;
 		}
 
 		EditLevelLayer::onLevelInfo(sender);
@@ -475,9 +488,9 @@ class $modify(EditLevelLayer) {
 class $modify(LevelPage) {
 	void onInfo(CCObject* sender) {
 		// only show for actual main levels
-		if (this->m_level->m_levelID.value() > 0) {
+		if (m_level->m_levelID.value() > 0) {
 			showDTButtonLayer = true;
-			level = this->m_level;
+			level = m_level;
 		}
 
 		LevelPage::onInfo(sender);
@@ -499,7 +512,7 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 	}
 
 	void onBtn1(CCObject* sender) {
-		showDTButtonLayer = false;
+		resetDTPopup();
 		FLAlertLayer::onBtn1(sender);
 	}
 };
