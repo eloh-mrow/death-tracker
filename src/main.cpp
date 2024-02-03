@@ -100,7 +100,9 @@ Deaths getDeaths(GJGameLevel* level) {
 	auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 
 	// default deaths to progresses x1
-	if (deaths.empty() && std::string(level->m_personalBests) != "") {
+	auto pbs = std::string(level->m_personalBests);
+
+	if (deaths.empty() && pbs != "" && pbs != "100") {
 		deaths = Deaths(100);
 		auto progresses = calcProgresses(level->m_personalBests, level->m_newNormalPercent2);
 
