@@ -96,7 +96,6 @@ Deaths getDeaths(GJGameLevel* level) {
 		auto progresses = calcProgresses(level->m_personalBests, level->m_newNormalPercent2);
 
 		for (auto& percent : progresses) {
-			log::info("{}", percent);
 			if (percent == 100) continue; // can't die at 100%
 			deaths[percent] = 1;
 		}
