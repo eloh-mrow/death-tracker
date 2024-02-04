@@ -225,7 +225,7 @@ protected:
 		backBtnMenu->setPositionY(winSize.height - 23);
 
 		auto backBtn = CCMenuItemSpriteExtra::create(
-			CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png"),
+			CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png"),
 			this,
 			menu_selector(DTPopup::onClose)
 		);
