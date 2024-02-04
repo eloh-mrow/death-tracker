@@ -17,7 +17,7 @@ typedef std::map<int, bool> Progresses;
 // globals
 // ----------------------------
 auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
-int DT_POPUP_PAGE_LEN = 15;
+int DT_POPUP_PAGE_LEN = 13;
 
 // helper functions
 // ----------------------------
@@ -363,14 +363,67 @@ protected:
 		showPage();
 	}
 
+	void onCopy(CCObject* sender) {
+		try {
+			std::stringstream ss;
+
+			auto deaths = SaveManager::getDeaths();
+			int i = 0;
+
+			for (auto& count : deaths) {
+				int percent = i++;
+				if (!count) continue;
+
+				ss << std::format("{}%x{}", percent, count);
+
+				if (SaveManager::isNewBest(percent))
+					ss << " (new best)";
+
+				ss << std::endl;
+			}
+
+			clipboard::write(ss.str());
+
+			Notification::create(
+				std::string("Deaths copied successfully"),
+				CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png")
+			)->show();
+		} catch (const std::exception& e) {
+			Notification::create(
+				std::string("Failed to copy deaths"),
+				CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png")
+			)->show();
+		}
+	}
+
 	void showPage() {
 		// remove old page
 		if (m_pageLayer != nullptr)
 			this->removeChild(m_pageLayer);
 
 		auto pageLayer = CCLayer::create();
-		int heightTopOffset = 44;
+		int heightTopOffset = 40;
 		int padding = 19;
+
+		// show copy button
+		auto cpyBtn = CCMenuItemSpriteExtra::create(
+			ButtonSprite::create("COPY"),
+			this,
+			menu_selector(DTPopup::onCopy)
+		);
+
+		auto cpyBtnSize = cpyBtn->getContentSize();
+		auto cpyBtnMenu = CCMenu::create();
+
+		cpyBtnMenu->setPosition({
+			WIN_SIZE.width / 2,
+			(WIN_SIZE.height / 2) - (m_popupSize.height / 2) + (cpyBtnSize.height) - 5
+		});
+
+		cpyBtnMenu->setAnchorPoint({0.f, 0.f});
+		cpyBtnMenu->setScale(0.7f);
+		cpyBtnMenu->addChild(cpyBtn);
+		pageLayer->addChild(cpyBtnMenu);
 
 		// show next button
 		if (m_pageIndex < m_pages.size() - 1) {
@@ -429,8 +482,8 @@ protected:
 		});
 
 		deathsNode->setContentSize({
-			m_popupSize.width - (padding * 2), // width
-			m_popupSize.height - (heightTopOffset + padding) // height
+			m_popupSize.width - (padding * 2),
+			m_popupSize.height - heightTopOffset - cpyBtnSize.height - padding + 5 + 4
 		});
 
 		deathsNode->setAnchorPoint({0.5f, 1.f});
