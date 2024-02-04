@@ -49,8 +49,17 @@ std::vector<int> calcProgresses(std::string personalBests, int percentage) {
 std::string getLevelId(GJGameLevel* level) {
 	auto levelId = std::to_string(level->m_levelID.value());
 
+	// local level postfix
 	if (level->m_levelType != GJLevelType::Saved)
 		levelId += "-local";
+
+	// daily/weekly postfix
+	if (level->m_dailyID > 0)
+		levelId += std::to_string(level->m_dailyID.value());
+
+	// gauntlet level postfix
+	if (level->m_gauntletLevel)
+		levelId += "-gauntlet";
 
 	return levelId;
 }
