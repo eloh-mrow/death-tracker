@@ -258,17 +258,17 @@ protected:
 		if (deaths.empty()) {
 			// add labels
 			auto labelsContainer = CCNode::create();
-			labelsContainer->setAnchorPoint(CCPoint(0.5f, 0.5f));
+			labelsContainer->setAnchorPoint({0.5f, 0.5f});
 
-			labelsContainer->setPosition(CCSize(
+			labelsContainer->setPosition({
 				WIN_SIZE.width / 2,
 				(WIN_SIZE.height / 2) + 7
-			));
+			});
 
-			labelsContainer->setContentSize(CCSize(
+			labelsContainer->setContentSize({
 				popupSize.width,
 				popupSize.height
-			));
+			});
 
 			labelsContainer->setScale(0.45f);
 
@@ -295,8 +295,12 @@ protected:
 
 			auto menu = CCMenu::create();
 			auto btnSize = okBtn->getContentSize();
-			menu->setPositionY((WIN_SIZE.height / 2) - (popupSize.height / 2) + (btnSize.height));
-			menu->setPositionX(WIN_SIZE.width / 2);
+
+			menu->setPosition({
+				WIN_SIZE.width / 2,
+				(WIN_SIZE.height / 2) - (popupSize.height / 2) + (btnSize.height)
+			});
+
 			menu->addChild(okBtn);
 			this->addChild(menu);
 
@@ -325,8 +329,11 @@ protected:
 
 		// add back button
 		auto backBtnMenu = CCMenu::create();
-		backBtnMenu->setPositionX(24.f);
-		backBtnMenu->setPositionY(WIN_SIZE.height - 23);
+
+		backBtnMenu->setPosition({
+			24.f,
+			WIN_SIZE.height - 23
+		});
 
 		auto backBtn = CCMenuItemSpriteExtra::create(
 			CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png"),
@@ -374,14 +381,14 @@ protected:
 
 			auto nxtBtnMenu = CCMenu::create();
 
-			nxtBtnMenu->setPosition(CCSize(
+			nxtBtnMenu->setPosition({
 				(WIN_SIZE.width / 2) + (m_popupSize.width / 2) + padding,
 				WIN_SIZE.height / 2
-			));
+			});
 
 			nxtBtnMenu->setScaleX(-0.8f);
 			nxtBtnMenu->setScaleY(0.8f);
-			nxtBtnMenu->setAnchorPoint(CCPoint(0.f, 0.f));
+			nxtBtnMenu->setAnchorPoint({0.f, 0.f});
 			nxtBtnMenu->addChild(nxtBtn);
 			pageLayer->addChild(nxtBtnMenu);
 		}
@@ -396,13 +403,13 @@ protected:
 
 			auto bckBtnMenu = CCMenu::create();
 
-			bckBtnMenu->setPosition(CCSize(
+			bckBtnMenu->setPosition({
 				(WIN_SIZE.width / 2) - (m_popupSize.width / 2) - padding,
 				WIN_SIZE.height / 2
-			));
+			});
 
 			bckBtnMenu->setScale(0.8f);
-			bckBtnMenu->setAnchorPoint(CCPoint(0.f, 0.f));
+			bckBtnMenu->setAnchorPoint({0.f, 0.f});
 			bckBtnMenu->addChild(bckBtn);
 			pageLayer->addChild(bckBtnMenu);
 		}
@@ -414,15 +421,18 @@ protected:
 		layout->setGap(3.f);
 
 		auto deathsNode = CCNode::create();
-		deathsNode->setPositionX((WIN_SIZE.width / 2));
-		deathsNode->setPositionY((WIN_SIZE.height / 2) + (m_popupSize.height / 2) - heightTopOffset);
 
-		deathsNode->setContentSize(CCSize(
+		deathsNode->setPosition({
+			WIN_SIZE.width / 2,
+			(WIN_SIZE.height / 2) + (m_popupSize.height / 2) - heightTopOffset
+		});
+
+		deathsNode->setContentSize({
 			m_popupSize.width - (padding * 2), // width
 			m_popupSize.height - (heightTopOffset + padding) // height
-		));
+		});
 
-		deathsNode->setAnchorPoint(CCPoint(0.5f, 1.f));
+		deathsNode->setAnchorPoint({0.5f, 1.f});
 		deathsNode->setLayout(layout);
 
 		auto deaths = SaveManager::getDeaths();
@@ -434,7 +444,7 @@ protected:
 
 			// new bests are yellow
 			if (SaveManager::isNewBest(percent))
-				label->setColor(cocos2d::ccColor3B(255, 255, 0));
+				label->setColor({255, 255, 0});
 
 			deathsNode->addChild(label);
 		}
@@ -457,7 +467,7 @@ public:
 	static DTPopup* create(CCSize popupSize) {
 		auto ret = new DTPopup();
 
-		if (ret && ret->init(popupSize.width, popupSize.height, popupSize, "square01_001.png", CCRect(0.f, 0.f, 94.f, 94.f))) {
+		if (ret && ret->init(popupSize.width, popupSize.height, popupSize, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
 			ret->autorelease();
 			return ret;
 		}
@@ -483,10 +493,10 @@ protected:
 
 		auto btnSize = btn->getContentSize();
 
-		btn->setPosition(CCPoint(
+		btn->setPosition({
 			-(btnSize.width - 2),
-			btnSize.height - 2.5
-		));
+			btnSize.height - 2.5f
+		});
 
 		auto menu = CCMenu::create();
 		menu->addChild(btn);
@@ -574,10 +584,10 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 			auto dtBtn = DTButtonLayer::create();
 			dtBtn->setZOrder(100);
 
-			dtBtn->setPosition(CCPoint(
+			dtBtn->setPosition({
 				alertBgSize.width / 2,
 				-alertBgSize.height / 2
-			));
+			});
 
 			this->m_mainLayer->addChild(dtBtn);
 			DTPopupManager::onInfoAlertOpen(this);
@@ -587,11 +597,13 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 	}
 
 	void onBtn1(CCObject* sender) {
-		DTPopupManager::onInfoAlertClose();
+		if (this->m_button1->getParent() == sender)
+			DTPopupManager::onInfoAlertClose();
+
 		FLAlertLayer::onBtn1(sender);
 	}
 
-	virtual void keyBackClicked() {
+	void keyBackClicked() {
 		DTPopupManager::onInfoAlertClose();
 		FLAlertLayer::keyBackClicked();
 	}
