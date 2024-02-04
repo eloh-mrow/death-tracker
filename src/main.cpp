@@ -153,6 +153,7 @@ protected:
 		auto titleNode = m_title;
 		titleNode->setPositionY(titleNode->getPositionY() - 4);
 		m_closeBtn->setVisible(false);
+		this->setOpacity(150);
 
 		// get deaths
 		m_deaths = getDeaths(level);
