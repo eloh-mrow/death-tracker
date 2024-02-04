@@ -206,8 +206,9 @@ class $modify(PlayerObject) {
 		PlayerObject::playerDestroyed(p0);
 
 		auto playLayer = PlayLayer::get();
+		if (playLayer == nullptr) return; // disable in editor
+
 		auto level = playLayer->m_level;
-		if (!playLayer) return; // disable in editor
 		if (playLayer->m_isPracticeMode) return; // disable in practice
 		if (level->isPlatformer()) return; // disable for platformer
 
