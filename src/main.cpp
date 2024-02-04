@@ -8,53 +8,21 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/LevelPage.hpp>
 #include <Geode/modify/FLAlertLayer.hpp>
+#include <matjson/stl_serialize.hpp>
 
 using namespace geode::prelude;
-using Deaths = std::vector<int>;
+typedef std::vector<int> Deaths;
 
-// idk i just copy pasted
-// ----------------------------
-template <class T>
-struct matjson::Serialize<std::vector<T>> {
-	static std::vector<T> from_json(Value const& value)
-		requires requires(Value const& value) {
-			value.template as<T>();
-		}
-	{
-		std::vector<T> res;
-		res.reserve(value.as_array().size());
-		std::transform(
-			value.as_array().begin(), value.as_array().end(),
-			std::back_inserter(res),
-			[](Value const& value) -> T {
-				return value.template as<T>();
-			}
-		);
-		return res;
-	}
+bool showDTButtonLayer = false;
+CCNode* infoAlert = nullptr;
+GJGameLevel* level = nullptr;
+auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-	static Value to_json(std::vector<T> const& value)
-		requires requires(T const& value) {
-			Value(value);
-		}
-	{
-		Array res;
-		res.reserve(value.size());
-		std::transform(
-			value.begin(), value.end(),
-			std::back_inserter(res),
-			[](T const& value) -> Value {
-				return Value(value);
-			}
-		);
-		return res;
-	}
-
-	static bool is_json(Value const& value) {
-		// TODO: this is intentionally lazy..
-		return value.is_array();
-	}
-};
+void resetDTPopup() {
+	showDTButtonLayer = false;
+	infoAlert = nullptr;
+	level = nullptr;
+}
 
 // derived from cvolton.betterinfo
 std::vector<int> calcProgresses(std::string personalBests, int percentage) {
@@ -78,14 +46,6 @@ std::vector<int> calcProgresses(std::string personalBests, int percentage) {
 
 // save data helper functions
 // ----------------------------
-int getLevelCount() {
-	return Mod::get()->getSavedValue<int>("levelCount", 0);
-}
-
-void setLevelCount(int levelCount) {
-	Mod::get()->setSavedValue("levelCount", levelCount);
-}
-
 std::string getLevelId(GJGameLevel* level) {
 	auto levelId = std::to_string(level->m_levelID.value());
 
@@ -93,6 +53,14 @@ std::string getLevelId(GJGameLevel* level) {
 		levelId += "-local";
 
 	return levelId;
+}
+
+int getLevelCount() {
+	return Mod::get()->getSavedValue<int>("levelCount", 0);
+}
+
+void setLevelCount(int levelCount) {
+	Mod::get()->setSavedValue("levelCount", levelCount);
 }
 
 Deaths getDeaths(GJGameLevel* level) {
@@ -156,17 +124,6 @@ class $modify(PlayerObject) {
 
 // custom layers
 // ----------------------------
-bool showDTButtonLayer = false;
-CCNode* infoAlert = nullptr;
-GJGameLevel* level = nullptr;
-auto winSize = CCDirector::sharedDirector()->getWinSize();
-
-void resetDTPopup() {
-	showDTButtonLayer = false;
-	infoAlert = nullptr;
-	level = nullptr;
-}
-
 class DTPopup : public Popup<CCSize> {
 protected:
 	CCSize m_popupSize;
