@@ -153,13 +153,13 @@ Progresses SaveManager::m_progresses{};
 // ----------------------------
 class DTPopupManager {
 private:
-	static CCNode* m_infoAlert;
+	static FLAlertLayer* m_infoAlert;
 	static bool m_isDTBtnEnabled;
 
 public:
 	DTPopupManager() = delete;
 
-	static CCNode* getActiveInfoAlert() {
+	static FLAlertLayer* getActiveInfoAlert() {
 		return m_infoAlert;
 	}
 
@@ -171,7 +171,7 @@ public:
 		m_isDTBtnEnabled = true;
 	}
 
-	static void onInfoAlertOpen(CCNode* infoAlert) {
+	static void onInfoAlertOpen(FLAlertLayer* infoAlert) {
 		m_infoAlert = infoAlert;
 		m_isDTBtnEnabled = true;
 		handleTouchPriority(m_infoAlert);
@@ -196,7 +196,7 @@ public:
 	}
 };
 
-CCNode* DTPopupManager::m_infoAlert = nullptr;
+FLAlertLayer* DTPopupManager::m_infoAlert = nullptr;
 bool DTPopupManager::m_isDTBtnEnabled = false;
 
 // track deaths
@@ -464,7 +464,7 @@ protected:
 		if (!CCLayer::init()) return false;
 
 		auto btnSprite = CCSprite::create("dt_skullBtn_001-uhd.png"_spr);
-		btnSprite->setScale(1.35f);
+		btnSprite->setScale(0.9f);
 
 		auto btn = CCMenuItemSpriteExtra::create(
 			btnSprite,
@@ -472,18 +472,15 @@ protected:
 			menu_selector(DTButtonLayer::onOpenDTPopup)
 		);
 
-		auto menu = CCMenu::create();
 		auto btnSize = btn->getContentSize();
+
+		btn->setPosition(CCPoint(
+			-(btnSize.width - 2),
+			btnSize.height - 2.5
+		));
+
+		auto menu = CCMenu::create();
 		menu->addChild(btn);
-		menu->setPositionY(btnSize.height / 2);
-
-		auto btnSpritePos = btnSprite->getPosition();
-		btnSprite->setPositionX(btnSpritePos.x - 8);
-		btnSprite->setPositionY(btnSpritePos.y + 6);
-
-		auto layout = RowLayout::create();
-		layout->setAxisAlignment(AxisAlignment::End);
-		menu->setLayout(layout);
 		this->addChild(menu);
 
 		return true;
@@ -563,7 +560,17 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 			return false;
 
 		if (DTPopupManager::isDTBtnEnabled()) {
-			this->addChild(DTButtonLayer::create());
+			auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
+
+			auto dtBtn = DTButtonLayer::create();
+			dtBtn->setZOrder(100);
+
+			dtBtn->setPosition(CCPoint(
+				alertBgSize.width / 2,
+				-alertBgSize.height / 2
+			));
+
+			this->m_mainLayer->addChild(dtBtn);
 			DTPopupManager::onInfoAlertOpen(this);
 		}
 
@@ -573,5 +580,10 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 	void onBtn1(CCObject* sender) {
 		DTPopupManager::onInfoAlertClose();
 		FLAlertLayer::onBtn1(sender);
+	}
+
+	virtual void keyBackClicked() {
+		DTPopupManager::onInfoAlertClose();
+		FLAlertLayer::keyBackClicked();
 	}
 };
