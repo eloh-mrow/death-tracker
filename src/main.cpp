@@ -70,7 +70,7 @@ private:
 		}
 
 		// calculate deaths
-		auto levelId = getLevelId();
+		auto levelId = SaveManager::getLevelId();
 		auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 
 		// default deaths to progresses x1
@@ -137,7 +137,7 @@ public:
 
 		m_deaths[percent]++;
 
-		auto levelId = getLevelId();
+		auto levelId = SaveManager::getLevelId();
 		Mod::get()->setSavedValue(levelId, m_deaths);
 	}
 };
