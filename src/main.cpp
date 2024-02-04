@@ -206,13 +206,22 @@ class $modify(PlayerObject) {
 		PlayerObject::playerDestroyed(p0);
 
 		auto playLayer = PlayLayer::get();
+		auto level = playLayer->m_level;
 		if (!playLayer) return; // disable in editor
 		if (playLayer->m_isPracticeMode) return; // disable in practice
-		if (playLayer->m_level->isPlatformer()) return; // disable for platformer
+		if (level->isPlatformer()) return; // disable for platformer
+
+		// disable tracking deaths on completed levels
+		if (
+			Mod::get()->getSettingValue<bool>("disable-tracking-completed-levels")
+			&& level->m_newNormalPercent2.value() == 100
+			&& level->m_levelType == GJLevelType::Saved
+		)
+			return;
 
 		// save deaths
-		if (SaveManager::getLevel() != playLayer->m_level)
-			SaveManager::setLevel(playLayer->m_level);
+		if (SaveManager::getLevel() != level)
+			SaveManager::setLevel(level);
 
 		SaveManager::addDeath(playLayer->getCurrentPercentInt());
 	}
