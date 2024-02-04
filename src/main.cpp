@@ -12,41 +12,18 @@
 
 using namespace geode::prelude;
 typedef std::vector<int> Deaths;
+typedef std::map<int, bool> Progresses;
 
-bool showDTButtonLayer = false;
-CCNode* infoAlert = nullptr;
-GJGameLevel* level = nullptr;
-auto winSize = CCDirector::sharedDirector()->getWinSize();
+// globals
+// ----------------------------
+auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
+int DT_POPUP_PAGE_LEN = 15;
 
-void resetDTPopup() {
-	showDTButtonLayer = false;
-	infoAlert = nullptr;
-	level = nullptr;
-}
-
-// derived from cvolton.betterinfo
-std::vector<int> calcProgresses(std::string personalBests, int percentage) {
-    std::stringstream bestsStream(personalBests);
-    std::string currentBest;
-    std::deque<int> progressDeltas;
-
-    while (getline(bestsStream, currentBest, ',')) {
-        progressDeltas.push_front(std::stoi(currentBest));
-    }
-
-	std::vector<int> progresses;
-
-	for (auto delta : progressDeltas) {
-		progresses.push_back(percentage);
-		percentage -= delta;
-	}
-
-	return progresses;
-}
-
-// save data helper functions
+// helper functions
 // ----------------------------
 std::string getLevelId(GJGameLevel* level) {
+	if (level == nullptr) return "";
+
 	auto levelId = std::to_string(level->m_levelID.value());
 
 	// local level postfix
@@ -55,7 +32,7 @@ std::string getLevelId(GJGameLevel* level) {
 
 	// daily/weekly postfix
 	if (level->m_dailyID > 0)
-		levelId += std::to_string(level->m_dailyID.value());
+		levelId += "-daily";
 
 	// gauntlet level postfix
 	if (level->m_gauntletLevel)
@@ -64,38 +41,163 @@ std::string getLevelId(GJGameLevel* level) {
 	return levelId;
 }
 
-int getLevelCount() {
-	return Mod::get()->getSavedValue<int>("levelCount", 0);
-}
+// SaveManager - helps with save data
+// ----------------------------
+class SaveManager {
+private:
+	static GJGameLevel* m_level;
+	static int m_levelCount;
+	static Deaths m_deaths;
+	static Progresses m_progresses;
 
-void setLevelCount(int levelCount) {
-	Mod::get()->setSavedValue("levelCount", levelCount);
-}
+	// TODO: add backups
+	static void createBackup() {}
 
-Deaths getDeaths(GJGameLevel* level) {
-	auto levelId = getLevelId(level);
-	auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
+	static void calcDeathsAndProgresses() {
+		if (m_level == nullptr) return;
 
-	// default deaths to progresses x1
-	auto pbs = std::string(level->m_personalBests);
+		// calculate progresses
+		// derived from cvolton.betterinfo
+		std::string personalBests = m_level->m_personalBests;
+		int percentage = m_level->m_newNormalPercent2;
 
-	if (deaths.empty() && pbs != "" && pbs != "100") {
-		deaths = Deaths(100);
-		auto progresses = calcProgresses(level->m_personalBests, level->m_newNormalPercent2);
+		Progresses progresses{};
+		std::stringstream bestsStream(personalBests);
+		std::string currentBest;
+		int currentPercent = 0;
 
-		for (auto& percent : progresses) {
-			if (percent == 100) continue; // can't die at 100%
-			deaths[percent] = 1;
+		while (getline(bestsStream, currentBest, ',')) {
+			currentPercent += std::stoi(currentBest);
+			progresses[currentPercent] = true;
+		}
+
+		// calculate deaths
+		auto levelId = getLevelId(m_level);
+		auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
+
+		// default deaths to progresses x1
+		auto pbs = std::string(m_level->m_personalBests);
+
+		if (deaths.empty() && pbs != "" && pbs != "100") {
+			deaths = Deaths(100);
+
+			for (auto& [percent, _] : progresses) {
+				if (percent == 100) continue; // can't die at 100%
+				deaths[percent] = 1;
+			}
+		}
+
+		m_progresses = progresses;
+		m_deaths = deaths;
+	}
+
+public:
+	SaveManager() = delete;
+
+	static GJGameLevel* getLevel() {
+		return m_level;
+	}
+
+	static void setLevel(GJGameLevel* level) {
+		m_level = level;
+
+		if (level != nullptr) {
+			SaveManager::calcDeathsAndProgresses();
+		} else {
+			m_progresses = Progresses();
+			m_deaths = Deaths();
 		}
 	}
 
-	return deaths;
-}
+	static bool isNewBest(int percent) {
+		return m_progresses[percent];
+	}
 
-void setDeaths(GJGameLevel* level, Deaths deaths) {
-	auto levelId = getLevelId(level);
-	Mod::get()->setSavedValue(levelId, deaths);
-}
+	static int getLevelCount() {
+		return Mod::get()->getSavedValue<int>("levelCount", 0);
+	}
+
+	static void setLevelCount(int levelCount) {
+		Mod::get()->setSavedValue("levelCount", levelCount);
+	}
+
+	static Deaths getDeaths() {
+		return m_deaths;
+	}
+
+	static void addDeath(int percent) {
+		// new unplayed level
+		if (m_deaths.empty()) {
+			SaveManager::setLevelCount(++m_levelCount);
+			m_deaths = Deaths(100);
+
+			// create new backup
+			// every 50 levels
+			if (m_levelCount % 50 == 0)
+				SaveManager::createBackup();
+		}
+
+		m_deaths[percent]++;
+
+		auto levelId = getLevelId(m_level);
+		Mod::get()->setSavedValue(levelId, m_deaths);
+	}
+};
+
+GJGameLevel* SaveManager::m_level = nullptr;
+int SaveManager::m_levelCount = SaveManager::getLevelCount();
+Deaths SaveManager::m_deaths{};
+Progresses SaveManager::m_progresses{};
+
+// DTPopupManager - manages popup state
+// ----------------------------
+class DTPopupManager {
+private:
+	static CCNode* m_infoAlert;
+	static bool m_isDTBtnEnabled;
+
+public:
+	DTPopupManager() = delete;
+
+	static CCNode* getActiveInfoAlert() {
+		return m_infoAlert;
+	}
+
+	static bool isDTBtnEnabled() {
+		return m_isDTBtnEnabled;
+	}
+
+	static void enableDTBtn() {
+		m_isDTBtnEnabled = true;
+	}
+
+	static void onInfoAlertOpen(CCNode* infoAlert) {
+		m_infoAlert = infoAlert;
+		m_isDTBtnEnabled = true;
+		handleTouchPriority(m_infoAlert);
+	}
+
+	static void onInfoAlertClose() {
+		m_isDTBtnEnabled = false;
+		m_infoAlert = nullptr;
+		SaveManager::setLevel(nullptr);
+	}
+
+	static void onDTPopupOpen() {
+		if (m_infoAlert == nullptr) return;
+		m_infoAlert->setVisible(false);
+		handleTouchPriority(m_infoAlert);
+	}
+
+	static void onDTPopupClose() {
+		if (m_infoAlert == nullptr) return;
+		m_infoAlert->setVisible(true);
+		handleTouchPriority(m_infoAlert);
+	}
+};
+
+CCNode* DTPopupManager::m_infoAlert = nullptr;
+bool DTPopupManager::m_isDTBtnEnabled = false;
 
 // track deaths
 // ----------------------------
@@ -109,25 +211,10 @@ class $modify(PlayerObject) {
 		if (playLayer->m_level->isPlatformer()) return; // disable for platformer
 
 		// save deaths
-		auto level = playLayer->m_level;
-		auto percent = playLayer->getCurrentPercentInt();
+		if (SaveManager::getLevel() != playLayer->m_level)
+			SaveManager::setLevel(playLayer->m_level);
 
-		auto deaths = getDeaths(level);
-		int levelCount = getLevelCount();
-
-		// fill with 0s
-		// increment levelCount
-		if (deaths.empty()) {
-			deaths = Deaths(100);
-			setLevelCount(++levelCount);
-		}
-
-		// TODO: add backups
-		if (levelCount % 50 == 0) {
-		}
-
-		deaths[percent]++;
-		setDeaths(level, deaths);
+		SaveManager::addDeath(playLayer->getCurrentPercentInt());
 	}
 };
 
@@ -136,9 +223,7 @@ class $modify(PlayerObject) {
 class DTPopup : public Popup<CCSize> {
 protected:
 	CCSize m_popupSize;
-	Deaths m_deaths;
 	CCNode* m_pageLayer = nullptr;
-	int m_pageLength = 15;
 	int m_pageIndex = 0;
 	std::vector<std::vector<int>> m_pages;
 
@@ -156,19 +241,19 @@ protected:
 		this->setOpacity(150);
 
 		// get deaths
-		m_deaths = getDeaths(level);
+		auto deaths = SaveManager::getDeaths();
 
 		// show popup if no deaths recorded for this level
 		// this is probably the worst way ever to do this
 		// but idk what the fuck im doing :skull:
-		if (m_deaths.empty()) {
+		if (deaths.empty()) {
 			// add labels
 			auto labelsContainer = CCNode::create();
 			labelsContainer->setAnchorPoint(CCPoint(0.5f, 0.5f));
 
 			labelsContainer->setPosition(CCSize(
-				winSize.width / 2,
-				(winSize.height / 2) + 7
+				WIN_SIZE.width / 2,
+				(WIN_SIZE.height / 2) + 7
 			));
 
 			labelsContainer->setContentSize(CCSize(
@@ -201,8 +286,8 @@ protected:
 
 			auto menu = CCMenu::create();
 			auto btnSize = okBtn->getContentSize();
-			menu->setPositionY((winSize.height / 2) - (popupSize.height / 2) + (btnSize.height));
-			menu->setPositionX(winSize.width / 2);
+			menu->setPositionY((WIN_SIZE.height / 2) - (popupSize.height / 2) + (btnSize.height));
+			menu->setPositionX(WIN_SIZE.width / 2);
 			menu->addChild(okBtn);
 			this->addChild(menu);
 
@@ -214,7 +299,7 @@ protected:
 		int curPageLen = 0;
 		int curPage = 0;
 
-		for (auto& count : m_deaths) {
+		for (auto& count : deaths) {
 			int percent = i++;
 			if (!count) continue;
 
@@ -223,7 +308,7 @@ protected:
 			m_pages[curPage].push_back(percent);
 
 			// go to next page
-			if (curPageLen == m_pageLength) {
+			if (curPageLen == DT_POPUP_PAGE_LEN) {
 				curPageLen = 0;
 				curPage++;
 			}
@@ -232,7 +317,7 @@ protected:
 		// add back button
 		auto backBtnMenu = CCMenu::create();
 		backBtnMenu->setPositionX(24.f);
-		backBtnMenu->setPositionY(winSize.height - 23);
+		backBtnMenu->setPositionY(WIN_SIZE.height - 23);
 
 		auto backBtn = CCMenuItemSpriteExtra::create(
 			CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png"),
@@ -281,8 +366,8 @@ protected:
 			auto nxtBtnMenu = CCMenu::create();
 
 			nxtBtnMenu->setPosition(CCSize(
-				(winSize.width / 2) + (m_popupSize.width / 2) + padding,
-				winSize.height / 2
+				(WIN_SIZE.width / 2) + (m_popupSize.width / 2) + padding,
+				WIN_SIZE.height / 2
 			));
 
 			nxtBtnMenu->setScaleX(-0.8f);
@@ -303,8 +388,8 @@ protected:
 			auto bckBtnMenu = CCMenu::create();
 
 			bckBtnMenu->setPosition(CCSize(
-				(winSize.width / 2) - (m_popupSize.width / 2) - padding,
-				winSize.height / 2
+				(WIN_SIZE.width / 2) - (m_popupSize.width / 2) - padding,
+				WIN_SIZE.height / 2
 			));
 
 			bckBtnMenu->setScale(0.8f);
@@ -320,8 +405,8 @@ protected:
 		layout->setGap(3.f);
 
 		auto deathsNode = CCNode::create();
-		deathsNode->setPositionX((winSize.width / 2));
-		deathsNode->setPositionY((winSize.height / 2) + (m_popupSize.height / 2) - heightTopOffset);
+		deathsNode->setPositionX((WIN_SIZE.width / 2));
+		deathsNode->setPositionY((WIN_SIZE.height / 2) + (m_popupSize.height / 2) - heightTopOffset);
 
 		deathsNode->setContentSize(CCSize(
 			m_popupSize.width - (padding * 2), // width
@@ -331,11 +416,17 @@ protected:
 		deathsNode->setAnchorPoint(CCPoint(0.5f, 1.f));
 		deathsNode->setLayout(layout);
 
+		auto deaths = SaveManager::getDeaths();
+
 		for (auto& percent : m_pages[m_pageIndex]) {
-			int count = m_deaths[percent];
-			auto labelContent = std::format("{}% x{}", percent, count);
-			auto label = CCLabelBMFont::create(labelContent.c_str(), "chatFont.fnt");
-			label->setScale(0.6f);
+			int count = deaths[percent];
+			auto labelStr = std::format("{}% x{}", percent, count);
+			auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
+
+			// new bests are yellow
+			if (SaveManager::isNewBest(percent))
+				label->setColor(cocos2d::ccColor3B(255, 255, 0));
+
 			deathsNode->addChild(label);
 		}
 
@@ -350,8 +441,7 @@ protected:
 
 	virtual void onClose(CCObject* sender) {
 		Popup::onClose(sender);
-		infoAlert->setVisible(true);
-		handleTouchPriority(infoAlert);
+		DTPopupManager::onDTPopupClose();
 	}
 
 public:
@@ -413,17 +503,18 @@ public:
 	}
 
 	void onOpenDTPopup(CCObject* sender) {
-		// just in case
-		if (infoAlert == nullptr || level == nullptr)
-			return;
+		// prevent crashes
+		if (
+			DTPopupManager::getActiveInfoAlert() == nullptr
+			|| SaveManager::getLevel() == nullptr
+		) return;
 
-		infoAlert->setVisible(false);
-
-		auto deaths = getDeaths(level);
+		DTPopupManager::onDTPopupOpen();
+		auto deaths = SaveManager::getDeaths();
 
 		auto popupSize = deaths.empty()
 			? CCSize(240.f, 160.f)
-			: CCSize(160.f, winSize.height * 0.85);
+			: CCSize(160.f, WIN_SIZE.height * 0.85);
 
 		auto scene = CCDirector::sharedDirector()->getRunningScene();
 		scene->addChild(DTPopup::create(popupSize));
@@ -435,8 +526,8 @@ public:
 class $modify(LevelInfoLayer) {
 	void onLevelInfo(CCObject* sender) {
 		if (!m_level->isPlatformer()) {
-			showDTButtonLayer = true;
-			level = m_level;
+			DTPopupManager::enableDTBtn();
+			SaveManager::setLevel(m_level);
 		}
 
 		LevelInfoLayer::onLevelInfo(sender);
@@ -446,8 +537,8 @@ class $modify(LevelInfoLayer) {
 class $modify(EditLevelLayer) {
 	void onLevelInfo(CCObject* sender) {
 		if (!m_level->isPlatformer()) {
-			showDTButtonLayer = true;
-			level = m_level;
+			DTPopupManager::enableDTBtn();
+			SaveManager::setLevel(m_level);
 		}
 
 		EditLevelLayer::onLevelInfo(sender);
@@ -458,8 +549,8 @@ class $modify(LevelPage) {
 	void onInfo(CCObject* sender) {
 		// only show for actual main levels
 		if (m_level->m_levelID.value() > 0) {
-			showDTButtonLayer = true;
-			level = m_level;
+			DTPopupManager::enableDTBtn();
+			SaveManager::setLevel(m_level);
 		}
 
 		LevelPage::onInfo(sender);
@@ -471,17 +562,16 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 		if (!FLAlertLayer::init(p0, p1, p2, p3, p4, p5, p6, p7, p8))
 			return false;
 
-		if (showDTButtonLayer) {
+		if (DTPopupManager::isDTBtnEnabled()) {
 			this->addChild(DTButtonLayer::create());
-			infoAlert = this;
-			handleTouchPriority(this);
+			DTPopupManager::onInfoAlertOpen(this);
 		}
 
 		return true;
 	}
 
 	void onBtn1(CCObject* sender) {
-		resetDTPopup();
+		DTPopupManager::onInfoAlertClose();
 		FLAlertLayer::onBtn1(sender);
 	}
 };
