@@ -459,6 +459,26 @@ protected:
 		handleTouchPriority(this);
 	}
 
+	void keyDown(cocos2d::enumKeyCodes key) {
+		log::info("keydown");
+
+		switch (key) {
+			case KEY_Left:
+			case CONTROLLER_Left: {
+				this->backPage(nullptr);
+				break;
+			}
+
+			case KEY_Right:
+			case CONTROLLER_Right: {
+				this->nextPage(nullptr);
+				break;
+			}
+		}
+
+		Popup::keyDown(key);
+	}
+
 	virtual void onClose(CCObject* sender) {
 		Popup::onClose(sender);
 		DTPopupManager::onDTPopupClose();
