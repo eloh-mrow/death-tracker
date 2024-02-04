@@ -511,8 +511,6 @@ protected:
 	}
 
 	void keyDown(cocos2d::enumKeyCodes key) {
-		log::info("keydown");
-
 		switch (key) {
 			case KEY_Left:
 			case CONTROLLER_Left: {
