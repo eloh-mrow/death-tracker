@@ -19,28 +19,6 @@ typedef std::map<int, bool> Progresses;
 auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
 int DT_POPUP_PAGE_LEN = 13;
 
-// helper functions
-// ----------------------------
-std::string getLevelId(GJGameLevel* level) {
-	if (level == nullptr) return "";
-
-	auto levelId = std::to_string(level->m_levelID.value());
-
-	// local level postfix
-	if (level->m_levelType != GJLevelType::Saved)
-		levelId += "-local";
-
-	// daily/weekly postfix
-	if (level->m_dailyID > 0)
-		levelId += "-daily";
-
-	// gauntlet level postfix
-	if (level->m_gauntletLevel)
-		levelId += "-gauntlet";
-
-	return levelId;
-}
-
 // SaveManager - helps with save data
 // ----------------------------
 class SaveManager {
@@ -52,6 +30,26 @@ private:
 
 	// TODO: add backups
 	static void createBackup() {}
+
+	static std::string getLevelId() {
+		if (m_level == nullptr) return "";
+
+		auto levelId = std::to_string(m_level->m_levelID.value());
+
+		// local level postfix
+		if (m_level->m_levelType != GJLevelType::Saved)
+			levelId += "-local";
+
+		// daily/weekly postfix
+		if (m_level->m_dailyID > 0)
+			levelId += "-daily";
+
+		// gauntlet level postfix
+		if (m_level->m_gauntletLevel)
+			levelId += "-gauntlet";
+
+		return levelId;
+	}
 
 	static void calcDeathsAndProgresses() {
 		if (m_level == nullptr) return;
@@ -72,7 +70,7 @@ private:
 		}
 
 		// calculate deaths
-		auto levelId = getLevelId(m_level);
+		auto levelId = getLevelId();
 		auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 
 		// default deaths to progresses x1
@@ -139,7 +137,7 @@ public:
 
 		m_deaths[percent]++;
 
-		auto levelId = getLevelId(m_level);
+		auto levelId = getLevelId();
 		Mod::get()->setSavedValue(levelId, m_deaths);
 	}
 };
