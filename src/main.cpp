@@ -152,6 +152,7 @@ Progresses SaveManager::m_progresses{};
 class DTPopupManager {
 private:
 	static FLAlertLayer* m_infoAlert;
+	static CCNode* m_dtBtn;
 	static bool m_isDTBtnEnabled;
 
 public:
@@ -169,15 +170,19 @@ public:
 		m_isDTBtnEnabled = true;
 	}
 
-	static void onInfoAlertOpen(FLAlertLayer* infoAlert) {
+	static void onInfoAlertOpen(FLAlertLayer* infoAlert, CCNode* dtBtn) {
 		m_infoAlert = infoAlert;
+		m_dtBtn = dtBtn;
 		m_isDTBtnEnabled = true;
 		handleTouchPriority(m_infoAlert);
 	}
 
-	static void onInfoAlertClose() {
+	static void onInfoAlertClose(bool removeDTBtn = false) {
+		if (removeDTBtn) m_dtBtn->removeFromParent();
+
 		m_isDTBtnEnabled = false;
 		m_infoAlert = nullptr;
+		m_dtBtn = nullptr;
 		SaveManager::setLevel(nullptr);
 	}
 
@@ -195,6 +200,7 @@ public:
 };
 
 FLAlertLayer* DTPopupManager::m_infoAlert = nullptr;
+CCNode* DTPopupManager::m_dtBtn = nullptr;
 bool DTPopupManager::m_isDTBtnEnabled = false;
 
 // track deaths
@@ -660,10 +666,21 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 			});
 
 			this->m_mainLayer->addChild(dtBtn);
-			DTPopupManager::onInfoAlertOpen(this);
+			DTPopupManager::onInfoAlertOpen(this, dtBtn);
 		}
 
 		return true;
+	}
+
+	// manually hide the DT button
+	// if cvolton.betterinfo is loaded
+	void show() {
+		FLAlertLayer::show();
+
+		if (!DTPopupManager::isDTBtnEnabled()) return;
+		if (!Loader::get()->isModLoaded("cvolton.betterinfo")) return;
+		if (this->getChildByIDRecursive("cvolton.betterinfo/next-button") != nullptr) return;
+		DTPopupManager::onInfoAlertClose(true);
 	}
 
 	void onBtn1(CCObject* sender) {
