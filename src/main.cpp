@@ -2,6 +2,7 @@
 #include <format>
 
 #include <Geode/Geode.hpp>
+#include <Geode/modify/GJBaseGameLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
@@ -17,7 +18,7 @@ typedef std::map<int, bool> Progresses;
 // globals
 // ----------------------------
 auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
-int DT_POPUP_PAGE_LEN = 13;
+std::string LEVEL_COUNT_KEY = "levelCount";
 
 // SaveManager - helps with save data
 // ----------------------------
@@ -27,6 +28,8 @@ private:
 	static int m_levelCount;
 	static Deaths m_deaths;
 	static Progresses m_progresses;
+	static int m_checkpoint;
+	static bool m_usingStartpos;
 
 	// TODO: add backups
 	static void createBackup() {}
@@ -54,6 +57,16 @@ private:
 	static void calcDeathsAndProgresses() {
 		if (m_level == nullptr) return;
 
+		// calculate deaths
+		auto levelId = SaveManager::getLevelId();
+		auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
+
+		// platformer should start empty
+		if (SaveManager::isPlatformer()) {
+			m_deaths = deaths;
+			return;
+		}
+
 		// calculate progresses
 		// derived from cvolton.betterinfo
 		std::string personalBests = m_level->m_personalBests;
@@ -68,10 +81,6 @@ private:
 			currentPercent += std::stoi(currentBest);
 			progresses[currentPercent] = true;
 		}
-
-		// calculate deaths
-		auto levelId = SaveManager::getLevelId();
-		auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 
 		// default deaths to progresses x1
 		auto pbs = std::string(m_level->m_personalBests);
@@ -107,45 +116,92 @@ public:
 		}
 	}
 
+	static bool isPlatformer() {
+		if (m_level == nullptr) return false;
+		return m_level->isPlatformer();
+	}
+
 	static bool isNewBest(int percent) {
 		return m_progresses[percent];
 	}
 
-	static int getLevelCount() {
-		return Mod::get()->getSavedValue<int>("levelCount", 0);
-	}
+	static void incLevelCount() {
+		Mod::get()->setSavedValue(LEVEL_COUNT_KEY, ++m_levelCount);
 
-	static void setLevelCount(int levelCount) {
-		Mod::get()->setSavedValue("levelCount", levelCount);
+		// create new backup
+		// every 50 levels
+		if (m_levelCount % 50 == 0)
+			SaveManager::createBackup();
 	}
 
 	static Deaths getDeaths() {
 		return m_deaths;
 	}
 
-	static void addDeath(int percent) {
-		// new unplayed level
-		if (m_deaths.empty()) {
-			SaveManager::setLevelCount(++m_levelCount);
-			m_deaths = Deaths(100);
+	static bool hasNoDeaths() {
+		if (m_level == nullptr) return true;
+		return m_deaths.empty();
+	}
 
-			// create new backup
-			// every 50 levels
-			if (m_levelCount % 50 == 0)
-				SaveManager::createBackup();
+	static void addDeath(int percent = 0) {
+		// new unplayed level
+		if (SaveManager::hasNoDeaths()) {
+			SaveManager::incLevelCount();
+
+			if (!SaveManager::isPlatformer()) m_deaths = Deaths(100);
 		}
 
-		m_deaths[percent]++;
+		if (SaveManager::isPlatformer()) {
+			SaveManager::allocateDeathsForCheckpoint();
+			m_deaths[m_checkpoint]++;
+		} else m_deaths[percent]++;
+
+		// if (SaveManager::isPlatformer()) {
+		// 	log::info("cur checkpt: {}", m_checkpoint);
+		// 	log::info("deaths size: {}", m_deaths.size());
+
+		// 	std::stringstream ss;
+		// 	int i = 0;
+		// 	for (auto& count : m_deaths)
+		// 		ss << std::format("{}x{}, ", i++, count);
+
+		// 	log::info("deaths: {}", ss.str());
+		// }
 
 		auto levelId = SaveManager::getLevelId();
 		Mod::get()->setSavedValue(levelId, m_deaths);
 	}
+
+	static void allocateDeathsForCheckpoint() {
+		if (m_level == nullptr) return;
+
+		while (m_checkpoint >= m_deaths.size())
+			m_deaths.push_back(0);
+	}
+
+	static void incCheckpoint() {
+		m_checkpoint++;
+	}
+
+	static void resetCheckpoint() {
+		m_checkpoint = 0;
+	}
+
+	static bool isUsingStartpos() {
+		return m_usingStartpos;
+	}
+
+	static void setUsingStartpos(bool usingStartpos) {
+		m_usingStartpos = usingStartpos;
+	}
 };
 
 GJGameLevel* SaveManager::m_level = nullptr;
-int SaveManager::m_levelCount = SaveManager::getLevelCount();
+int SaveManager::m_levelCount = Mod::get()->getSavedValue<int>(LEVEL_COUNT_KEY, 0);
 Deaths SaveManager::m_deaths{};
 Progresses SaveManager::m_progresses{};
+int SaveManager::m_checkpoint = 0;
+bool SaveManager::m_usingStartpos = false;
 
 // DTPopupManager - manages popup state
 // ----------------------------
@@ -205,16 +261,46 @@ bool DTPopupManager::m_isDTBtnEnabled = false;
 
 // track deaths
 // ----------------------------
+class $modify(GJBaseGameLayer) {
+	TodoReturn setStartPosObject(StartPosObject* startpos) {
+		GJBaseGameLayer::setStartPosObject(startpos);
+		SaveManager::setUsingStartpos(startpos != nullptr);
+	}
+};
+
+class $modify(PlayLayer) {
+	TodoReturn checkpointActivated(CheckpointGameObject* checkpt) {
+		PlayLayer::checkpointActivated(checkpt);
+
+		if (m_isPracticeMode) return;
+		SaveManager::incCheckpoint();
+	}
+
+	TodoReturn resetLevelFromStart() {
+		PlayLayer::resetLevelFromStart();
+		SaveManager::resetCheckpoint();
+	}
+
+	TodoReturn onQuit() {
+		PlayLayer::onQuit();
+		SaveManager::resetCheckpoint();
+	}
+};
+
 class $modify(PlayerObject) {
 	TodoReturn playerDestroyed(bool p0) {
 		PlayerObject::playerDestroyed(p0);
 
+		// disable in editor
 		auto playLayer = PlayLayer::get();
-		if (playLayer == nullptr) return; // disable in editor
-
+		if (playLayer == nullptr) return;
 		auto level = playLayer->m_level;
-		if (playLayer->m_isPracticeMode) return; // disable in practice
-		if (level->isPlatformer()) return; // disable for platformer
+
+		// disable in practice
+		if (playLayer->m_isPracticeMode) return;
+
+		// platformer + startpos = no worky, incorrect death tracking
+		if (SaveManager::isPlatformer() && SaveManager::isUsingStartpos()) return;
 
 		// disable tracking deaths on completed levels
 		if (
@@ -254,13 +340,10 @@ protected:
 		m_closeBtn->setVisible(false);
 		this->setOpacity(150);
 
-		// get deaths
-		auto deaths = SaveManager::getDeaths();
-
 		// show popup if no deaths recorded for this level
 		// this is probably the worst way ever to do this
 		// but idk what the fuck im doing :skull:
-		if (deaths.empty()) {
+		if (SaveManager::hasNoDeaths()) {
 			// add labels
 			auto labelsContainer = CCNode::create();
 			labelsContainer->setAnchorPoint({0.5f, 0.5f});
@@ -313,7 +396,9 @@ protected:
 		}
 
 		// create pages
+		auto deaths = SaveManager::getDeaths();
 		int i = 0;
+		int pageLen = SaveManager::isPlatformer() ? 10 : 13;
 		int curPageLen = 0;
 		int curPage = 0;
 
@@ -326,7 +411,7 @@ protected:
 			m_pages[curPage].push_back(percent);
 
 			// go to next page
-			if (curPageLen == DT_POPUP_PAGE_LEN) {
+			if (curPageLen == pageLen) {
 				curPageLen = 0;
 				curPage++;
 			}
@@ -378,12 +463,16 @@ protected:
 				int percent = i++;
 				if (!count) continue;
 
-				ss << std::format("{}%x{}", percent, count);
+				if (SaveManager::isPlatformer()) {
+					ss << std::format("checkpoint {}: x{}", percent, count) << std::endl;
+				} else {
+					ss << std::format("{}%x{}", percent, count);
 
-				if (SaveManager::isNewBest(percent))
-					ss << " (new best)";
+					if (SaveManager::isNewBest(percent))
+						ss << " (new best)";
 
-				ss << std::endl;
+					ss << std::endl;
+				}
 			}
 
 			clipboard::write(ss.str());
@@ -476,7 +565,7 @@ protected:
 		auto layout = ColumnLayout::create();
 		layout->setAxisReverse(true);
 		layout->setAxisAlignment(AxisAlignment::End);
-		layout->setGap(3.f);
+		layout->setGap(SaveManager::isPlatformer() ? 6.f : 3.f);
 
 		auto deathsNode = CCNode::create();
 
@@ -497,14 +586,70 @@ protected:
 
 		for (auto& percent : m_pages[m_pageIndex]) {
 			int count = deaths[percent];
-			auto labelStr = std::format("{}% x{}", percent, count);
-			auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
 
-			// new bests are yellow
-			if (SaveManager::isNewBest(percent))
-				label->setColor({255, 255, 0});
+			if (SaveManager::isPlatformer()) {
+				auto checkpt = std::to_string(percent);
+				auto countStr = std::format("x{}", count);
 
-			deathsNode->addChild(label);
+				auto checkptSpr = CCSprite::createWithSpriteFrameName("checkpoint_01_001.png");
+				checkptSpr->setScale(0.65f);
+
+				auto checkptLbl = CCLabelBMFont::create(checkpt.c_str(), "bigFont.fnt");
+				checkptLbl->setZOrder(2);
+				checkptLbl->setScale(0.35f);
+
+				auto checkptLblShadow = CCLabelBMFont::create(checkpt.c_str(), "bigFont.fnt");
+				checkptLblShadow->setZOrder(1);
+				checkptLblShadow->setScale(0.35f);
+
+				auto checkptLblPos = checkptLbl->getPosition();
+				checkptLblShadow->setPosition({
+					checkptLblPos.x + 0.5f,
+					checkptLblPos.y - 0.5f
+				});
+
+				checkptLblShadow->setColor({0, 0, 0});
+				checkptLblShadow->setOpacity(120);
+
+				auto countLbl = CCLabelBMFont::create(countStr.c_str(), "chatFont.fnt");
+				countLbl->setAnchorPoint({0.f, 0.5f});
+
+				auto checkptNode = CCNode::create();
+				checkptNode->addChild(checkptSpr);
+				checkptNode->addChild(checkptLbl);
+				checkptNode->addChild(checkptLblShadow);
+				checkptNode->setAnchorPoint({0.5f, 0.5f});
+
+				checkptNode->setContentSize({
+					(checkptLbl->getContentSize().width * checkptLbl->getScale()),
+					0
+				});
+
+				auto node = CCNode::create();
+				node->setAnchorPoint({0.5f, 0.5f});
+
+				node->setContentSize({
+					m_popupSize.width - (padding * 2),
+					0
+				});
+
+				node->addChild(checkptNode);
+				node->addChild(countLbl);
+				deathsNode->addChild(node);
+
+				auto layout = RowLayout::create();
+				node->setLayout(layout);
+				checkptNode->ignoreAnchorPointForPosition(true); // idk what this does, but it works! :grin:
+			} else {
+				auto labelStr = std::format("{}% x{}", percent, count);
+				auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
+
+				// new bests are yellow
+				if (SaveManager::isNewBest(percent))
+					label->setColor({255, 255, 0});
+
+				deathsNode->addChild(label);
+			}
 		}
 
 		deathsNode->setLayout(layout);
@@ -602,9 +747,8 @@ public:
 		) return;
 
 		DTPopupManager::onDTPopupOpen();
-		auto deaths = SaveManager::getDeaths();
 
-		auto popupSize = deaths.empty()
+		auto popupSize = SaveManager::hasNoDeaths()
 			? CCSize(240.f, 160.f)
 			: CCSize(160.f, WIN_SIZE.height * 0.85);
 
@@ -617,22 +761,16 @@ public:
 // ----------------------------
 class $modify(LevelInfoLayer) {
 	void onLevelInfo(CCObject* sender) {
-		if (!m_level->isPlatformer()) {
-			DTPopupManager::enableDTBtn();
-			SaveManager::setLevel(m_level);
-		}
-
+		DTPopupManager::enableDTBtn();
+		SaveManager::setLevel(m_level);
 		LevelInfoLayer::onLevelInfo(sender);
 	}
 };
 
 class $modify(EditLevelLayer) {
 	void onLevelInfo(CCObject* sender) {
-		if (!m_level->isPlatformer()) {
-			DTPopupManager::enableDTBtn();
-			SaveManager::setLevel(m_level);
-		}
-
+		DTPopupManager::enableDTBtn();
+		SaveManager::setLevel(m_level);
 		EditLevelLayer::onLevelInfo(sender);
 	}
 };
