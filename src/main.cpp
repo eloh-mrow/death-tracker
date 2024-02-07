@@ -15,6 +15,15 @@ using namespace geode::prelude;
 typedef std::vector<int> Deaths;
 typedef std::map<int, bool> Progresses;
 
+class DTButtonLayer : public CCLayer {
+protected:
+	bool init();
+
+public:
+	static DTButtonLayer* create();
+	void onOpenDTPopup(CCObject* sender);
+};
+
 // globals
 // ----------------------------
 auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
@@ -156,18 +165,6 @@ public:
 			m_deaths[m_checkpoint]++;
 		} else m_deaths[percent]++;
 
-		// if (SaveManager::isPlatformer()) {
-		// 	log::info("cur checkpt: {}", m_checkpoint);
-		// 	log::info("deaths size: {}", m_deaths.size());
-
-		// 	std::stringstream ss;
-		// 	int i = 0;
-		// 	for (auto& count : m_deaths)
-		// 		ss << std::format("{}x{}, ", i++, count);
-
-		// 	log::info("deaths: {}", ss.str());
-		// }
-
 		auto levelId = SaveManager::getLevelId();
 		Mod::get()->setSavedValue(levelId, m_deaths);
 	}
@@ -208,7 +205,7 @@ bool SaveManager::m_usingStartpos = false;
 class DTPopupManager {
 private:
 	static FLAlertLayer* m_infoAlert;
-	static CCNode* m_dtBtn;
+	static DTButtonLayer* m_dtBtn;
 	static bool m_isDTBtnEnabled;
 
 public:
@@ -226,7 +223,7 @@ public:
 		m_isDTBtnEnabled = true;
 	}
 
-	static void onInfoAlertOpen(FLAlertLayer* infoAlert, CCNode* dtBtn) {
+	static void onInfoAlertOpen(FLAlertLayer* infoAlert, DTButtonLayer* dtBtn) {
 		m_infoAlert = infoAlert;
 		m_dtBtn = dtBtn;
 		m_isDTBtnEnabled = true;
@@ -234,7 +231,7 @@ public:
 	}
 
 	static void onInfoAlertClose(bool removeDTBtn = false) {
-		if (removeDTBtn) m_dtBtn->removeFromParent();
+		if (removeDTBtn && m_dtBtn != nullptr) m_dtBtn->removeFromParent();
 
 		m_isDTBtnEnabled = false;
 		m_infoAlert = nullptr;
@@ -256,7 +253,7 @@ public:
 };
 
 FLAlertLayer* DTPopupManager::m_infoAlert = nullptr;
-CCNode* DTPopupManager::m_dtBtn = nullptr;
+DTButtonLayer* DTPopupManager::m_dtBtn = nullptr;
 bool DTPopupManager::m_isDTBtnEnabled = false;
 
 // track deaths
@@ -698,64 +695,60 @@ public:
 	}
 };
 
-class DTButtonLayer : public CCLayer {
-protected:
-	bool init() {
-		if (!CCLayer::init()) return false;
+bool DTButtonLayer::init() {
+	if (!CCLayer::init()) return false;
 
-		auto btnSprite = CCSprite::create("dt_skullBtn_001-uhd.png"_spr);
-		btnSprite->setScale(0.9f);
+	auto btnSprite = CCSprite::create("dt_skullBtn_001.png"_spr);
+	btnSprite->setScale(0.25f);
 
-		auto btn = CCMenuItemSpriteExtra::create(
-			btnSprite,
-			this,
-			menu_selector(DTButtonLayer::onOpenDTPopup)
-		);
+	auto btn = CCMenuItemSpriteExtra::create(
+		btnSprite,
+		this,
+		menu_selector(DTButtonLayer::onOpenDTPopup)
+	);
 
-		auto btnSize = btn->getContentSize();
+	auto btnSize = btn->getContentSize();
 
-		btn->setPosition({
-			-(btnSize.width - 2),
-			btnSize.height - 2.5f
-		});
+	btn->setPosition({
+		-(btnSize.width - 2),
+		btnSize.height - 2.5f
+	});
 
-		auto menu = CCMenu::create();
-		menu->addChild(btn);
-		this->addChild(menu);
+	auto menu = CCMenu::create();
+	menu->addChild(btn);
+	this->addChild(menu);
 
-		return true;
+	return true;
+}
+
+DTButtonLayer* DTButtonLayer::create() {
+	auto ret = new DTButtonLayer();
+
+	if (ret && ret->init()) {
+		ret->autorelease();
+		return ret;
 	}
 
-public:
-	static DTButtonLayer* create() {
-		auto ret = new DTButtonLayer();
+	CC_SAFE_DELETE(ret);
+	return nullptr;
+}
 
-		if (ret && ret->init()) {
-			ret->autorelease();
-			return ret;
-		}
+void DTButtonLayer::onOpenDTPopup(CCObject* sender) {
+	// prevent crashes
+	if (
+		DTPopupManager::getActiveInfoAlert() == nullptr
+		|| SaveManager::getLevel() == nullptr
+	) return;
 
-		CC_SAFE_DELETE(ret);
-		return nullptr;
-	}
+	DTPopupManager::onDTPopupOpen();
 
-	void onOpenDTPopup(CCObject* sender) {
-		// prevent crashes
-		if (
-			DTPopupManager::getActiveInfoAlert() == nullptr
-			|| SaveManager::getLevel() == nullptr
-		) return;
+	auto popupSize = SaveManager::hasNoDeaths()
+		? CCSize(240.f, 160.f)
+		: CCSize(160.f, WIN_SIZE.height * 0.85);
 
-		DTPopupManager::onDTPopupOpen();
-
-		auto popupSize = SaveManager::hasNoDeaths()
-			? CCSize(240.f, 160.f)
-			: CCSize(160.f, WIN_SIZE.height * 0.85);
-
-		auto scene = CCDirector::sharedDirector()->getRunningScene();
-		scene->addChild(DTPopup::create(popupSize));
-	}
-};
+	auto scene = CCDirector::sharedDirector()->getRunningScene();
+	scene->addChild(DTPopup::create(popupSize));
+}
 
 // hooks to add DeathTrackerLayer
 // ----------------------------
@@ -792,7 +785,7 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 		if (!FLAlertLayer::init(p0, p1, p2, p3, p4, p5, p6, p7, p8))
 			return false;
 
-		if (DTPopupManager::isDTBtnEnabled()) {
+		if (DTPopupManager::isDTBtnEnabled() && DTPopupManager::getActiveInfoAlert() == nullptr) {
 			auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
 
 			auto dtBtn = DTButtonLayer::create();
