@@ -785,7 +785,7 @@ class $modify(DTAlertLayer, FLAlertLayer) {
 		if (!FLAlertLayer::init(p0, p1, p2, p3, p4, p5, p6, p7, p8))
 			return false;
 
-		if (DTPopupManager::isDTBtnEnabled() && DTPopupManager::getActiveInfoAlert() == nullptr) {
+		if (DTPopupManager::isDTBtnEnabled()) {
 			auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
 
 			auto dtBtn = DTButtonLayer::create();
