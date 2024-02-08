@@ -9,6 +9,7 @@
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/LevelPage.hpp>
 #include <Geode/modify/FLAlertLayer.hpp>
+#include <Geode/modify/CCLayerColor.hpp>
 #include <matjson/stl_serialize.hpp>
 
 using namespace geode::prelude;
@@ -230,12 +231,10 @@ public:
 		handleTouchPriority(m_infoAlert);
 	}
 
-	static void onInfoAlertClose(bool removeDTBtn = false) {
-		if (removeDTBtn && m_dtBtn != nullptr) m_dtBtn->removeFromParent();
-
+	static void onInfoAlertClose(bool forceRemove = false) {
 		m_isDTBtnEnabled = false;
 		m_infoAlert = nullptr;
-		m_dtBtn = nullptr;
+		DTPopupManager::removeDTBtn(forceRemove);
 		SaveManager::setLevel(nullptr);
 	}
 
@@ -249,6 +248,11 @@ public:
 		if (m_infoAlert == nullptr) return;
 		m_infoAlert->setVisible(true);
 		handleTouchPriority(m_infoAlert);
+	}
+
+	static void removeDTBtn(bool forceRemove = false) {
+		if (forceRemove && m_dtBtn != nullptr) m_dtBtn->removeFromParent();
+		m_dtBtn = nullptr;
 	}
 };
 
@@ -777,6 +781,17 @@ class $modify(LevelPage) {
 		}
 
 		LevelPage::onInfo(sender);
+	}
+};
+
+class $modify(CCLayerColor) {
+	bool initWithColor(const ccColor4B& color) {
+		if (!CCLayerColor::initWithColor(color)) return false;
+
+		// remove the m_dtBtn as a fail safe
+		// this is guaranteed to fire before FLAlertLayer::init()
+		DTPopupManager::removeDTBtn();
+		return true;
 	}
 };
 
