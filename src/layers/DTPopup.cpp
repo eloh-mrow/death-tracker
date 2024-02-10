@@ -125,7 +125,7 @@ void DTPopup::showNoDeathsPage() {
 
 	// add session button
 	if (DTPopupManager::showSessionDeaths()) {
-		auto sessionBtnSpr = CCSprite::create("dt_sessionBtn.png"_spr);
+		auto sessionBtnSpr = CCSprite::create("dt_sessionBtn_002.png"_spr);
 		sessionBtnSpr->setScale(0.75f);
 
 		auto sessionBtn = CCMenuItemSpriteExtra::create(
@@ -247,7 +247,12 @@ void DTPopup::showPage() {
 	auto cpyBtnSize = cpyBtn->getContentSize();
 
 	// create session button
-	auto sessionBtnSpr = CCSprite::create("dt_sessionBtn.png"_spr);
+	auto sessionBtnSpr = CCSprite::create(
+		DTPopupManager::showSessionDeaths()
+			? "dt_sessionBtn_002.png"_spr
+			: "dt_sessionBtn.png"_spr
+	);
+
 	sessionBtnSpr->setScale(0.525f);
 
 	auto sessionBtn = CCMenuItemSpriteExtra::create(
