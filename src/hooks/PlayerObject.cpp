@@ -15,6 +15,9 @@ class $modify(PlayerObject) {
 		// disable in practice
 		if (playLayer->m_isPracticeMode) return;
 
+		// only count deaths for p1
+		if (this != playLayer->m_player1) return;
+
 		// platformer + startpos = no worky, incorrect death tracking
 		if (SaveManager::isPlatformer() && SaveManager::isUsingStartpos()) return;
 
@@ -30,6 +33,7 @@ class $modify(PlayerObject) {
 		if (SaveManager::getLevel() != level)
 			SaveManager::setLevel(level);
 
-		SaveManager::addDeath(playLayer->getCurrentPercentInt());
+		auto percent = playLayer->getCurrentPercentInt();
+		SaveManager::addDeath(percent);
 	}
 };
