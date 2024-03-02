@@ -13,25 +13,27 @@ int SaveManager::m_checkpoint = 0;
 bool SaveManager::m_usingStartpos = false;
 bool SaveManager::m_shouldResetSessionDeaths = false;
 float SaveManager::m_respawnPercent = 0;
+std::map<std::string, bool> SaveManager::m_playedLevels{};
 
 // TODO: add backups
 void SaveManager::createBackup() {}
 
-std::string SaveManager::getLevelId() {
-	if (m_level == nullptr) return "";
+std::string SaveManager::getLevelId(GJGameLevel* level) {
+	if (level == nullptr) level = m_level; // default to m_level if no parameter specified
+	if (level == nullptr) return "";
 
-	auto levelId = std::to_string(m_level->m_levelID.value());
+	auto levelId = std::to_string(level->m_levelID.value());
 
 	// local level postfix
-	if (m_level->m_levelType != GJLevelType::Saved)
+	if (level->m_levelType != GJLevelType::Saved)
 		levelId += "-local";
 
 	// daily/weekly postfix
-	if (m_level->m_dailyID > 0)
+	if (level->m_dailyID > 0)
 		levelId += "-daily";
 
 	// gauntlet level postfix
-	if (m_level->m_gauntletLevel)
+	if (level->m_gauntletLevel)
 		levelId += "-gauntlet";
 
 	return levelId;
@@ -116,8 +118,8 @@ void SaveManager::incLevelCount() {
 		SaveManager::createBackup();
 }
 
-void SaveManager::setShouldResetSessionDeaths() {
-	m_shouldResetSessionDeaths = true;
+void SaveManager::setShouldResetSessionDeaths(bool shouldReset) {
+	m_shouldResetSessionDeaths = shouldReset;
 }
 
 void SaveManager::resetSessionDeaths() {
@@ -207,4 +209,20 @@ float SaveManager::getRespawnPercent() {
 
 void SaveManager::setRespawnPercent(float respawnPercent) {
 	m_respawnPercent = respawnPercent;
+}
+
+bool SaveManager::hasPlayedLevel(std::string levelId) {
+	return m_playedLevels[levelId];
+}
+
+void SaveManager::setPlayedLevel(std::string levelId) {
+	m_playedLevels[levelId] = true;
+}
+
+long long SaveManager::getLevelSessionTime(std::string levelId) {
+	return Mod::get()->getSavedValue<long long>(levelId + "-session-time", -1);
+}
+
+void SaveManager::setLevelSessionTime(std::string levelId, long long time) {
+	Mod::get()->setSavedValue(levelId + "-session-time", time);
 }

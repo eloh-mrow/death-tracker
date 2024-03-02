@@ -17,20 +17,21 @@ private:
 	static bool m_usingStartpos;
 	static bool m_shouldResetSessionDeaths;
 	static float m_respawnPercent;
+	static std::map<std::string, bool> m_playedLevels;
 
 	static void createBackup();
-	static std::string getLevelId();
 	static void calcDeathsAndProgresses();
 
 public:
 	SaveManager() = delete;
 
 	static GJGameLevel* getLevel();
+	static std::string getLevelId(GJGameLevel* level = nullptr);
 	static void setLevel(GJGameLevel* level);
 	static bool isPlatformer();
 	static bool isNewBest(int percent);
 	static void incLevelCount();
-	static void setShouldResetSessionDeaths();
+	static void setShouldResetSessionDeaths(bool shouldReset);
 	static void resetSessionDeaths();
 	static Deaths getDeaths();
 	static bool hasNoDeaths(bool checkSessionDeaths = false);
@@ -42,4 +43,8 @@ public:
 	static void setUsingStartpos(bool usingStartpos);
 	static float getRespawnPercent();
 	static void setRespawnPercent(float respawnPercent);
+	static bool hasPlayedLevel(std::string levelId);
+	static void setPlayedLevel(std::string levelId);
+	static long long getLevelSessionTime(std::string levelId);
+	static void setLevelSessionTime(std::string levelId, long long time);
 };

@@ -18,12 +18,11 @@ class $modify(PlayerObject) {
 		// disable tracking for startpos
 		if (
 			Mod::get()->getSettingValue<bool>("disable-startpos-tracking")
+			&& !SaveManager::isPlatformer()
 			&& SaveManager::isUsingStartpos()
 			&& SaveManager::getRespawnPercent() > 0
-		) {
-			log::info("startpos tracking disabled");
+		)
 			return;
-		}
 
 		// only count deaths for p1
 		if (this != playLayer->m_player1) return;
