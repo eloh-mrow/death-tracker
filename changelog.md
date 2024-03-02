@@ -1,8 +1,8 @@
 # Changelog
-## v1.6.0
+## v1.6.1
 - added a setting for customizing session length
 - added a setting to disable death tracking from startpos
-- added changelog to about.md
+- added changelog
 - added mod tags
 
 ## v1.5.1
