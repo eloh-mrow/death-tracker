@@ -12,7 +12,7 @@
 			"resources/*.png"
 		]
 	},
-	"tags": ["Utility"],
+	"tags": ["Utility", "Interface"],
 	"settings": {
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",
