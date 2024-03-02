@@ -12,6 +12,7 @@ Progresses SaveManager::m_progresses{};
 int SaveManager::m_checkpoint = 0;
 bool SaveManager::m_usingStartpos = false;
 bool SaveManager::m_shouldResetSessionDeaths = false;
+float SaveManager::m_respawnPercent = 0;
 
 // TODO: add backups
 void SaveManager::createBackup() {}
@@ -198,4 +199,12 @@ bool SaveManager::isUsingStartpos() {
 
 void SaveManager::setUsingStartpos(bool usingStartpos) {
 	m_usingStartpos = usingStartpos;
+}
+
+float SaveManager::getRespawnPercent() {
+	return m_respawnPercent;
+}
+
+void SaveManager::setRespawnPercent(float respawnPercent) {
+	m_respawnPercent = respawnPercent;
 }

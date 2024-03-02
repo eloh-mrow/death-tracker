@@ -16,6 +16,7 @@ private:
 	static int m_checkpoint;
 	static bool m_usingStartpos;
 	static bool m_shouldResetSessionDeaths;
+	static float m_respawnPercent;
 
 	static void createBackup();
 	static std::string getLevelId();
@@ -39,4 +40,6 @@ public:
 	static void resetCheckpoint();
 	static bool isUsingStartpos();
 	static void setUsingStartpos(bool usingStartpos);
+	static float getRespawnPercent();
+	static void setRespawnPercent(float respawnPercent);
 };

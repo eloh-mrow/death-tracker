@@ -26,4 +26,9 @@ class $modify(PlayLayer) {
 		PlayLayer::onQuit();
 		SaveManager::resetCheckpoint();
 	}
+
+	void resetLevel() {
+		PlayLayer::resetLevel();
+		SaveManager::setRespawnPercent(PlayLayer::getCurrentPercent());
+	}
 };

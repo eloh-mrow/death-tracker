@@ -12,10 +12,17 @@
 			"resources/*.png"
 		]
 	},
+	"tags": ["Utility"],
 	"settings": {
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",
 			"description": "Disables death tracking on completed online levels.",
+			"type": "bool",
+			"default": false
+		},
+		"disable-startpos-tracking": {
+			"name": "Disable StartPos Tracking",
+			"description": "Disables death tracking when playing from a StartPos. Deaths will still track from 0% in normal mode on a StartPos level.",
 			"type": "bool",
 			"default": false
 		}
