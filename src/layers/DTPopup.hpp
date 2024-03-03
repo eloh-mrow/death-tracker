@@ -9,6 +9,7 @@ protected:
 	CCSize m_popupSize;
 	CCNode* m_pageLayer = nullptr;
 	int m_pageIndex = 0;
+	std::vector<float> m_passRates{};
 	std::vector<std::vector<int>> m_pages;
 
 	bool setup(CCSize popupSize) override;
@@ -20,6 +21,7 @@ protected:
 	void backPage(CCObject* sender);
 	void onCopy(CCObject* sender);
 	void onToggleSessionDeaths(CCObject* sender);
+	void onTogglePassRate(CCObject* sender);
 	void showPage();
 	void keyDown(cocos2d::enumKeyCodes key);
 	virtual void onClose(CCObject* sender);

@@ -11,6 +11,7 @@ private:
 	static DTButtonLayer* m_dtBtn;
 	static bool m_isDTBtnEnabled;
 	static bool m_showSessionDeaths;
+	static bool m_showPassRate;
 
 public:
 	DTPopupManager() = delete;
@@ -20,6 +21,8 @@ public:
 	static void enableDTBtn();
 	static void toggleShowSessionDeaths();
 	static bool showSessionDeaths();
+	static void toggleShowPassRate();
+	static bool showPassRate();
 	static void onInfoAlertOpen(FLAlertLayer* infoAlert, DTButtonLayer* dtBtn);
 	static void onInfoAlertClose(bool forceRemove = false);
 	static void onDTPopupOpen();

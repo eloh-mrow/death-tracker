@@ -8,15 +8,26 @@ bool DTPopup::setup(CCSize popupSize) {
 
 	// set title
 	auto session = DTPopupManager::showSessionDeaths();
+	auto showPassRate = DTPopupManager::showPassRate();
 	auto noSessionDeaths = SaveManager::hasNoDeaths(true);
 
-	this->setTitle(
-		session ? "Session Deaths" : "Deaths",
-		"goldFont.fnt",
-		session
-			? noSessionDeaths ? 0.8f : 0.65f
-			: 0.9f
-	);
+	std::string titleStr = session
+		? showPassRate
+			? "Session Pass Rate"
+			: "Session Deaths"
+		: showPassRate
+			? "Pass Rate"
+			: "Deaths";
+
+	float scale = session
+		? noSessionDeaths
+			? 0.8f
+			: showPassRate
+				? 0.6f // change this
+				: 0.65f
+		: 0.9f;
+
+	this->setTitle(titleStr, "goldFont.fnt", scale);
 
 	// fix some misc default menu customization
 	auto titleNode = m_title;
@@ -24,7 +35,34 @@ bool DTPopup::setup(CCSize popupSize) {
 	m_closeBtn->setVisible(false);
 	this->setOpacity(150);
 
+	// calculate pass rates
+	m_passRates = {};
+	int totalDeaths = 0;
+	auto deaths = SaveManager::getDeaths();
+
+	for (auto& count : deaths) {
+		totalDeaths += count;
+		m_passRates.push_back(0);
+	}
+
+	int index = 0;
+
+	int offset = SaveManager::getLevel()->m_normalPercent.value() == 100
+		? 1
+		: 0;
+
+	for (auto& count : deaths) {
+		totalDeaths -= count;
+
+		float passCount = totalDeaths;
+		m_passRates[index] = (passCount + offset) / (passCount + count + offset) * 100;
+
+		index++;
+	}
+
 	this->setupPopupPages();
+	log::info("touch priority");
+	handleTouchPriority(this);
 	return true;
 }
 
@@ -125,8 +163,18 @@ void DTPopup::showNoDeathsPage() {
 
 	// add session button
 	if (DTPopupManager::showSessionDeaths()) {
-		auto sessionBtnSpr = CCSprite::create("dt_sessionBtn_002.png"_spr);
-		sessionBtnSpr->setScale(0.75f);
+		auto sessionBtnSpr = ButtonSprite::create("", 15.f, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+		auto sessionIconSpr = CCSprite::create("dt_sessionIcon_active.png"_spr);
+
+		auto sessionBtnSprSize = sessionBtnSpr->m_BGSprite->getContentSize();
+		sessionIconSpr->setScale(0.8f);
+
+		sessionIconSpr->setPosition({
+			sessionBtnSprSize.width / 2,
+			sessionBtnSprSize.height / 2
+		});
+
+		sessionBtnSpr->addChild(sessionIconSpr);
 
 		auto sessionBtn = CCMenuItemSpriteExtra::create(
 			sessionBtnSpr,
@@ -142,7 +190,6 @@ void DTPopup::showNoDeathsPage() {
 	menu->setLayout(menuLayout);
 
 	m_pageLayer->addChild(menu);
-	handleTouchPriority(this);
 }
 
 void DTPopup::createPages() {
@@ -188,20 +235,43 @@ void DTPopup::onCopy(CCObject* sender) {
 		auto deaths = SaveManager::getDeaths();
 		int i = 0;
 
+		if (DTPopupManager::showSessionDeaths()) {
+			if (DTPopupManager::showPassRate())
+				ss << "Session Pass Rate:";
+
+			else ss << "Session Deaths:";
+		}
+
+		else if (DTPopupManager::showPassRate()) ss << "Pass Rate:";
+		else ss << "Deaths:";
+
+		ss << std::endl;
+
 		for (auto& count : deaths) {
 			int percent = i++;
 			if (!count) continue;
 
+			// platformer deaths
 			if (SaveManager::isPlatformer()) {
-				ss << std::format("checkpoint {}: x{}", percent, count) << std::endl;
-			} else {
-				ss << std::format("{}%x{}", percent, count);
-
-				if (SaveManager::isNewBest(percent))
-					ss << " (new best)";
-
+				if (DTPopupManager::showPassRate()) ss << std::format("checkpoint {}: {:.2f}%", percent, m_passRates[percent]);
+				else ss << std::format("checkpoint {}: x{}", percent, count);
 				ss << std::endl;
+
+				continue;
 			}
+
+			// normal mode deaths
+			if (!DTPopupManager::showPassRate()) {
+				ss << std::format("{}%x{}", percent, count);
+				if (SaveManager::isNewBest(percent)) ss << " (new best)";
+				ss << std::endl;
+
+				continue;
+			}
+
+			// normal mode pass rate
+			ss << std::format("{}% ({:.2f}%)", percent, m_passRates[percent]);
+			ss << std::endl;
 		}
 
 		clipboard::write(ss.str());
@@ -220,6 +290,15 @@ void DTPopup::onCopy(CCObject* sender) {
 
 void DTPopup::onToggleSessionDeaths(CCObject* sender) {
 	DTPopupManager::toggleShowSessionDeaths();
+
+	// re-create popup
+	auto parent = this->getParent();
+	this->removeFromParent();
+	parent->addChild(DTPopup::create());
+}
+
+void DTPopup::onTogglePassRate(CCObject* sender) {
+	DTPopupManager::toggleShowPassRate();
 
 	// re-create popup
 	auto parent = this->getParent();
@@ -247,13 +326,24 @@ void DTPopup::showPage() {
 	auto cpyBtnSize = cpyBtn->getContentSize();
 
 	// create session button
-	auto sessionBtnSpr = CCSprite::create(
+	auto sessionBtnSpr = ButtonSprite::create("", 15.f, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+
+	auto sessionIconSpr = CCSprite::create(
 		DTPopupManager::showSessionDeaths()
-			? "dt_sessionBtn_002.png"_spr
-			: "dt_sessionBtn.png"_spr
+			? "dt_sessionIcon_active.png"_spr
+			: "dt_sessionIcon_inactive.png"_spr
 	);
 
-	sessionBtnSpr->setScale(0.525f);
+	auto sessionBtnSprSize = sessionBtnSpr->m_BGSprite->getContentSize();
+	sessionIconSpr->setScale(0.8f);
+
+	sessionIconSpr->setPosition({
+		sessionBtnSprSize.width / 2,
+		sessionBtnSprSize.height / 2
+	});
+
+	sessionBtnSpr->addChild(sessionIconSpr);
+	sessionBtnSpr->setScale(0.7f);
 
 	auto sessionBtn = CCMenuItemSpriteExtra::create(
 		sessionBtnSpr,
@@ -261,9 +351,36 @@ void DTPopup::showPage() {
 		menu_selector(DTPopup::onToggleSessionDeaths)
 	);
 
+	// create pass rate button
+	auto passRateBtnSpr = ButtonSprite::create("", 15.f, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+
+	auto passRateIconSpr = CCSprite::create(
+		DTPopupManager::showPassRate()
+			? "dt_passRateIcon_active.png"_spr
+			: "dt_passRateIcon_inactive.png"_spr
+	);
+
+	auto passRateBtnSize = passRateBtnSpr->m_BGSprite->getContentSize();
+	passRateIconSpr->setScale(0.8f);
+
+	passRateIconSpr->setPosition({
+		passRateBtnSize.width / 2,
+		passRateBtnSize.height / 2
+	});
+
+	passRateBtnSpr->addChild(passRateIconSpr);
+	passRateBtnSpr->setScale(0.7f);
+
+	auto passRateBtn = CCMenuItemSpriteExtra::create(
+		passRateBtnSpr,
+		this,
+		menu_selector(DTPopup::onTogglePassRate)
+	);
+
 	auto btnsMenu = CCMenu::create();
 	btnsMenu->addChild(cpyBtn);
 	btnsMenu->addChild(sessionBtn);
+	btnsMenu->addChild(passRateBtn);
 	btnsMenu->setContentSize({m_popupSize.width, 0.f});
 
 	btnsMenu->setPosition({
@@ -348,7 +465,10 @@ void DTPopup::showPage() {
 
 		if (SaveManager::isPlatformer()) {
 			auto checkpt = std::to_string(percent);
-			auto countStr = std::format("x{}", count);
+
+			auto countStr = DTPopupManager::showPassRate()
+				? std::format("{:.2f}%", m_passRates[percent])
+				: std::format("x{}", count);
 
 			auto checkptSpr = CCSprite::createWithSpriteFrameName("checkpoint_01_001.png");
 			checkptSpr->setScale(0.65f);
@@ -400,7 +520,12 @@ void DTPopup::showPage() {
 			node->setLayout(layout);
 			checkptNode->ignoreAnchorPointForPosition(true); // idk what this does, but it works! :grin:
 		} else {
-			auto labelStr = std::format("{}% x{}", percent, count);
+			float passRate = m_passRates[percent];
+
+			auto labelStr = DTPopupManager::showPassRate()
+				? std::format("{}% ({:.2f}%)", percent, passRate)
+				: std::format("{}% x{}", percent, count);
+
 			auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
 
 			// new bests are yellow
