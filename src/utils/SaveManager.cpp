@@ -221,13 +221,13 @@ void SaveManager::addDeath(int percent) {
 		m_sessionDeaths[m_checkpoint]++;
 
 		// calculate plat new bests
-		if (m_checkpoint > m_currentPlatBest) {
+		if (m_checkpoint > m_currentPlatBest || m_currentPlatBest == 0) {
 			m_currentPlatBest = m_checkpoint;
 			m_platBests[m_checkpoint] = true;
 		}
 
 		// calculate session new bests
-		if (m_checkpoint > m_currentSessionBest) {
+		if (m_checkpoint > m_currentSessionBest || m_currentSessionBest == 0) {
 			m_currentSessionBest = m_checkpoint;
 			m_sessionBests[m_checkpoint] = true;
 		}
@@ -236,7 +236,7 @@ void SaveManager::addDeath(int percent) {
 		m_sessionDeaths[percent]++;
 
 		// calculate session new bests
-		if (percent > m_currentSessionBest) {
+		if (percent > m_currentSessionBest || m_currentSessionBest == 0) {
 			m_currentSessionBest = percent;
 			m_sessionBests[percent] = true;
 		}
