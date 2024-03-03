@@ -12,6 +12,8 @@ private:
 	static GJGameLevel* m_level;
 	static int m_levelCount;
 	static Deaths m_deaths;
+	static NewBests m_platBests;
+	static int m_currentPlatBest;
 	static Deaths m_sessionDeaths;
 	static NewBests m_sessionBests;
 	static int m_currentSessionBest;
