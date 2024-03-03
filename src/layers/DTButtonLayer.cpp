@@ -6,7 +6,7 @@
 bool DTButtonLayer::init() {
 	if (!CCLayer::init()) return false;
 
-	auto btnSprite = CCSprite::create("dt_skullBtn_001.png"_spr);
+	auto btnSprite = CCSprite::create("dt_skullBtn.png"_spr);
 	btnSprite->setScale(0.25f);
 
 	auto btn = CCMenuItemSpriteExtra::create(
