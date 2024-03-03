@@ -2,6 +2,32 @@
 #include "../utils/DTPopupManager.hpp"
 #include "../utils/SaveManager.hpp"
 
+const std::string INFO_ALERT_MESSAGES[8]{
+	// side scroll, total, deaths
+	"Percentages in <cy>yellow</c> indicate a new best.",
+
+	// side scroll, total, pass rate
+	"Pass rate indicates how likely you are to pass a percentage.\n\nPercentages in <cy>yellow</c> indicate a new best.",
+
+	// side scroll, session, deaths
+	"Percentages in <co>orange</c> indicate a new best for your current session.",
+
+	// side scroll, session, pass rate
+	"Session pass rate indicates how likely you are to pass a percentage for your current session.\n\nPercentages in <co>orange</c> indicate a new best for your current session.",
+
+	// platformer, total, deaths
+	"Checkpoints in <cy>yellow</c> indicate a new best.",
+
+	// platformer, total, pass rate
+	"Pass rate indicates how likely you are to pass a checkpoint.\n\nCheckpoints in <cy>yellow</c> indicate a new best.",
+
+	// platformer, session, deaths
+	"Checkpoints in <co>orange</c> indicate a new best for your current session.",
+
+	// platformer, session, pass rate
+	"Pass rate indicates how likely you are to pass a checkpoint for your current session.\n\nCheckpoints in <co>orange</c> indicate a new best for your current session."
+};
+
 bool DTPopup::setup(CCSize popupSize) {
 	// setup variables
 	m_popupSize = popupSize;
@@ -102,6 +128,28 @@ void DTPopup::setupPopupPages() {
 
 	backBtnMenu->addChild(backBtn);
 	this->addChild(backBtnMenu);
+
+	// add info button
+	auto infoBtnMenu = CCMenu::create();
+	auto infoBtnSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+
+	infoBtnSpr->setScale(0.525f);
+
+	auto infoBtn = CCMenuItemSpriteExtra::create(
+		infoBtnSpr,
+		this,
+		menu_selector(DTPopup::onInfo)
+	);
+
+	auto infoBtnSprSize = infoBtnSpr->getContentSize();
+
+	infoBtnMenu->setPosition({
+		(WIN_SIZE.width / 2) + (m_popupSize.width / 2) - (infoBtnSprSize.width / 2),
+		(WIN_SIZE.height / 2) + (m_popupSize.height / 2) - (infoBtnSprSize.height / 2)
+	});
+
+	infoBtnMenu->addChild(infoBtn);
+	this->addChild(infoBtnMenu);
 
 	// show current page
 	this->showPage();
@@ -288,6 +336,23 @@ void DTPopup::onCopy(CCObject* sender) {
 			CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png")
 		)->show();
 	}
+}
+
+void DTPopup::onInfo(CCObject* sender) {
+	DTPopupManager::setShowInfoAlert(true);
+
+	auto platformer = SaveManager::isPlatformer();
+	auto session = DTPopupManager::showSessionDeaths();
+	auto passRate = DTPopupManager::showPassRate();
+
+	auto messageIndexBinary = std::format("{}{}{}", int(platformer), int(session), int(passRate));
+	int messageIndex = std::stoi(messageIndexBinary, nullptr, 2);
+	auto message = INFO_ALERT_MESSAGES[messageIndex];
+
+	auto alert = FLAlertLayer::create("Info", message, "OK");
+
+	alert->setID("info-alert"_spr);
+	alert->show();
 }
 
 void DTPopup::onToggleSessionDeaths(CCObject* sender) {
@@ -496,8 +561,10 @@ void DTPopup::showPage() {
 			countLbl->setAnchorPoint({0.f, 0.5f});
 
 			// new bests are yellow
-			if (SaveManager::isNewBest(percent))
-				countLbl->setColor({255, 255, 0});
+			if (SaveManager::isNewBest(percent)) {
+				if (DTPopupManager::showSessionDeaths()) countLbl->setColor({255, 165, 75});
+				else countLbl->setColor({255, 255, 0});
+			}
 
 			auto checkptNode = CCNode::create();
 			checkptNode->addChild(checkptSpr);
@@ -535,8 +602,10 @@ void DTPopup::showPage() {
 			auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
 
 			// new bests are yellow
-			if (SaveManager::isNewBest(percent))
-				label->setColor({255, 255, 0});
+			if (SaveManager::isNewBest(percent)) {
+				if (DTPopupManager::showSessionDeaths()) label->setColor({255, 165, 75});
+				else label->setColor({255, 255, 0});
+			}
 
 			deathsNode->addChild(label);
 		}

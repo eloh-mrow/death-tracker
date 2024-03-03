@@ -10,8 +10,8 @@ class $modify(LevelInfoLayer) {
 	}
 
 	void onLevelInfo(CCObject* sender) {
-		DTPopupManager::enableDTBtn();
 		SaveManager::setLevel(m_level);
+		DTPopupManager::enableDTBtn();
 		LevelInfoLayer::onLevelInfo(sender);
 	}
 };

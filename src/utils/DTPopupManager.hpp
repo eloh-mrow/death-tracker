@@ -12,6 +12,7 @@ private:
 	static bool m_isDTBtnEnabled;
 	static bool m_showSessionDeaths;
 	static bool m_showPassRate;
+	static bool m_showInfoAlert;
 
 public:
 	DTPopupManager() = delete;
@@ -28,4 +29,6 @@ public:
 	static void onDTPopupOpen();
 	static void onDTPopupClose();
 	static void removeDTBtn(bool forceRemove = false);
+	static bool showInfoAlert();
+	static void setShowInfoAlert(bool show);
 };

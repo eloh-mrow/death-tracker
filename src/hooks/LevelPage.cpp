@@ -12,8 +12,8 @@ class $modify(LevelPage) {
 	void onInfo(CCObject* sender) {
 		// only show for actual main levels
 		if (m_level->m_levelID.value() > 0) {
-			DTPopupManager::enableDTBtn();
 			SaveManager::setLevel(m_level);
+			DTPopupManager::enableDTBtn();
 		}
 
 		LevelPage::onInfo(sender);

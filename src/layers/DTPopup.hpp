@@ -20,6 +20,7 @@ protected:
 	void nextPage(CCObject* sender);
 	void backPage(CCObject* sender);
 	void onCopy(CCObject* sender);
+	void onInfo(CCObject* sender);
 	void onToggleSessionDeaths(CCObject* sender);
 	void onTogglePassRate(CCObject* sender);
 	void showPage();

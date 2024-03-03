@@ -10,8 +10,8 @@ class $modify(EditLevelLayer) {
 	}
 
 	void onLevelInfo(CCObject* sender) {
-		DTPopupManager::enableDTBtn();
 		SaveManager::setLevel(m_level);
+		DTPopupManager::enableDTBtn();
 		EditLevelLayer::onLevelInfo(sender);
 	}
 };

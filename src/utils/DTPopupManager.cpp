@@ -6,6 +6,7 @@ DTButtonLayer* DTPopupManager::m_dtBtn = nullptr;
 bool DTPopupManager::m_isDTBtnEnabled = false;
 bool DTPopupManager::m_showSessionDeaths = false;
 bool DTPopupManager::m_showPassRate = false;
+bool DTPopupManager::m_showInfoAlert = false;
 
 CCSize DTPopupManager::getSize() {
 	auto WIN_SIZE = CCDirector::sharedDirector()->getWinSize();
@@ -64,6 +65,7 @@ void DTPopupManager::onDTPopupOpen() {
 
 void DTPopupManager::onDTPopupClose() {
 	m_showSessionDeaths = false;
+	m_showPassRate = false;
 	if (m_infoAlert == nullptr) return;
 	m_infoAlert->setVisible(true);
 	handleTouchPriority(m_infoAlert);
@@ -72,4 +74,12 @@ void DTPopupManager::onDTPopupClose() {
 void DTPopupManager::removeDTBtn(bool forceRemove) {
 	if (forceRemove && m_dtBtn != nullptr) m_dtBtn->removeFromParent();
 	m_dtBtn = nullptr;
+}
+
+bool DTPopupManager::showInfoAlert() {
+	return m_showInfoAlert;
+}
+
+void DTPopupManager::setShowInfoAlert(bool show) {
+	m_showInfoAlert = show;
 }
