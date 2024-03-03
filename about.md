@@ -11,5 +11,5 @@ Click the skull button found on the attempts page to see your deaths!
 ## Special Thanks
 
 **Help w/ coding:** *flame, Alphalaneous, Cvolton, dank_meme*
-**Ideas:** *creo, Wild*
-**Assets by:** *creo*
+**Ideas:** *creo, Wild, Patrick61804*
+**Assets by:** *creo, hbg1010*
