@@ -8,6 +8,8 @@ GJGameLevel* SaveManager::m_level = nullptr;
 int SaveManager::m_levelCount = Mod::get()->getSavedValue<int>(LEVEL_COUNT_KEY, 0);
 Deaths SaveManager::m_deaths{};
 Deaths SaveManager::m_sessionDeaths{};
+NewBests SaveManager::m_sessionBests{};
+int SaveManager::m_currentSessionBest = 0;
 Progresses SaveManager::m_progresses{};
 int SaveManager::m_checkpoint = 0;
 bool SaveManager::m_usingStartpos = false;
@@ -46,9 +48,28 @@ void SaveManager::calcDeathsAndProgresses() {
 	auto levelId = SaveManager::getLevelId();
 	auto deaths = Mod::get()->getSavedValue<Deaths>(levelId);
 	auto sessionDeaths = Mod::get()->getSavedValue<Deaths>(levelId + "-session");
+	auto sessionBests = Mod::get()->getSavedValue<NewBests>(levelId + "-session-bests");
 
 	m_deaths = deaths;
 	m_sessionDeaths = sessionDeaths;
+
+	// initialize sessionBests
+	if (sessionBests.empty())
+		sessionBests = NewBests(sessionDeaths.size(), false);
+
+	m_sessionBests = sessionBests;
+
+	// calculate current session best
+{
+	int percentOrCheckpoint = 0;
+
+	for (auto& count : sessionDeaths) {
+		if (count == 0) continue;
+
+		if (percentOrCheckpoint > m_currentSessionBest)
+			m_currentSessionBest = percentOrCheckpoint;
+	}
+}
 
 	// platformer should start empty
 	if (SaveManager::isPlatformer()) return;
@@ -106,6 +127,9 @@ bool SaveManager::isPlatformer() {
 }
 
 bool SaveManager::isNewBest(int percent) {
+	if (DTPopupManager::showSessionDeaths())
+		return m_sessionBests[percent];
+
 	return m_progresses[percent];
 }
 
@@ -127,8 +151,11 @@ void SaveManager::resetSessionDeaths() {
 	if (m_level == nullptr) return;
 
 	m_sessionDeaths = Deaths();
+	m_sessionBests = NewBests();
+	m_currentSessionBest = 0;
 	auto levelId = SaveManager::getLevelId();
 	Mod::get()->setSavedValue(levelId + "-session", m_sessionDeaths);
+	Mod::get()->setSavedValue(levelId + "-session-bests", m_sessionBests);
 }
 
 Deaths SaveManager::getDeaths() {
@@ -159,22 +186,37 @@ void SaveManager::addDeath(int percent) {
 		SaveManager::resetSessionDeaths();
 
 	// no prev session
-	if (m_sessionDeaths.empty() && !SaveManager::isPlatformer())
+	if (m_sessionDeaths.empty() && !SaveManager::isPlatformer()) {
 		m_sessionDeaths = Deaths(100);
+		m_sessionBests = NewBests(100);
+	}
 
 	if (SaveManager::isPlatformer()) {
 		SaveManager::allocateDeathsForCheckpoint();
 
 		m_deaths[m_checkpoint]++;
 		m_sessionDeaths[m_checkpoint]++;
+
+		// calculate session new bests
+		if (m_checkpoint > m_currentSessionBest) {
+			m_currentSessionBest = m_checkpoint;
+			m_sessionBests[m_checkpoint] = true;
+		}
 	} else {
 		m_deaths[percent]++;
 		m_sessionDeaths[percent]++;
+
+		// calculate session new bests
+		if (percent > m_currentSessionBest) {
+			m_currentSessionBest = percent;
+			m_sessionBests[percent] = true;
+		}
 	}
 
 	auto levelId = SaveManager::getLevelId();
 	Mod::get()->setSavedValue(levelId, m_deaths);
 	Mod::get()->setSavedValue(levelId + "-session", m_sessionDeaths);
+	Mod::get()->setSavedValue(levelId + "-session-bests", m_sessionBests);
 }
 
 void SaveManager::allocateDeathsForCheckpoint() {
@@ -183,8 +225,10 @@ void SaveManager::allocateDeathsForCheckpoint() {
 	while (m_checkpoint >= m_deaths.size())
 		m_deaths.push_back(0);
 
-	while (m_checkpoint >= m_sessionDeaths.size())
+	while (m_checkpoint >= m_sessionDeaths.size()) {
 		m_sessionDeaths.push_back(0);
+		m_sessionBests.push_back(false);
+	}
 }
 
 void SaveManager::incCheckpoint() {

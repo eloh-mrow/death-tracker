@@ -5,6 +5,7 @@
 using namespace geode::prelude;
 typedef std::vector<int> Deaths;
 typedef std::map<int, bool> Progresses;
+typedef std::vector<bool> NewBests;
 
 class SaveManager {
 private:
@@ -12,6 +13,8 @@ private:
 	static int m_levelCount;
 	static Deaths m_deaths;
 	static Deaths m_sessionDeaths;
+	static NewBests m_sessionBests;
+	static int m_currentSessionBest;
 	static Progresses m_progresses;
 	static int m_checkpoint;
 	static bool m_usingStartpos;

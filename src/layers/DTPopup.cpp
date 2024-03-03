@@ -255,6 +255,7 @@ void DTPopup::onCopy(CCObject* sender) {
 			if (SaveManager::isPlatformer()) {
 				if (DTPopupManager::showPassRate()) ss << std::format("checkpoint {}: {:.2f}%", percent, m_passRates[percent]);
 				else ss << std::format("checkpoint {}: x{}", percent, count);
+				if (SaveManager::isNewBest(percent)) ss << " (new best)";
 				ss << std::endl;
 
 				continue;
@@ -270,7 +271,8 @@ void DTPopup::onCopy(CCObject* sender) {
 			}
 
 			// normal mode pass rate
-			ss << std::format("{}% ({:.2f}%)", percent, m_passRates[percent]);
+			ss << std::format("{}%: {:.2f}%", percent, m_passRates[percent]);
+			if (SaveManager::isNewBest(percent)) ss << " (new best)";
 			ss << std::endl;
 		}
 
@@ -493,6 +495,10 @@ void DTPopup::showPage() {
 			auto countLbl = CCLabelBMFont::create(countStr.c_str(), "chatFont.fnt");
 			countLbl->setAnchorPoint({0.f, 0.5f});
 
+			// new bests are yellow
+			if (SaveManager::isNewBest(percent))
+				countLbl->setColor({255, 255, 0});
+
 			auto checkptNode = CCNode::create();
 			checkptNode->addChild(checkptSpr);
 			checkptNode->addChild(checkptLbl);
@@ -529,7 +535,7 @@ void DTPopup::showPage() {
 			auto label = CCLabelBMFont::create(labelStr.c_str(), "chatFont.fnt");
 
 			// new bests are yellow
-			if (!DTPopupManager::showSessionDeaths() && SaveManager::isNewBest(percent))
+			if (SaveManager::isNewBest(percent))
 				label->setColor({255, 255, 0});
 
 			deathsNode->addChild(label);
