@@ -277,12 +277,12 @@ void DTPopup::onCopy(CCObject* sender) {
 		clipboard::write(ss.str());
 
 		Notification::create(
-			std::string("Deaths copied successfully"),
+			std::string("Copied successfully"),
 			CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png")
 		)->show();
 	} catch (const std::exception& e) {
 		Notification::create(
-			std::string("Failed to copy deaths"),
+			std::string("Failed to copy"),
 			CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png")
 		)->show();
 	}
