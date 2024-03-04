@@ -1,5 +1,5 @@
 # Changelog
-## v1.7.0
+## v1.7.1
 - added platformer per-checkpoint new bests
 - added session new bests
 - added death pass rates
