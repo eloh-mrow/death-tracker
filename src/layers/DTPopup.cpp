@@ -49,7 +49,7 @@ bool DTPopup::setup(CCSize popupSize) {
 		? noSessionDeaths
 			? 0.8f
 			: showPassRate
-				? 0.6f // change this
+				? 0.6f
 				: 0.65f
 		: 0.9f;
 
@@ -87,8 +87,6 @@ bool DTPopup::setup(CCSize popupSize) {
 	}
 
 	this->setupPopupPages();
-	log::info("touch priority");
-	handleTouchPriority(this);
 	return true;
 }
 
