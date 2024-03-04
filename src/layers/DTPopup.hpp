@@ -26,6 +26,7 @@ protected:
 	void showPage();
 	void keyDown(cocos2d::enumKeyCodes key);
 	virtual void onClose(CCObject* sender);
+	void registerWithTouchDispatcher() override;
 
 public:
 	static DTPopup* create();

@@ -649,3 +649,7 @@ DTPopup* DTPopup::create() {
 	CC_SAFE_DELETE(ret);
 	return nullptr;
 }
+
+void DTPopup::registerWithTouchDispatcher() {
+	cocos2d::CCTouchDispatcher::get()->addTargetedDelegate(this, -600, true);
+}
