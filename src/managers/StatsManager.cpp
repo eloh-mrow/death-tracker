@@ -2,6 +2,7 @@
 
 using namespace geode::prelude;
 
+//return a splitted version of the string provided, devided by the delim
 std::vector<std::string> splitStr(std::string str, std::string delim) {
     size_t posStart = 0;
     size_t posEnd;
