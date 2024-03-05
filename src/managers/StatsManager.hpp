@@ -26,24 +26,32 @@ private:
     static GJGameLevel* m_level;
     static std::map<std::string, bool> m_playedLevels;
 
-    static Deaths m_totalDeaths;
-    static Runs m_totalRuns;
+    static Deaths m_deaths;
+    static Runs m_runs;
     static NewBests m_newBests;
     static float m_currentBest;
 
     static std::vector<Session> m_sessions;
     static Session* m_currentSession;
+    static bool m_scheduleCreateNewSession;
+
+    // internal functions
+    static void createNewSession();
+    static void saveData();
 
 public:
     StatsManager() = delete;
 
-    /* main functions */
+    // main functions
     static void loadLevelStats(GJGameLevel* level);
     static void logDeath(float percent);
     static void logRun(Run run);
 
-    /* utility functions */
+    // utility functions
     static std::string getLevelKey(GJGameLevel* level = m_level);
-    static Run splitRunStr(std::string run);
+    static Run splitRunKey(std::string runKey);
     static Session getSession();
+    static void setSessionLastPlayed(long long lastPlayed);
+    static void scheduleCreateNewSession(bool scheduled);
+    static bool hasPlayedLevel();
 };
