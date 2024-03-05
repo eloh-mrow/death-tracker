@@ -14,21 +14,23 @@
 	},
 	"tags": ["Utility", "Interface"],
 	"settings": {
+		"precision": {
+			"name": "Percentage Precision",
+			"description": "Number of decimal places displayed in your deaths and runs.",
+			"type": "int",
+			"default": 0,
+			"min": 0,
+			"max": 2
+		},
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",
 			"description": "Disables death tracking on completed online levels.",
 			"type": "bool",
 			"default": false
 		},
-		"disable-startpos-tracking": {
-			"name": "Disable StartPos Tracking",
-			"description": "Disables death tracking when playing from a StartPos. Deaths will still track from 0% in normal mode on a StartPos level.",
-			"type": "bool",
-			"default": false
-		},
 		"session-length": {
 			"name": "Session Length",
-			"description": "Allows a session to continue if entering a level before this duration (in seconds) has passed since exiting the level.\n\nA value of -2 means the session will end when you exit the level (default).\n\nA value of -1 means the session will end when you exit the game.",
+			"description": "Allows a session to continue if entering a level before this duration (in seconds) has passed since exiting the level.\n\n<cy>A value of -2</c> means the session will end when you exit the level (default).\n\n<co>A value of -1</c> means the session will end when you exit the game.",
 			"type": "int",
 			"default": -2,
 			"min": -2,
