@@ -34,6 +34,8 @@ std::vector<Session> StatsManager::m_sessions{};
 Session* StatsManager::m_currentSession = nullptr;
 bool StatsManager::m_scheduleCreateNewSession = false;
 
+ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "Death Saves";
+
 /* main functions
 ================== */
 void StatsManager::loadLevelStats(GJGameLevel* level) {
@@ -64,17 +66,19 @@ void StatsManager::logDeath(float percent) {
     if (!m_currentSession) return;
     log::info("StatsManager::logDeath() -- {:.2f}", percent);
 
-    m_deaths[percent]++;
-    m_currentSession->deaths[percent]++;
+    std::string sPercent = fmt::format("{:.2f}", percent);
+
+    m_deaths[sPercent]++;
+    m_currentSession->deaths[sPercent]++;
 
     if (percent > m_currentBest) {
         m_currentBest = percent;
-        m_newBests[percent] = true;
+        m_newBests[sPercent] = true;
     }
 
     if (percent > m_currentSession->currentBest) {
         m_currentSession->currentBest = percent;
-        m_currentSession->newBests[percent] = true;
+        m_currentSession->newBests[sPercent] = true;
     }
 
     StatsManager::saveData();
@@ -122,6 +126,10 @@ Session StatsManager::getSession() {
     return *m_currentSession;
 }
 
+ghc::filesystem::path StatsManager::getSavesDir(){
+    return m_savesFolderPath;
+}
+
 void StatsManager::setSessionLastPlayed(long long lastPlayed) {
     if (!m_currentSession) return;
     m_currentSession->lastPlayed = lastPlayed;
@@ -142,6 +150,32 @@ bool StatsManager::hasPlayedLevel() {
 ======================= */
 void StatsManager::saveData() {
     log::info("StatsManager::saveData()");
+
+    std::string currentLevelKey = StatsManager::getLevelKey();
+
+    if (currentLevelKey == "-1") return;
+
+    ghc::filesystem::path currentSavePath = m_savesFolderPath / (currentLevelKey + ".json");
+
+    //create the json file if it doesnt exist
+    if (!ghc::filesystem::exists(currentSavePath)){
+        std::ofstream currentSavefile(currentSavePath);
+        currentSavefile.close();
+    }
+
+    levelProgressSave currentDataToSave;
+
+    //get the data thats already in the json
+    if (!file::readString(currentSavePath).value().empty())
+        currentDataToSave = file::readJson(currentSavePath).value().as<levelProgressSave>();
+
+    //add stuff to it:
+
+
+
+    //save the json
+    Result<> res = file::writeToJson(currentSavePath, currentDataToSave);
+
     /* TODO: save level data
      *
      * <save_dir>/levels/<levelKey>.json
@@ -198,3 +232,4 @@ void StatsManager::createNewSession() {
     m_sessions.push_back(session);
     m_currentSession = &session;
 }
+
