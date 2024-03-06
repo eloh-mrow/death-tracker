@@ -38,6 +38,10 @@ class $modify(PlayerObject) {
 		)
 			return;
 
+		// only log death if you havent respawned
+		if (!SaveManager::hasRespawned()) return;
+		SaveManager::setHasRespawned(false);
+
 		// save deaths
 		if (SaveManager::getLevel() != level)
 			SaveManager::setLevel(level);

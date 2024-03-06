@@ -23,6 +23,7 @@ private:
 	static bool m_shouldResetSessionDeaths;
 	static float m_respawnPercent;
 	static std::map<std::string, bool> m_playedLevels;
+	static bool m_hasRespawned;
 
 	static void createBackup();
 	static void calcDeathsAndProgresses();
@@ -52,4 +53,6 @@ public:
 	static void setPlayedLevel(std::string levelId);
 	static long long getLevelSessionTime(std::string levelId);
 	static void setLevelSessionTime(std::string levelId, long long time);
+	static bool hasRespawned();
+	static void setHasRespawned(bool respawned);
 };

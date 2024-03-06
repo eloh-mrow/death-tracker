@@ -79,5 +79,6 @@ class $modify(PlayLayer) {
 	void resetLevel() {
 		PlayLayer::resetLevel();
 		SaveManager::setRespawnPercent(PlayLayer::getCurrentPercent());
+		SaveManager::setHasRespawned(true);
 	}
 };

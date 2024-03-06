@@ -18,6 +18,7 @@ bool SaveManager::m_usingStartpos = false;
 bool SaveManager::m_shouldResetSessionDeaths = false;
 float SaveManager::m_respawnPercent = 0;
 std::map<std::string, bool> SaveManager::m_playedLevels{};
+bool SaveManager::m_hasRespawned = false;
 
 // TODO: add backups
 void SaveManager::createBackup() {}
@@ -301,4 +302,12 @@ long long SaveManager::getLevelSessionTime(std::string levelId) {
 
 void SaveManager::setLevelSessionTime(std::string levelId, long long time) {
 	Mod::get()->setSavedValue(levelId + "-session-time", time);
+}
+
+bool SaveManager::hasRespawned() {
+	return m_hasRespawned;
+}
+
+void SaveManager::setHasRespawned(bool respawned) {
+	m_hasRespawned = respawned;
 }
