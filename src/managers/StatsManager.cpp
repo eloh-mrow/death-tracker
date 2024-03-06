@@ -20,6 +20,51 @@ std::vector<std::string> splitStr(std::string str, std::string delim) {
     return res;
 }
 
+// matjson fuckery
+template <>
+struct matjson::Serialize<Session> {
+    static Session from_json(const matjson::Value& value) {
+        return Session {
+            .lastPlayed = value["deaths"].as<long long>(),
+            .deaths = value["deaths"].as<Deaths>(),
+            .runs = value["deaths"].as<Runs>(),
+            .newBests = value["deaths"].as<NewBests>(),
+            .currentBest = static_cast<float>(value["deaths"].as_double()),
+        };
+    }
+    static matjson::Value to_json(const Session& value) {
+        auto obj = matjson::Object();
+        obj["lastPlayed"] = value.lastPlayed;
+        obj["deaths"] = value.deaths;
+        obj["runs"] = value.runs;
+        obj["newBests"] = value.newBests;
+        obj["currentBest"] = value.currentBest;
+        return obj;
+    }
+};
+
+template <>
+struct matjson::Serialize<LevelProgressSave> {
+    static LevelProgressSave from_json(const matjson::Value& value) {
+        return LevelProgressSave {
+            .deaths = value["deaths"].as<Deaths>(),
+            .runs = value["runs"].as<Runs>(),
+            .newBests = value["newBests"].as<NewBests>(),
+            .currentBest = static_cast<float>(value["currentBest"].as_double()),
+            .sessions = value["sessions"].as<std::vector<Session>>()
+        };
+    }
+    static matjson::Value to_json(const LevelProgressSave& value) {
+        auto obj = matjson::Object();
+        obj["deaths"] = value.deaths;
+        obj["runs"] = value.runs;
+        obj["newBests"] = value.newBests;
+        obj["currentBest"] = value.currentBest;
+        obj["sessions"] = value.sessions;
+        return obj;
+    }
+};
+
 /* static member variables
 =========================== */
 GJGameLevel* StatsManager::m_level = nullptr;
@@ -34,27 +79,75 @@ std::vector<Session> StatsManager::m_sessions{};
 Session* StatsManager::m_currentSession = nullptr;
 bool StatsManager::m_scheduleCreateNewSession = false;
 
-ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "Death Saves";
+ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
 
 /* main functions
 ================== */
+LevelProgressSave StatsManager::getLevelStats(GJGameLevel* level) {
+    if (!level) throw std::invalid_argument("GJGameLevel* level");
+    log::info("StatsManager::getLevelStats()");
+
+    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath();
+
+    if (ghc::filesystem::exists(levelSaveFilePath))
+        return file::readJson(levelSaveFilePath).value().as<LevelProgressSave>();
+
+    // get defaults for level stats
+    // includes backwards compatibility for v1.x.x
+    LevelProgressSave levelStats{};
+
+    auto levelKey = StatsManager::getLevelKey(level);
+    auto old__deaths = Mod::get()->getSavedValue<std::vector<int>>(levelKey);
+    auto old__sessionDeaths = Mod::get()->getSavedValue<std::vector<int>>(levelKey + "-session");
+    auto old__sessionBests = Mod::get()->getSavedValue<std::vector<bool>>(levelKey + "-session-bests");
+    auto old__sessionTime = Mod::get()->getSavedValue<long long>(levelKey + "-session-time", -1);
+
+    Deaths deaths{};
+    Deaths sessionDeaths{};
+    NewBests sessionBests{};
+    float currentSessionBest = -1;
+
+    for (int percent = 0; percent <= 100; percent++) {
+        auto percentStr = StatsManager::toPercentStr(percent);
+
+        deaths[percentStr] = old__deaths[percent];
+        sessionDeaths[percentStr] = old__sessionDeaths[percent];
+        sessionBests[percentStr] = old__sessionBests[percent];
+
+        if (old__sessionBests[percent] && percent > currentSessionBest)
+            currentSessionBest = static_cast<float>(percent);
+    }
+
+    levelStats.deaths = deaths;
+    levelStats.runs = Runs();
+
+    levelStats.sessions.push_back(Session(
+        old__sessionTime,
+        sessionDeaths,
+        {}, // v1.x.x doesnt track runs
+        sessionBests,
+        currentSessionBest
+    ));
+
+    // calculate m_newBests, m_currentBest
+    auto [newBests, currentBest] = StatsManager::calcNewBests();
+    levelStats.newBests = newBests;
+    levelStats.currentBest = currentBest;
+    return levelStats;
+}
+
 void StatsManager::loadLevelStats(GJGameLevel* level) {
     if (!level) return;
-    auto levelKey = StatsManager::getLevelKey(level);
-
-    m_level = level;
-
     log::info("StatsManager::loadLevelStats()");
 
-    /* TODO: load level save data
-     *
-     * - m_deaths
-     * - m_runs
-     * - m_newBests    (default: calculate from m_personalBests)
-     * - m_currentBest (default: level->m_normalPercent.value())
-     * - m_sessions
-     *
-    */
+    auto levelStats = StatsManager::getLevelStats(level);
+
+    m_level = level;
+    m_deaths = levelStats.deaths;
+    m_runs = levelStats.runs;
+    m_newBests = levelStats.newBests;
+    m_currentBest = levelStats.currentBest;
+    m_sessions = levelStats.sessions;
 
    // update m_currentSession, can be nullptr (no session)
    if (m_sessions.size()) m_currentSession = &m_sessions[m_sessions.size() - 1];
@@ -66,19 +159,19 @@ void StatsManager::logDeath(float percent) {
     if (!m_currentSession) return;
     log::info("StatsManager::logDeath() -- {:.2f}", percent);
 
-    std::string sPercent = fmt::format("{:.2f}", percent);
+    auto percentStr = StatsManager::toPercentStr(percent);
 
-    m_deaths[sPercent]++;
-    m_currentSession->deaths[sPercent]++;
+    m_deaths[percentStr]++;
+    m_currentSession->deaths[percentStr]++;
 
     if (percent > m_currentBest) {
         m_currentBest = percent;
-        m_newBests[sPercent] = true;
+        m_newBests[percentStr] = true;
     }
 
     if (percent > m_currentSession->currentBest) {
         m_currentSession->currentBest = percent;
-        m_currentSession->newBests[sPercent] = true;
+        m_currentSession->newBests[percentStr] = true;
     }
 
     StatsManager::saveData();
@@ -90,7 +183,11 @@ void StatsManager::logRun(Run run) {
     if (!m_currentSession) return;
     log::info("StatsManager::logRun() -- {:.2f}-{:.2f}", run.start, run.end);
 
-    auto runKey = fmt::format("{}-{}", run.start, run.end);
+    auto runKey = fmt::format("{}-{}",
+        StatsManager::toPercentStr(run.start),
+        StatsManager::toPercentStr(run.end)
+    );
+
     m_runs[runKey]++;
     m_currentSession->runs[runKey]++;
 
@@ -100,17 +197,35 @@ void StatsManager::logRun(Run run) {
 /* utility functions
 ===================== */
 std::string StatsManager::getLevelKey(GJGameLevel* level) {
-    if (!level) return "-1";
+	if (!level) return "-1";
 
-    auto levelType = static_cast<int>(level->m_levelType);
-    if (!levelType) levelType = 3;
+	auto levelId = std::to_string(level->m_levelID.value());
 
-    return fmt::format("{}-{}-{}-{}",
-        level->m_levelID.value(),
-        levelType,
-        level->m_dailyID.value(),
-        int(level->m_gauntletLevel)
-    );
+	// local level postfix
+	if (level->m_levelType != GJLevelType::Saved)
+		levelId += "-local";
+
+	// daily/weekly postfix
+	if (level->m_dailyID > 0)
+		levelId += "-daily";
+
+	// gauntlet level postfix
+	if (level->m_gauntletLevel)
+		levelId += "-gauntlet";
+
+	return levelId;
+
+    // if (!level) return "-1";
+
+    // auto levelType = static_cast<int>(level->m_levelType);
+    // if (!levelType) levelType = 3;
+
+    // return fmt::format("{}-{}-{}-{}",
+    //     level->m_levelID.value(),
+    //     levelType,
+    //     level->m_dailyID.value(),
+    //     int(level->m_gauntletLevel)
+    // );
 }
 
 Run StatsManager::splitRunKey(std::string runKey) {
@@ -124,10 +239,6 @@ Run StatsManager::splitRunKey(std::string runKey) {
 
 Session StatsManager::getSession() {
     return *m_currentSession;
-}
-
-ghc::filesystem::path StatsManager::getSavesDir(){
-    return m_savesFolderPath;
 }
 
 void StatsManager::setSessionLastPlayed(long long lastPlayed) {
@@ -151,34 +262,28 @@ bool StatsManager::hasPlayedLevel() {
 void StatsManager::saveData() {
     log::info("StatsManager::saveData()");
 
-    std::string currentLevelKey = StatsManager::getLevelKey();
+    std::string levelKey = StatsManager::getLevelKey();
+    if (levelKey == "-1") return;
 
-    if (currentLevelKey == "-1") return;
+    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath();
 
-    ghc::filesystem::path currentSavePath = m_savesFolderPath / (currentLevelKey + ".json");
-
-    //create the json file if it doesnt exist
-    if (!ghc::filesystem::exists(currentSavePath)){
-        std::ofstream currentSavefile(currentSavePath);
-        currentSavefile.close();
+    // create the json file if it doesnt exist
+    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+        std::ofstream levelSaveFile(levelSaveFilePath);
+        levelSaveFile.close();
     }
 
-    levelProgressSave currentDataToSave;
+    // save the data
+    LevelProgressSave levelSaveData{};
+    levelSaveData.deaths = m_deaths;
+    levelSaveData.runs = m_runs;
+    levelSaveData.newBests = m_newBests;
+    levelSaveData.currentBest = m_currentBest;
+    levelSaveData.sessions = m_sessions;
 
-    //get the data thats already in the json
-    if (!file::readString(currentSavePath).value().empty())
-        currentDataToSave = file::readJson(currentSavePath).value().as<levelProgressSave>();
+    file::writeToJson(levelSaveFilePath, levelSaveData);
 
-    //add stuff to it:
-
-
-
-    //save the json
-    Result<> res = file::writeToJson(currentSavePath, currentDataToSave);
-
-    /* TODO: save level data
-     *
-     * <save_dir>/levels/<levelKey>.json
+    /* <save_dir>/levels/<levelKey>.json
      *
      * {
      *   "deaths": {
@@ -224,6 +329,8 @@ void StatsManager::createNewSession() {
     // the user has played the level
     // if a new session is created
     auto levelKey = StatsManager::getLevelKey();
+    if (levelKey == "-1") return;
+
     m_playedLevels[levelKey] = true;
 
     // create the new session
@@ -233,3 +340,34 @@ void StatsManager::createNewSession() {
     m_currentSession = &session;
 }
 
+std::tuple<NewBests, float> StatsManager::calcNewBests() {
+    NewBests newBests{};
+    std::stringstream bestsStream(m_level->m_personalBests);
+    std::string currentBest;
+    int currentPercent = 0;
+
+    while (getline(bestsStream, currentBest, ',')) {
+        currentPercent += std::stoi(currentBest);
+        auto percentStr = StatsManager::toPercentStr(currentPercent);
+        newBests[percentStr] = true;
+    }
+
+    return {newBests, static_cast<float>(currentPercent)};
+}
+
+std::string StatsManager::toPercentStr(int percent) {
+    return StatsManager::toPercentStr(static_cast<float>(percent));
+}
+
+std::string StatsManager::toPercentStr(float percent) {
+    return fmt::format("{:.2f}", percent);
+}
+
+ghc::filesystem::path StatsManager::getLevelSaveFilePath() {
+    ghc::filesystem::path filePath{};
+    auto levelKey = StatsManager::getLevelKey();
+    if (levelKey == "-1") return filePath;
+
+    filePath = m_savesFolderPath / (levelKey + ".json");
+    return filePath;
+}
