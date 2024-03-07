@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 typedef std::map<std::string, int> Deaths;
 typedef std::map<std::string, int> Runs;
-typedef std::map<std::string, bool> NewBests;
+typedef std::set<std::string> NewBests;
 
 typedef struct {
     float start;
@@ -28,12 +28,12 @@ typedef struct {
     NewBests newBests;
     float currentBest;
     std::vector<Session> sessions;
-} LevelProgressSave;
+} LevelStats;
 
 class StatsManager {
 private:
     static GJGameLevel* m_level;
-    static std::map<std::string, bool> m_playedLevels;
+    static std::set<std::string> m_playedLevels;
 
     static Deaths m_deaths;
     static Runs m_runs;
@@ -41,32 +41,31 @@ private:
     static float m_currentBest;
 
     static std::vector<Session> m_sessions;
-    static Session* m_currentSession;
     static bool m_scheduleCreateNewSession;
     static ghc::filesystem::path m_savesFolderPath;
 
     // internal functions
     static void saveData();
-    static void createNewSession();
-    static std::tuple<NewBests, float> calcNewBests();
-    static std::string toPercentStr(int percent);
-    static std::string toPercentStr(float percent);
-    static ghc::filesystem::path getLevelSaveFilePath();
+    static LevelStats loadData(GJGameLevel* level);
+    static std::tuple<NewBests, float> calcNewBests(GJGameLevel* level);
+
+    static ghc::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
 
 public:
     StatsManager() = delete;
 
     // main functions
-    static LevelProgressSave getLevelStats(GJGameLevel* level);
-    static void loadLevelStats(GJGameLevel* level);
+    static LevelStats loadLevelStats(GJGameLevel* level);
     static void logDeath(float percent);
     static void logRun(Run run);
 
     // utility functions
     static std::string getLevelKey(GJGameLevel* level = m_level);
     static Run splitRunKey(std::string runKey);
-    static Session getSession();
+    static Session* getSession();
     static void setSessionLastPlayed(long long lastPlayed);
     static void scheduleCreateNewSession(bool scheduled);
     static bool hasPlayedLevel();
+    static std::string toPercentStr(int percent, int precision = 2);
+    static std::string toPercentStr(float percent, int precision = 2);
 };

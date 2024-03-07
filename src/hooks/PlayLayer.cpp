@@ -12,6 +12,7 @@ long long getNowSeconds() {
 }
 
 class $modify(DTPlayLayer, PlayLayer) {
+    bool hasRespawned = false;
     Run currentRun;
 
     bool disableCompletedLevelTracking() {
@@ -71,6 +72,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         PlayLayer::resetLevel();
         log::info("PlayLayer::resetLevel()");
         m_fields->currentRun.start = this->getCurrentPercent();
+        m_fields->hasRespawned = true;
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* p1) {
@@ -78,6 +80,11 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (m_level->isPlatformer()) return;
         if (!player->m_isDead) return;
         if (player != m_player1) return;
+
+        // just in case some mod accidentally calls
+        // PlayLayer::destroyPlayer() twice
+        if (!m_fields->hasRespawned) return;
+        m_fields->hasRespawned = false;
 
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
@@ -97,6 +104,10 @@ class $modify(DTPlayLayer, PlayLayer) {
         PlayLayer::levelComplete();
         if (m_level->isPlatformer()) return;
 
+        // same as PlayLayer::destroyPlayer()
+        if (!m_fields->hasRespawned) return;
+        m_fields->hasRespawned = false;
+
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
         log::info("PlayLayer::levelComplete()");
@@ -115,9 +126,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         StatsManager::scheduleCreateNewSession(false);
 
         // set session.lastPlayed
-        auto sessionLength = Settings::getMaxSessionLength();
-        if (sessionLength < 0) return;
-
-        StatsManager::setSessionLastPlayed(getNowSeconds());
+        if (StatsManager::hasPlayedLevel())
+            StatsManager::setSessionLastPlayed(getNowSeconds());
     }
 };
