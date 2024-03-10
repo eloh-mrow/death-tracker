@@ -22,12 +22,6 @@
 			"min": 0,
 			"max": 2
 		},
-		"disable-tracking-completed-levels": {
-			"name": "Disable Tracking Completed Levels",
-			"description": "Disables death tracking on completed online levels.",
-			"type": "bool",
-			"default": false
-		},
 		"session-length": {
 			"name": "Session Length",
 			"description": "Allows a session to continue if entering a level before this duration (in seconds) has passed since exiting the level.\n\n<cy>A value of -2</c> means the session will end when you exit the level (default).\n\n<co>A value of -1</c> means the session will end when you exit the game.",
@@ -35,6 +29,18 @@
 			"default": -2,
 			"min": -2,
 			"max": 86400
+		},
+		"disable-tracking-completed-levels": {
+			"name": "Disable Tracking Completed Levels",
+			"description": "Disables tracking on completed online levels.",
+			"type": "bool",
+			"default": false
+		},
+		"practice-zero-deaths": {
+			"name": "Enable 0% Practice Mode Deaths",
+			"description": "Deaths will be shown instead of runs from 0% in practice mode.",
+			"type": "bool",
+			"default": false
 		}
 	}
 }
