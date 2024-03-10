@@ -272,7 +272,7 @@ void StatsManager::saveData() {
         : 4;
 
     auto jsonStr = matjson::Value(levelSaveData).dump(indentation);
-    file::writeString(levelSaveFilePath, jsonStr);
+    auto _ = file::writeString(levelSaveFilePath, jsonStr);
 
     /* <save_dir>/levels/<levelKey>.json
      *
