@@ -109,14 +109,14 @@ class $modify(DTPlayLayer, PlayLayer) {
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
+        if (!m_level->isPlatformer())
+            m_fields->currentRun.end = this->getCurrentPercent();
+
         log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,
             m_fields->currentRun.end,
             m_level->isPlatformer()
         );
-
-        if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercent();
 
         // log deaths from 0 in normal mode
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
@@ -138,14 +138,14 @@ class $modify(DTPlayLayer, PlayLayer) {
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
+        if (!m_level->isPlatformer())
+            m_fields->currentRun.end = this->getCurrentPercent();
+
         log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,
             m_fields->currentRun.end,
             m_level->isPlatformer()
         );
-
-        if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercent();
 
         if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
             StatsManager::logRun(m_fields->currentRun);
