@@ -5,7 +5,7 @@ using namespace geode::prelude;
 
 class $modify(EditLevelLayer) {
     static void onModify(auto& self) {
-        self.setHookPriority("EditLevelLayer::onLevelInfo", -9999);
+        auto _ = self.setHookPriority("EditLevelLayer::onLevelInfo", -9999);
     }
 
     void onLevelInfo(CCObject* sender) {

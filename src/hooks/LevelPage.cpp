@@ -5,7 +5,7 @@ using namespace geode::prelude;
 
 class $modify(LevelPage) {
 	static void onModify(auto& self) {
-		self.setHookPriority("LevelPage::onInfo", -9999);
+		auto _ = self.setHookPriority("LevelPage::onInfo", -9999);
 	}
 
 	void onInfo(CCObject* sender) {

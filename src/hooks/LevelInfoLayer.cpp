@@ -5,11 +5,12 @@ using namespace geode::prelude;
 
 class $modify(LevelInfoLayer) {
     static void onModify(auto& self) {
-        self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
+        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
     }
 
     void onLevelInfo(CCObject* sender) {
         DTPopupManager::setInfoAlertOpen(true);
+        log::info("did thing");
         LevelInfoLayer::onLevelInfo(sender);
     }
 };

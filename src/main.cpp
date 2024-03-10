@@ -2,5 +2,5 @@
 using namespace geode::prelude;
 
 $execute {
-    file::createDirectory(Mod::get()->getSaveDir() / "levels");
+    auto _ = file::createDirectory(Mod::get()->getSaveDir() / "levels");
 }
