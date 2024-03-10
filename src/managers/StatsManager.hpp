@@ -60,10 +60,11 @@ public:
     static void logRun(Run run);
 
     // utility functions
+    static long long getNowSeconds();
     static std::string getLevelKey(GJGameLevel* level = m_level);
     static Run splitRunKey(std::string runKey);
     static Session* getSession();
-    static void setSessionLastPlayed(long long lastPlayed);
+    static void updateSessionLastPlayed(bool save = false);
     static void scheduleCreateNewSession(bool scheduled);
     static bool hasPlayedLevel();
     static std::string toPercentStr(int percent, int precision = 2);

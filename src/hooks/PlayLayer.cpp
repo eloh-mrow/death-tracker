@@ -4,13 +4,9 @@
 
 using namespace geode::prelude;
 
-long long getNowSeconds() {
-    using namespace std::chrono;
-    auto now = system_clock::now();
-    return time_point_cast<seconds>(now).time_since_epoch().count();
-}
-
 class $modify(DTPlayLayer, PlayLayer) {
+    Session* prevSession = nullptr;
+    bool isSessionExpired = false;
     bool hasRespawned = false;
     Run currentRun;
 
@@ -18,6 +14,18 @@ class $modify(DTPlayLayer, PlayLayer) {
         return Settings::isCompletedLevelTrackingDisabled()
             && m_level->m_newNormalPercent2.value() == 100
             && m_level->m_levelType == GJLevelType::Saved;
+    }
+
+    void updateSessionLastPlayed() {
+        auto session = StatsManager::getSession();
+
+        log::info("DTPlayLayer::updateSessionLastPlayed()\nisPrevSession = {}\nisSessionExpired = {}",
+            session == m_fields->prevSession,
+            m_fields->isSessionExpired
+        );
+
+        if (session == m_fields->prevSession && m_fields->isSessionExpired) return;
+        StatsManager::updateSessionLastPlayed(true);
     }
 
     /* hooks
@@ -28,55 +36,68 @@ class $modify(DTPlayLayer, PlayLayer) {
         log::info("PlayLayer::init()");
 
         StatsManager::loadLevelStats(level);
+        auto session = StatsManager::getSession();
         auto levelKey = StatsManager::getLevelKey(level);
         auto sessionLength = Settings::getMaxSessionLength();
 
+        m_fields->prevSession = session;
+
         // schedule create a new session
         // based on the session length setting
-        switch (sessionLength) {
-            // reset session per level play
-            case -2: {
-                StatsManager::scheduleCreateNewSession(true);
-                break;
-            }
-
-            // reset session per game launch
-            case -1: {
-                // returns true if a new session
-                // was created during this game launch
-                if (StatsManager::hasPlayedLevel()) break;
-
-                StatsManager::scheduleCreateNewSession(true);
-                break;
-            }
-
-            // reset session based on session.lastPlayed
-            default: {
-                auto session = StatsManager::getSession();
-                auto now = getNowSeconds();
-
-                // reset if the time since lastPlayed
-                // is longer than the session length
-                if (now - session->lastPlayed > sessionLength)
+        // -2 means default session (no previous session)
+        if (session->lastPlayed != -2) {
+            switch (sessionLength) {
+                // reset session per level play
+                case -2: {
+                    m_fields->isSessionExpired = true;
                     StatsManager::scheduleCreateNewSession(true);
+                    break;
+                }
 
-                break;
+                // reset session per game launch
+                case -1: {
+                    // returns true if a new session
+                    // was created during this game launch
+                    if (StatsManager::hasPlayedLevel()) break;
+
+                    m_fields->isSessionExpired = true;
+                    StatsManager::scheduleCreateNewSession(true);
+                    break;
+                }
+
+                // reset session based on session.lastPlayed
+                default: {
+                    auto now = StatsManager::getNowSeconds();
+
+                    // reset if the time since lastPlayed
+                    // is longer than the session length
+                    if (now - session->lastPlayed > sessionLength) {
+                        m_fields->isSessionExpired = true;
+                        StatsManager::scheduleCreateNewSession(true);
+                    }
+
+                    break;
+                }
             }
         }
 
+        DTPlayLayer::updateSessionLastPlayed();
         return true;
     }
 
     void resetLevel() {
         PlayLayer::resetLevel();
         log::info("PlayLayer::resetLevel()");
-        m_fields->currentRun.start = this->getCurrentPercent();
+
         m_fields->hasRespawned = true;
+
+        if (!m_level->isPlatformer())
+            m_fields->currentRun.start = this->getCurrentPercent();
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* p1) {
         PlayLayer::destroyPlayer(player, p1);
-        if (m_level->isPlatformer()) return;
+
         if (!player->m_isDead) return;
         if (player != m_player1) return;
 
@@ -87,21 +108,28 @@ class $modify(DTPlayLayer, PlayLayer) {
 
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
-        log::info("PlayLayer::destroyPlayer()");
 
-        m_fields->currentRun.end = this->getCurrentPercent();
+        log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+            m_fields->currentRun.start,
+            m_fields->currentRun.end,
+            m_level->isPlatformer()
+        );
+
+        if (!m_level->isPlatformer())
+            m_fields->currentRun.end = this->getCurrentPercent();
 
         // log deaths from 0 in normal mode
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
             StatsManager::logDeath(m_fields->currentRun.end);
 
         // anything else is a run
-        else StatsManager::logRun(m_fields->currentRun);
+        // platformer runs only from 0
+        else if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
+            StatsManager::logRun(m_fields->currentRun);
     }
 
     void levelComplete() {
         PlayLayer::levelComplete();
-        if (m_level->isPlatformer()) return;
 
         // same as PlayLayer::destroyPlayer()
         if (!m_fields->hasRespawned) return;
@@ -109,10 +137,33 @@ class $modify(DTPlayLayer, PlayLayer) {
 
         // disable tracking deaths on completed levels
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
-        log::info("PlayLayer::levelComplete()");
 
-        m_fields->currentRun.end = this->getCurrentPercent();
-        StatsManager::logRun(m_fields->currentRun);
+        log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+            m_fields->currentRun.start,
+            m_fields->currentRun.end,
+            m_level->isPlatformer()
+        );
+
+        if (!m_level->isPlatformer())
+            m_fields->currentRun.end = this->getCurrentPercent();
+
+        if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
+            StatsManager::logRun(m_fields->currentRun);
+    }
+
+    void checkpointActivated(CheckpointGameObject* checkpt) {
+        PlayLayer::checkpointActivated(checkpt);
+        if (m_isPracticeMode) return;
+
+        m_fields->currentRun.end++;
+        log::info("PlayLayer::checkpointActivated() -- {}", m_fields->currentRun.end);
+    }
+
+    void resetLevelFromStart() {
+        PlayLayer::resetLevelFromStart();
+        log::info("PlayLayer::resetLevelFromStart()");
+
+        m_fields->currentRun.end = 0;
     }
 
     void onQuit() {
@@ -120,12 +171,9 @@ class $modify(DTPlayLayer, PlayLayer) {
         log::info("PlayLayer::onQuit()");
 
         // schedule session gets reset
-        // if they back out before dying
         // this cancels creating a new session
+        // if they back out before dying
         StatsManager::scheduleCreateNewSession(false);
-
-        // set session.lastPlayed
-        if (StatsManager::hasPlayedLevel())
-            StatsManager::setSessionLastPlayed(getNowSeconds());
+        DTPlayLayer::updateSessionLastPlayed();
     }
 };

@@ -1,5 +1,6 @@
-#include "../utils/Dev.hpp"
 #include "StatsManager.hpp"
+#include "../utils/Settings.hpp"
+#include "../utils/Dev.hpp"
 
 using namespace geode::prelude;
 
@@ -126,6 +127,7 @@ void StatsManager::logDeath(float percent) {
         session->newBests.insert(percentStr);
     }
 
+    StatsManager::updateSessionLastPlayed();
     StatsManager::saveData();
 }
 
@@ -142,11 +144,18 @@ void StatsManager::logRun(Run run) {
     m_runs[runKey]++;
     session->runs[runKey]++;
 
+    StatsManager::updateSessionLastPlayed();
     StatsManager::saveData();
 }
 
 /* utility functions
 ===================== */
+long long StatsManager::getNowSeconds() {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    return time_point_cast<seconds>(now).time_since_epoch().count();
+}
+
 std::string StatsManager::getLevelKey(GJGameLevel* level) {
 	if (!level) return "-1";
 
@@ -189,19 +198,20 @@ Run StatsManager::splitRunKey(std::string runKey) {
 }
 
 Session* StatsManager::getSession() {
+    log::info("StatsManager::getSession()");
+
     auto currentSession = &m_sessions[m_sessions.size() - 1];
 
     // new sessions can be scheduled
     // and are created when the player dies
     if (!m_scheduleCreateNewSession) return currentSession;
     m_scheduleCreateNewSession = false;
-    log::info("StatsManager::getSession()");
 
-    // the user has played the level
-    // if a new session is created
     auto levelKey = StatsManager::getLevelKey();
     if (levelKey == "-1") return currentSession;
 
+    // the user has played the level
+    // if a new session is created
     m_playedLevels.insert(levelKey);
 
     // create the new session
@@ -217,9 +227,20 @@ Session* StatsManager::getSession() {
     return &m_sessions[m_sessions.size() - 1];
 }
 
-void StatsManager::setSessionLastPlayed(long long lastPlayed) {
-    m_sessions[m_sessions.size() - 1].lastPlayed = lastPlayed;
-    StatsManager::saveData();
+void StatsManager::updateSessionLastPlayed(bool save) {
+    auto now = StatsManager::getNowSeconds();
+    auto session = StatsManager::getSession();
+
+    session->lastPlayed = now;
+
+    log::info("StatsManager::updateSessionLastPlayed()\nnow = {}\nsave = {}\n# of deaths = {}",
+        now,
+        save,
+        session->deaths.size()
+    );
+
+    if (save && session->deaths.size() > 0)
+        StatsManager::saveData();
 }
 
 void StatsManager::scheduleCreateNewSession(bool scheduled) {
@@ -321,6 +342,7 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     auto old__sessionDeaths = Mod::get()->getSavedValue<std::vector<int>>(levelKey + "-session");
     auto old__sessionBests = Mod::get()->getSavedValue<std::vector<bool>>(levelKey + "-session-bests");
     auto old__sessionTime = Mod::get()->getSavedValue<long long>(levelKey + "-session-time", -1);
+    auto old__platBests = Mod::get()->getSavedValue<std::vector<bool>>(levelKey + "-plat-bests");
 
     Deaths deaths{};
     Deaths sessionDeaths{};
@@ -344,18 +366,19 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
         // have session best tracking
         if (!old__sessionBests.size()) continue;
 
-        if (old__sessionBests[percent])
+        if (old__sessionBests[percent]) {
             sessionBests.insert(percentStr);
 
-        if (old__sessionBests[percent] && percent > currentSessionBest)
-            currentSessionBest = static_cast<float>(percent);
+            if (percent > currentSessionBest)
+                currentSessionBest = static_cast<float>(percent);
+        }
     }
 
     levelStats.deaths = deaths;
     levelStats.runs = Runs();
 
     levelStats.sessions.push_back(Session {
-        .lastPlayed = old__sessionTime,
+        .lastPlayed = !sessionDeaths.size() ? -2 : old__sessionTime,
         .deaths = sessionDeaths,
         .runs = {}, // v1.x.x doesnt track runs
         .newBests = sessionBests,
@@ -363,9 +386,43 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     });
 
     // calculate m_newBests, m_currentBest
-    const auto [newBests, currentBest] = StatsManager::calcNewBests(level);
+    NewBests newBests{};
+    float currentBest = 0;
+
+    if (level->isPlatformer()) {
+        for (int checkpt = 0; checkpt < old__platBests.size(); checkpt++) {
+            auto checkptStr = StatsManager::toPercentStr(checkpt);
+
+            if (old__platBests[checkpt]) {
+                newBests.insert(checkptStr);
+
+                if (checkpt > currentBest)
+                    currentBest = static_cast<float>(checkpt);
+            }
+        }
+    } else {
+        const auto [_newBests, _currentBest] = StatsManager::calcNewBests(level);
+        newBests = _newBests;
+        currentBest = _currentBest;
+    }
+
     levelStats.newBests = newBests;
     levelStats.currentBest = currentBest;
+
+    // default deaths to newBests x1
+    if (!deaths.size()) {
+        NewBests::iterator itr;
+        auto start = levelStats.newBests.begin();
+        auto end = levelStats.newBests.end();
+
+        for (itr = start; itr != end; itr++) {
+            auto percentStr = *itr;
+            if (percentStr == "100.00") continue;
+
+            levelStats.deaths[percentStr] = 1;
+        }
+    }
+
     return levelStats;
 }
 
