@@ -1,4 +1,3 @@
-#include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include "../managers/StatsManager.hpp"
 #include "../utils/Settings.hpp"
@@ -58,7 +57,7 @@ class $modify(DTPlayLayer, PlayLayer) {
 
                 // reset if the time since lastPlayed
                 // is longer than the session length
-                if (now - session.lastPlayed > sessionLength)
+                if (now - session->lastPlayed > sessionLength)
                     StatsManager::scheduleCreateNewSession(true);
 
                 break;
