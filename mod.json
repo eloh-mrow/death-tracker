@@ -4,7 +4,7 @@
 	"version": "v1.7.0",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
-	"developer": "ElohmroW",
+	"developers": ["ElohmroW", "abb2k"],
 	"description": "Tracks your normal mode deaths at every percentage",
 	"repository": "https://github.com/eloh-mrow/death-tracker",
 	"resources": {
