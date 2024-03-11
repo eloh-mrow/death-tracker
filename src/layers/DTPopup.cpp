@@ -117,70 +117,100 @@ std::pair<std::string, std::string> DTPopup::CreateDeathsStrings(){
 
     for (auto i : myLevelStats.deaths){
         float deathPFloat = std::stof(i.first);
+                
+        bool addNew = true;
+        int precision = Mod::get()->getSettingValue<int64_t>("precision");
+        for (int b = 0; b < deathsSorted.size(); b++){
+            std::string a1 = StatsManager::toPercentStr(deathPFloat, precision, true);
+            std::string b1 = StatsManager::toPercentStr(deathsSorted[b].first, precision, true);
 
-        deathsSorted.push_back(std::pair<float,int>(deathPFloat, i.second));
-
-        std::pair<float,int> prevOne;
-
-        int currentMEIndex = deathsSorted.size() - 1;
-
-        for (int b = 0; b < deathsSorted.size(); b++)
-        {
-            if (currentMEIndex != 0){
-                if (deathsSorted[currentMEIndex - 1].first > deathsSorted[b].first){
-                    prevOne = deathsSorted[currentMEIndex - 1];
-                    deathsSorted[currentMEIndex - 1] = deathsSorted[b];
-                    deathsSorted[currentMEIndex] = prevOne;
-                }
+            if (a1 == b1){
+                deathsSorted[b].second += i.second;
+                addNew = false;
             }
-            currentMEIndex--;
+        }
+
+        if (addNew){
+            deathsSorted.push_back(std::pair<float,int>(deathPFloat, i.second));
+
+            std::pair<float,int> prevOne;
+
+            int currentMEIndex = deathsSorted.size() - 1;
+
+            for (int b = 0; b < deathsSorted.size(); b++)
+            {
+                if (currentMEIndex != 0){
+                    if (deathsSorted[currentMEIndex - 1].first > deathsSorted[currentMEIndex].first){
+                        prevOne = deathsSorted[currentMEIndex - 1];
+                        deathsSorted[currentMEIndex - 1] = deathsSorted[currentMEIndex];
+                        deathsSorted[currentMEIndex] = prevOne;
+                    }
+                }
+                currentMEIndex--;
+            }
         }
     }
 
     for (int i = 0; i < deathsSorted.size(); i++)
     {
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(Mod::get()->getSettingValue<int64_t>("precision")) << deathsSorted[i].first;
-        toReturnPair.first += fmt::format("{}% {}X", ss.str(), deathsSorted[i].second);
+        std::string precent = StatsManager::toPercentStr(deathsSorted[i].first, Mod::get()->getSettingValue<int64_t>("precision"), true);
+
+        toReturnPair.first += fmt::format("{}% {}X", precent, deathsSorted[i].second);
         if (i != deathsSorted.size() - 1) toReturnPair.first += "\n";
     }
 	
 	for (auto i : myLevelStats.runs){
         Run currRun = StatsManager::splitRunKey(i.first);
 
-        runsSorted.push_back(std::pair<Run,int>(currRun, i.second));
+        bool addNew = true;
+        int precision = Mod::get()->getSettingValue<int64_t>("precision");
+        for (int b = 0; b < runsSorted.size(); b++){
+            std::string a1s = StatsManager::toPercentStr(currRun.start, precision, true);
+            std::string a1e = StatsManager::toPercentStr(currRun.end, precision, true);
 
-        std::pair<Run,int> prevOne;
+            std::string b1s = StatsManager::toPercentStr(runsSorted[b].first.start, precision, true);
+            std::string b1e = StatsManager::toPercentStr(runsSorted[b].first.end, precision, true);
 
-        int currentMEIndex = runsSorted.size() - 1;
+            if (a1s == b1s && a1e == b1e){
+                runsSorted[b].second += i.second;
+                addNew = false;
+            }
+        }
 
-        for (int b = 0; b < runsSorted.size(); b++)
-        {
-            if (currentMEIndex != 0){
-                if (runsSorted[currentMEIndex - 1].first.start == runsSorted[b].first.start){
-                    if (runsSorted[currentMEIndex - 1].first.end > runsSorted[b].first.end){
+        if (addNew){
+            runsSorted.push_back(std::pair<Run,int>(currRun, i.second));
+
+            std::pair<Run,int> prevOne;
+
+            int currentMEIndex = runsSorted.size() - 1;
+
+            for (int b = 0; b < runsSorted.size(); b++)
+            {
+                if (currentMEIndex != 0){
+                    if (runsSorted[currentMEIndex - 1].first.start == runsSorted[currentMEIndex].first.start){
+                        if (runsSorted[currentMEIndex - 1].first.end > runsSorted[currentMEIndex].first.end){
+                            prevOne = runsSorted[currentMEIndex - 1];
+                            runsSorted[currentMEIndex - 1] = runsSorted[currentMEIndex];
+                            runsSorted[currentMEIndex] = prevOne;
+                        }
+                    }
+                    else if (runsSorted[currentMEIndex - 1].first.start > runsSorted[currentMEIndex].first.start){
                         prevOne = runsSorted[currentMEIndex - 1];
-                        runsSorted[currentMEIndex - 1] = runsSorted[b];
+                        runsSorted[currentMEIndex - 1] = runsSorted[currentMEIndex];
                         runsSorted[currentMEIndex] = prevOne;
                     }
                 }
-                else if (runsSorted[currentMEIndex - 1].first.start > runsSorted[b].first.start){
-                    prevOne = runsSorted[currentMEIndex - 1];
-                    runsSorted[currentMEIndex - 1] = runsSorted[b];
-                    runsSorted[currentMEIndex] = prevOne;
-                }
+                currentMEIndex--;
             }
-            currentMEIndex--;
         }
     }
 
     for (int i = 0; i < runsSorted.size(); i++)
     {
-        std::stringstream start;
-        start << std::fixed << std::setprecision(Mod::get()->getSettingValue<int64_t>("precision")) << runsSorted[i].first.start;
-        std::stringstream end;
-        end << std::fixed << std::setprecision(Mod::get()->getSettingValue<int64_t>("precision")) << runsSorted[i].first.end;
-        toReturnPair.second += fmt::format("{}% - {}% {}X", start.str(), end.str(), runsSorted[i].second);
+        std::string start = StatsManager::toPercentStr(runsSorted[i].first.start, Mod::get()->getSettingValue<int64_t>("precision"), true);
+        std::string end = StatsManager::toPercentStr(runsSorted[i].first.end, Mod::get()->getSettingValue<int64_t>("precision"), true);
+
+        toReturnPair.second += fmt::format("{}% - {}% {}X", start, end, runsSorted[i].second);
         if (i != runsSorted.size() - 1) toReturnPair.second += "\n";
     }
     

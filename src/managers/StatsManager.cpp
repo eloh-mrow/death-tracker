@@ -211,9 +211,12 @@ std::string StatsManager::toPercentStr(int percent, int precision) {
     return StatsManager::toPercentStr(static_cast<float>(percent));
 }
 
-std::string StatsManager::toPercentStr(float percent, int precision) {
+std::string StatsManager::toPercentStr(float percent, int precision, bool fixRounding) {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(precision) << percent;
+    float fixedPrecent = percent;
+    if (percent > 0.5f && fixRounding && Mod::get()->getSettingValue<int64_t>("precision") == 0) fixedPrecent -= 0.5f;
+    if (percent > 0.05f && fixRounding && Mod::get()->getSettingValue<int64_t>("precision") == 1) fixedPrecent -= 0.05f;
+    ss << std::fixed << std::setprecision(precision) << fixedPrecent;
     return ss.str();
 }
 
