@@ -1,4 +1,11 @@
 # Changelog
+## v2.0.0-beta.1
+- added run tracking
+- added customizable decimal precision tracking
+- added multi-session tracking
+- added automatic backups (TODO)
+- complete UI overhaul (TODO)
+
 ## v1.7.2
 - fixed an incompatibility with xdBot
 
