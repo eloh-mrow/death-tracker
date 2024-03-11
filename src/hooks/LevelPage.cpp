@@ -15,4 +15,10 @@ class $modify(LevelPage) {
 
 		LevelPage::onInfo(sender);
 	}
+
+	bool init(GJGameLevel* level){
+        if (!LevelPage::init(level)) return false;
+
+        DTPopupManager::setCurrentLevel(level);
+    }
 };
