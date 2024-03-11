@@ -12,4 +12,10 @@ class $modify(EditLevelLayer) {
         DTPopupManager::setInfoAlertOpen(true);
         EditLevelLayer::onLevelInfo(sender);
     }
+
+    bool init(GJGameLevel* level){
+        if (!EditLevelLayer::init(level)) return false;
+
+        DTPopupManager::setCurrentLevel(level);
+    }
 };

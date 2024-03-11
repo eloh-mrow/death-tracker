@@ -13,4 +13,10 @@ class $modify(LevelInfoLayer) {
         log::info("did thing");
         LevelInfoLayer::onLevelInfo(sender);
     }
+
+    bool init(GJGameLevel* level, bool p1){
+        if (!LevelInfoLayer::init(level, p1)) return false;
+
+        DTPopupManager::setCurrentLevel(level);
+    }
 };

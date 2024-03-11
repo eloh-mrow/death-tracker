@@ -76,7 +76,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
     void openPopup(CCObject* sender) {
         this->m_mainLayer->setVisible(false);
 
-        DTPopup* mypopup = DTPopup::create(160, 240, this);
+        DTPopup* mypopup = DTPopup::create(160, 240, this, DTPopupManager::getCurrentLevel());
         this->addChild(mypopup);
     }
 };

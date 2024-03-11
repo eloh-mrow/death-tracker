@@ -22,53 +22,6 @@ std::vector<std::string> splitStr(std::string str, std::string delim) {
     return res;
 }
 
-// matjson fuckery
-template <>
-struct matjson::Serialize<Session> {
-    static Session from_json(const matjson::Value& value) {
-        return Session {
-            .lastPlayed = value["lastPlayed"].as<long long>(),
-            .deaths = value["deaths"].as<Deaths>(),
-            .runs = value["runs"].as<Runs>(),
-            .newBests = value["newBests"].as<NewBests>(),
-            .currentBest = std::stof(value["currentBest"].as_string()),
-        };
-    }
-
-    static matjson::Value to_json(const Session& value) {
-        auto obj = matjson::Object();
-        obj["lastPlayed"] = value.lastPlayed;
-        obj["deaths"] = value.deaths;
-        obj["runs"] = value.runs;
-        obj["newBests"] = value.newBests;
-        obj["currentBest"] = StatsManager::toPercentStr(value.currentBest);
-        return obj;
-    }
-};
-
-template <>
-struct matjson::Serialize<LevelStats> {
-    static LevelStats from_json(const matjson::Value& value) {
-        return LevelStats {
-            .deaths = value["deaths"].as<Deaths>(),
-            .runs = value["runs"].as<Runs>(),
-            .newBests = value["newBests"].as<NewBests>(),
-            .currentBest = static_cast<float>(value["currentBest"].as_double()),
-            .sessions = value["sessions"].as<std::vector<Session>>()
-        };
-    }
-
-    static matjson::Value to_json(const LevelStats& value) {
-        auto obj = matjson::Object();
-        obj["deaths"] = value.deaths;
-        obj["runs"] = value.runs;
-        obj["newBests"] = value.newBests;
-        obj["currentBest"] = value.currentBest;
-        obj["sessions"] = value.sessions;
-        return obj;
-    }
-};
-
 /* static member variables
 =========================== */
 GJGameLevel* StatsManager::m_level = nullptr;
