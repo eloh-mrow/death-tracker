@@ -1,5 +1,4 @@
 #include "../layers/DTPopup.hpp"
-#include "../managers/StatsManager.hpp"
 
 DTPopup* DTPopup::create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level) {
     auto ret = new DTPopup();
@@ -45,11 +44,72 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     ScrollLayerBG->setPosition(winSize / 2);
     this->m_mainLayer->addChild(ScrollLayerBG);
 
+    //copy button
+    auto copyButtonSprite = CCSprite::createWithSpriteFrameName("GJ_longBtn01_001.png");
+    copyButtonSprite->setScale(0.7f);
+    auto copyButtonText = CCLabelBMFont::create("Copy", "goldFont.fnt");
+    copyButtonText->setAnchorPoint({0.5f, 0.4f});
+    copyButtonText->setPosition(copyButtonSprite->getContentSize() / 2);
+    copyButtonSprite->addChild(copyButtonText);
+    auto copyButton = CCMenuItemSpriteExtra::create(
+        copyButtonSprite,
+        nullptr,
+        this,
+        menu_selector(DTPopup::CopyText)
+    );
+    copyButton->setPosition({winSize.width / 2 - m_size.width / 4.923f, winSize.height / 2 - m_size.height / 2.474f});
+    m_buttonMenu->addChild(copyButton);
+
+    //passRate button
+    auto passRateButtonSprite = CCSprite::create("GJ_button_01.png");
+    passRateButtonSprite->setScale(0.6f);
+
+    m_passRateButtonIconInactive = CCSprite::create("dt_passRateIcon_inactive.png"_spr);
+    m_passRateButtonIconInactive->setPosition(passRateButtonSprite->getContentSize() / 2);
+    passRateButtonSprite->addChild(m_passRateButtonIconInactive);
+
+    m_passRateButtonIconActive = CCSprite::create("dt_passRateIcon_active.png"_spr);
+    m_passRateButtonIconActive->setPosition(passRateButtonSprite->getContentSize() / 2);
+    m_passRateButtonIconActive->setVisible(false);
+    passRateButtonSprite->addChild(m_passRateButtonIconActive);
+
+    auto passRateButton = CCMenuItemSpriteExtra::create(
+        passRateButtonSprite,
+        nullptr,
+        this,
+        menu_selector(DTPopup::CopyText)
+    );
+    log::info("{}, {}", winSize, m_size);
+    passRateButton->setPosition({winSize.width / 2 + m_size.width / 3.516f, winSize.height / 2 - m_size.height / 2.474f});
+    m_buttonMenu->addChild(passRateButton);
+
+    //session button
+    auto sessionsButtonSprite = CCSprite::create("GJ_button_01.png");
+    sessionsButtonSprite->setScale(0.6f);
+
+    m_SessionsButtonIconInactive = CCSprite::create("dt_sessionIcon_inactive.png"_spr);
+    m_SessionsButtonIconInactive->setPosition(sessionsButtonSprite->getContentSize() / 2);
+    sessionsButtonSprite->addChild(m_SessionsButtonIconInactive);
+
+    m_SessionsButtonIconActive = CCSprite::create("dt_sessionIcon_active.png"_spr);
+    m_SessionsButtonIconActive->setPosition(sessionsButtonSprite->getContentSize() / 2);
+    m_SessionsButtonIconActive->setVisible(false);
+    sessionsButtonSprite->addChild(m_SessionsButtonIconActive);
+
+    auto sessionsButton = CCMenuItemSpriteExtra::create(
+        sessionsButtonSprite,
+        nullptr,
+        this,
+        menu_selector(DTPopup::CopyText)
+    );
+    sessionsButton->setPosition({winSize.width / 2 + m_size.width / 10.322f, winSize.height / 2 - m_size.height / 2.474f});
+    m_buttonMenu->addChild(sessionsButton);
+
+    GetLevelStats();
+
     auto deathStrings = CreateDeathsStrings();
 
-    log::info("hi");
     if (deathStrings.first != "-1"){
-        log::info("found file");
         if (deathStrings.first == "No Saved Progress"){
             log::info("didnt find progress");
         }
@@ -60,6 +120,27 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
             DeathsLabel->setAnchorPoint({0.5f, 1});
             DeathsLabel->setPosition({SLayer->getContentSize().width / 2, SLayer->getContentSize().height});
             SLayer->m_contentLayer->addChild(DeathsLabel);
+
+            for (int i = 0; i < DeathsLabel->getLines().size(); i++)
+            {
+                for (auto newBest : m_MyLevelStats.newBests) 
+                {
+                    std::string fixedBestPrecent = StatsManager::toPercentStr(std::stof(newBest), Mod::get()->getSettingValue<int64_t>("precision"), true);
+                    std::string fixedLabelString = DeathsLabel->getLines()[i]->getString();
+                    int PrecentIndex = 0;
+                    for (int b = 0; b < fixedLabelString.length(); b++)
+                    {
+                        if (fixedLabelString[b] == '%')
+                            PrecentIndex = b;
+                    }
+                    fixedLabelString = fixedLabelString.erase(PrecentIndex, fixedLabelString.length() - 1);
+                    
+                    if (fixedLabelString == fixedBestPrecent){
+                        DeathsLabel->getLines()[i]->setColor({255, 255, 0});
+                    }
+                }  
+            }
+            
 
             auto RunsLabel = SimpleTextArea::create(deathStrings.second, "chatFont.fnt", 0.75f);
             m_TextAreas.push_back(RunsLabel);
@@ -101,21 +182,29 @@ void DTPopup::onClose(cocos2d::CCObject* object){
     this->removeFromParentAndCleanup(true);
 }
 
+void DTPopup::GetLevelStats(){
+    if (!m_Level) return;
+
+    auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
+
+    if (!ghc::filesystem::exists(levelPath)) return; // display an alert saying you dont have any progress recorded
+
+    m_MyLevelStats = file::readJson(levelPath).value().as<LevelStats>();
+}
+
 std::pair<std::string, std::string> DTPopup::CreateDeathsStrings(){
     if (!m_Level) return std::pair<std::string, std::string>("-1", "-1");
 
     auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
 
     if (!ghc::filesystem::exists(levelPath)) return std::pair<std::string, std::string>("No Saved Progress", "No Saved Progress") ; // display an alert saying you dont have any progress recorded
-    
-    std::pair<std::string, std::string> toReturnPair{"", ""};
 
-    LevelStats myLevelStats = file::readJson(levelPath).value().as<LevelStats>();
+    std::pair<std::string, std::string> toReturnPair{"", ""};
 
     std::vector<std::pair<float,int>> deathsSorted;
     std::vector<std::pair<Run,int>> runsSorted;
 
-    for (auto i : myLevelStats.deaths){
+    for (auto i : m_MyLevelStats.deaths){
         float deathPFloat = std::stof(i.first);
                 
         bool addNew = true;
@@ -154,12 +243,14 @@ std::pair<std::string, std::string> DTPopup::CreateDeathsStrings(){
     for (int i = 0; i < deathsSorted.size(); i++)
     {
         std::string precent = StatsManager::toPercentStr(deathsSorted[i].first, Mod::get()->getSettingValue<int64_t>("precision"), true);
+        
 
         toReturnPair.first += fmt::format("{}% {}X", precent, deathsSorted[i].second);
+
         if (i != deathsSorted.size() - 1) toReturnPair.first += "\n";
     }
 	
-	for (auto i : myLevelStats.runs){
+	for (auto i : m_MyLevelStats.runs){
         Run currRun = StatsManager::splitRunKey(i.first);
 
         bool addNew = true;
@@ -217,3 +308,18 @@ std::pair<std::string, std::string> DTPopup::CreateDeathsStrings(){
 
     return toReturnPair;
 }
+
+void DTPopup::CopyText(CCObject* sender){
+    std::string strToCopy = "";
+    for (int i = 0; i < m_TextAreas.size(); i++)
+    {
+        strToCopy += m_TextAreas[i]->getText();
+        if (i != m_TextAreas.size() - 1) strToCopy += '\n';
+    }
+    clipboard::write(strToCopy);
+    Notification::create(
+			std::string("Copied successfully"),
+			CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png")
+		)->show();
+}
+
