@@ -16,7 +16,8 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
 
         GJGameLevel* m_Level;
 
-        std::vector<SimpleTextArea*> m_TextAreas;
+        SimpleTextArea* m_DeathsLabel;
+        ScrollLayer* m_SLayer;
 
         LevelStats m_MyLevelStats;
 
@@ -26,13 +27,21 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         CCSprite*  m_passRateButtonIconInactive;
         CCSprite*  m_passRateButtonIconActive;
 
+        std::vector<std::pair<std::string, float>> m_DeathStrings;
+
         void update(float delta);
     public:
         static DTPopup* create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level);
 
-        std::pair<std::string, std::string> CreateDeathsStrings();
+        void CreateDeathsStrings();
 
         void GetLevelStats();
 
         void CopyText(CCObject* sender);
+
+        void TogglePassRate(CCObject* sender);
+        void ToggleSessions(CCObject* sender);
+
+        enum texts {Deaths, DeathsPassRate, Sessions, SessionsPassRate};
+        void refreshText(texts textID);
 };

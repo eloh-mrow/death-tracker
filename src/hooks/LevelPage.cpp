@@ -12,13 +12,9 @@ class $modify(LevelPage) {
 		// only show for actual main levels
 		if (m_level->m_levelID.value() > 0)
 			DTPopupManager::setInfoAlertOpen(true);
+		
+		DTPopupManager::setCurrentLevel(m_level);
 
 		LevelPage::onInfo(sender);
 	}
-
-	bool init(GJGameLevel* level){
-        if (!LevelPage::init(level)) return false;
-
-        DTPopupManager::setCurrentLevel(level);
-    }
 };
