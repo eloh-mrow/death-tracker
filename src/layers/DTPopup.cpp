@@ -177,6 +177,7 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
     if (!m_Level) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("-1", 0)};
     if (!deaths.size()) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)}; // display an alert saying you dont have any progress recorded
 
+    int totalDeaths = 0;
     Deaths roundedDeaths{};
     NewBests roundedNewBests{};
     std::vector<std::tuple<std::string, int>> sortedDeaths{};
@@ -187,6 +188,7 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
 
         if (!roundedDeaths[roundedPercentStr]) roundedDeaths[roundedPercentStr] = 0;
         roundedDeaths[roundedPercentStr] += count;
+        totalDeaths += count;
     }
 
     for (const auto newBest : newBests) {
@@ -196,44 +198,24 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
     }
 
     // sort them
-    for (const auto [percentStr, count] : roundedDeaths) {
+    for (const auto [percentStr, count] : roundedDeaths)
         sortedDeaths.push_back(std::make_tuple(percentStr, count));
 
-        int curIndex = sortedDeaths.size() - 1;
+    std::ranges::sort(sortedDeaths, [](const std::tuple<std::string, int> a, const std::tuple<std::string, int> b) {
+        auto percentA = std::stof(std::get<0>(a));
+        auto percentB = std::stof(std::get<0>(b));
+        return percentA < percentB; // true --> A before B
+    });
 
-        for (auto _ : sortedDeaths) {
-            if (curIndex > 0) {
-                auto cur = sortedDeaths[curIndex];
-                auto prev = sortedDeaths[curIndex - 1];
-
-                auto curPercent = std::stof(std::get<0>(cur));
-                auto prevPercent = std::stof(std::get<0>(prev));
-
-                // swap
-                if (curPercent < prevPercent) {
-                    sortedDeaths[curIndex - 1] = cur;
-                    sortedDeaths[curIndex] = prev;
-                }
-            }
-
-            curIndex--;
-        }
-    }
-
-    // calculate pass rates
-	int totalDeaths = 0;
-
-    for (const auto& [_, count] : sortedDeaths)
-        totalDeaths += count;
-
+    // create output
 	int offset = m_Level->m_normalPercent.value() == 100
 		? 1
 		: 0;
 
     std::vector<std::pair<std::string, float>> output{};
 
-    for (int i = 0; i < sortedDeaths.size(); i++) {
-        auto [percentStr, count] = sortedDeaths[i];
+    for (const auto [percentStr, count] : sortedDeaths) {
+        // calculate pass rate
         totalDeaths -= count;
 
         float passCount = totalDeaths;
