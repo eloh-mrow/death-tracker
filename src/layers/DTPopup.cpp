@@ -1,4 +1,5 @@
 #include "../layers/DTPopup.hpp"
+#include "../managers/DTPopupManager.hpp"
 
 DTPopup* DTPopup::create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level) {
     auto ret = new DTPopup();
@@ -44,6 +45,17 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     ScrollLayerBG->setPosition(winSize / 2);
     this->m_mainLayer->addChild(ScrollLayerBG);
 
+    auto infoButtonSprite = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    infoButtonSprite->setScale(0.7f);
+    auto infoBtn = CCMenuItemSpriteExtra::create(
+        infoButtonSprite,
+        nullptr,
+        this,
+        menu_selector(DTPopup::ShowInfo)
+    );
+    m_buttonMenu->addChild(infoBtn);
+    infoBtn->setPosition({winSize.width / 2 + m_size.width / 2.28f, winSize.height / 2 + m_size.height / 2.162f});
+
     //copy button
     auto copyButtonSprite = CCSprite::createWithSpriteFrameName("GJ_longBtn01_001.png");
     copyButtonSprite->setScale(0.7f);
@@ -79,7 +91,6 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
         this,
         menu_selector(DTPopup::TogglePassRate)
     );
-    log::info("{}, {}", winSize, m_size);
     passRateButton->setPosition({winSize.width / 2 + m_size.width / 3.516f, winSize.height / 2 - m_size.height / 2.474f});
     m_buttonMenu->addChild(passRateButton);
 
@@ -105,9 +116,23 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     sessionsButton->setPosition({winSize.width / 2 + m_size.width / 10.322f, winSize.height / 2 - m_size.height / 2.474f});
     m_buttonMenu->addChild(sessionsButton);
 
-    GetLevelStats();
+    if (GetLevelStats()){
+        m_DeathStrings = CreateDeathsString(m_MyLevelStats.deaths, m_MyLevelStats.newBests, "<cy>");
+        m_RunStrings = CreateRunsString(m_MyLevelStats.runs);
 
-    CreateDeathsStrings();
+        if (m_MyLevelStats.sessions.size() > 0){
+            Session latest = m_MyLevelStats.sessions[0];
+            for (int i = 0; i < m_MyLevelStats.sessions.size(); i++)
+            {
+                if (m_MyLevelStats.sessions[i].lastPlayed > latest.lastPlayed){
+                    latest = m_MyLevelStats.sessions[i];
+                }
+            }
+            
+            m_SessionStrings = CreateDeathsString(latest.deaths, latest.newBests, "<co>");
+            m_SessionRunStrings = CreateRunsString(latest.runs);
+        }
+    }
 
     m_DeathsLabel = SimpleTextArea::create("", "chatFont.fnt", 0.75f);
     m_DeathsLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -115,7 +140,7 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     m_DeathsLabel->setPosition({m_SLayer->getContentSize().width / 2, m_SLayer->getContentSize().height});
     m_SLayer->m_contentLayer->addChild(m_DeathsLabel);
 
-    refreshText(texts::Deaths);
+    refreshText(texts::deaths);
 
     scheduleUpdate();
 
@@ -133,47 +158,29 @@ void DTPopup::onClose(cocos2d::CCObject* object){
     this->removeFromParentAndCleanup(true);
 }
 
-void DTPopup::GetLevelStats(){
-    if (!m_Level) return;
+bool DTPopup::GetLevelStats(){
+    if (!m_Level) return false;
 
     auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
 
-    if (!ghc::filesystem::exists(levelPath)) return; // display an alert saying you dont have any progress recorded
+    if (!ghc::filesystem::exists(levelPath)) return false;
 
     m_MyLevelStats = file::readJson(levelPath).value().as<LevelStats>();
+    return true;
 }
 
-void DTPopup::CreateDeathsStrings(){
-    if (!m_Level){
-        m_DeathStrings = std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("-1", 0)};
-        return;
-    }
+std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString){
+    if (!m_Level) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("-1", 0)};
 
     auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
 
-    if (!ghc::filesystem::exists(levelPath)){
-        m_DeathStrings = std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)}; // display an alert saying you dont have any progress recorded
-        return;
-    }
-
-    std::vector<float> m_passRates = {};
-	int totalDeaths = 0;
-    for (auto i : m_MyLevelStats.deaths)
-    {
-        totalDeaths += i.second;
-    }
-    
-
-	int offset = m_Level->m_normalPercent.value() == 100
-		? 1
-		: 0;
+    if (!ghc::filesystem::exists(levelPath)) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)}; // display an alert saying you dont have any progress recorded
 
     std::vector<std::pair<std::string, float>> toReturn{};
 
     std::vector<std::pair<float, std::pair<int, float>>> deathsSorted;
-    std::vector<std::pair<Run, std::pair<int, float>>> runsSorted;
 
-    for (auto i : m_MyLevelStats.deaths){
+    for (auto i : deaths){
         float deathPFloat = std::stof(i.first);
                 
         bool addNew = true;
@@ -209,6 +216,18 @@ void DTPopup::CreateDeathsStrings(){
         }
     }
 
+    std::vector<float> m_passRates = {};
+	int totalDeaths = 0;
+    for (int i = 0; i < deathsSorted.size(); i++)
+    {
+        totalDeaths += deathsSorted[i].second.first;
+    }
+    
+
+	int offset = m_Level->m_normalPercent.value() == 100
+		? 1
+		: 0;
+
     for (int i = 0; i < deathsSorted.size(); i++)
     {
         totalDeaths -= deathsSorted[i].second.first;
@@ -222,23 +241,41 @@ void DTPopup::CreateDeathsStrings(){
         std::string precent = StatsManager::toPercentStr(deathsSorted[i].first, Mod::get()->getSettingValue<int64_t>("precision"), true);
 
         std::pair<std::string, float> currentPair;
-        
-        for (auto newBest : m_MyLevelStats.newBests) 
-        {
-            std::string fixedBestPrecent = StatsManager::toPercentStr(std::stof(newBest), Mod::get()->getSettingValue<int64_t>("precision"), true);
-                        
-            if (precent == fixedBestPrecent){
-                currentPair.first += "<cy>";
-            }
-        }  
 
         currentPair.first += fmt::format("{}% {}X", precent, deathsSorted[i].second.first);
         currentPair.second = deathsSorted[i].second.second;
 
+        for (auto newBest : newBests)
+        {
+            std::string fixedBestPrecent = StatsManager::toPercentStr(std::stof(newBest), Mod::get()->getSettingValue<int64_t>("precision"), true);
+            
+            if (currentPair.first.length() >= 3)
+                if (precent == fixedBestPrecent && !StatsManager::ContainsAtIndex(0, NewBestsColorString, currentPair.first)){
+                    currentPair.first.insert(0, NewBestsColorString);
+                }
+        }  
+
         toReturn.push_back(currentPair);
     }
-	
-	for (auto i : m_MyLevelStats.runs){
+
+    if (toReturn.size() == 0)
+        toReturn.push_back(std::pair<std::string, float>{"No Saved Progress", 0});
+
+    return toReturn;
+}
+
+std::vector<std::string> DTPopup::CreateRunsString(Runs runs){
+    if (!m_Level) return std::vector<std::string>{"-1", 0};
+
+    auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
+
+    if (!ghc::filesystem::exists(levelPath)) return std::vector<std::string>{"No Saved Progress"}; // display an alert saying you dont have any progress recorded
+
+    std::vector<std::string> toReturn{};
+
+    std::vector<std::pair<Run, int>> runsSorted;
+
+    for (auto i : runs){
         Run currRun = StatsManager::splitRunKey(i.first);
 
         bool addNew = true;
@@ -251,15 +288,15 @@ void DTPopup::CreateDeathsStrings(){
             std::string b1e = StatsManager::toPercentStr(runsSorted[b].first.end, precision, true);
 
             if (a1s == b1s && a1e == b1e){
-                runsSorted[b].second.first += i.second;
+                runsSorted[b].second += i.second;
                 addNew = false;
             }
         }
 
         if (addNew){
-            runsSorted.push_back(std::pair<Run, std::pair<int, float>>(currRun, std::pair<int, float>(i.second, 0)));
+            runsSorted.push_back(std::pair<Run, int>(currRun, i.second));
 
-            std::pair<Run,std::pair<int, float>> prevOne;
+            std::pair<Run, int> prevOne;
 
             int currentMEIndex = runsSorted.size() - 1;
 
@@ -289,21 +326,38 @@ void DTPopup::CreateDeathsStrings(){
         std::string start = StatsManager::toPercentStr(runsSorted[i].first.start, Mod::get()->getSettingValue<int64_t>("precision"), true);
         std::string end = StatsManager::toPercentStr(runsSorted[i].first.end, Mod::get()->getSettingValue<int64_t>("precision"), true);
 
-        std::pair<std::string, float> currentPair;
+        std::string currentPair;
 
-        currentPair.first += fmt::format("{}% - {}% {}X", start, end, runsSorted[i].second.first);
-        currentPair.second = 0;
+        currentPair += fmt::format("{}% - {}% {}X", start, end, runsSorted[i].second);
         toReturn.push_back(currentPair);
     }
     
     if (toReturn.size() == 0)
-        m_DeathStrings = std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)};
+        toReturn.push_back("No Saved Progress");
 
-    m_DeathStrings = toReturn;
+    return toReturn;
 }
 
 void DTPopup::CopyText(CCObject* sender){
-    clipboard::write(m_DeathsLabel->getText());
+    if (m_DeathsLabel->getText() == "No Saved Progress"){
+        Notification::create(
+			std::string("No progress to copy"),
+			CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png")
+		)->show();
+        return;
+    }
+
+    std::string textToSend = m_DeathsLabel->getText();
+    for (int i = 0; i < textToSend.length(); i++)
+    {
+        if (StatsManager::ContainsAtIndex(i, "<cy>", textToSend) || StatsManager::ContainsAtIndex(i, "<co>", textToSend)){
+            textToSend = textToSend.erase(i, 4);
+        }
+    }
+
+    if (textToSend[textToSend.length() - 1] == '\n') textToSend = textToSend.erase(textToSend.length() - 1, 1);
+
+    clipboard::write(textToSend);
     Notification::create(
 			std::string("Copied successfully"),
 			CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png")
@@ -326,7 +380,7 @@ void DTPopup::TogglePassRate(CCObject* sender){
         m_passRateButtonIconActive->setVisible(false);
 
         if (m_SessionsButtonIconInactive->isVisible())
-            refreshText(texts::Deaths);
+            refreshText(texts::deaths);
         else{
             refreshText(texts::Sessions);
         }
@@ -349,7 +403,7 @@ void DTPopup::ToggleSessions(CCObject* sender){
         m_SessionsButtonIconActive->setVisible(false);
 
         if (m_passRateButtonIconInactive->isVisible())
-            refreshText(texts::Deaths);
+            refreshText(texts::deaths);
         else{
             refreshText(texts::DeathsPassRate);
         }
@@ -357,66 +411,164 @@ void DTPopup::ToggleSessions(CCObject* sender){
 }
 
 void DTPopup::refreshText(texts textID){
-    //set to deaths
-    if (textID == texts::Deaths){
-        this->setTitle("Deaths");
-        if (m_DeathStrings[0].first != "-1"){
-            if (m_DeathStrings[0].first == "No Saved Progress"){
-                log::info("didnt find progress");
-            }
-            else{
-                std::string mergedString = "";
-                for (int i = 0; i < m_DeathStrings.size(); i++)
-                {
-                    mergedString += m_DeathStrings[i].first;
-                    if (i != m_DeathStrings.size() - 1) mergedString += '\n';
-                }
+    m_CurrentPage = textID;
+    if (!m_Level) return;
 
-                m_DeathsLabel->setText(mergedString);
+    auto levelPath = StatsManager::getLevelSaveFilePath(m_Level);
 
-                if (m_DeathsLabel->getContentSize().height > m_SLayer->getContentSize().height){
-                    m_SLayer->m_contentLayer->setContentSize({m_SLayer->m_contentLayer->getContentSize().width, m_DeathsLabel->getContentSize().height});
-                    m_DeathsLabel->setPositionY(m_DeathsLabel->getPositionY() + (m_SLayer->m_contentLayer->getContentSize().height - m_SLayer->getContentSize().height));                    
+    if (ghc::filesystem::exists(levelPath)){
+        if (textID == texts::deaths){
+            this->setTitle("Deaths");
+            if (m_DeathStrings[0].first != "-1" && m_RunStrings[0] != "-1"){
+                if (m_DeathStrings[0].first == "No Saved Progress" && m_RunStrings[0] == "No Saved Progress"){
+                    m_DeathsLabel->setText(m_DeathStrings[0].first);
                 }
+                else{
+                    std::string mergedString = "";
+                    if (m_DeathStrings[0].first != "No Saved Progress"){
+                        for (int i = 0; i < m_DeathStrings.size(); i++)
+                        {
+                            mergedString += m_DeathStrings[i].first;
+                            if (i != m_DeathStrings.size() - 1) mergedString += '\n';
+                        }
+
+                        mergedString += '\n';
+                    }
+
+                    if (m_RunStrings[0] != "No Saved Progress")
+                        for (int i = 0; i < m_RunStrings.size(); i++)
+                        {
+                            mergedString += m_RunStrings[i];
+                            if (i != m_RunStrings.size() - 1) mergedString += '\n';
+                        }
                     
-                m_SLayer->moveToTop();
+                    m_DeathsLabel->setText(mergedString);
+                }
+            }
+        }
+        //set to deaths with pass rate
+        else if (textID == texts::DeathsPassRate){
+            this->setTitle("Deaths Pass Rate");
+            if (m_DeathStrings[0].first != "-1" && m_RunStrings[0] != "-1"){
+                if (m_DeathStrings[0].first == "No Saved Progress" && m_RunStrings[0] == "No Saved Progress"){
+                    m_DeathsLabel->setText(m_DeathStrings[0].first);
+                }
+                else{
+                    std::string mergedString = "";
+                    if (m_DeathStrings[0].first != "No Saved Progress"){
+                        for (int i = 0; i < m_DeathStrings.size(); i++)
+                        {
+                            mergedString += m_DeathStrings[i].first + fmt::format(" ({:.2f}%)",m_DeathStrings[i].second);
+                            if (i != m_DeathStrings.size() - 1) mergedString += '\n';
+                        }
+
+                        mergedString += '\n';
+                    }
+
+                    if (m_RunStrings[0] != "No Saved Progress")
+                        for (int i = 0; i < m_RunStrings.size(); i++)
+                        {
+                            mergedString += m_RunStrings[i];
+                            if (i != m_RunStrings.size() - 1) mergedString += '\n';
+                        }
+                    
+                    m_DeathsLabel->setText(mergedString);
+                }
+            }
+        }
+        //set to session
+        else if (textID == texts::Sessions){
+            this->setTitle("Session");
+            if (m_SessionStrings[0].first != "-1" && m_SessionRunStrings[0] != "-1"){
+                if (m_SessionStrings[0].first == "No Saved Progress" && m_SessionRunStrings[0] == "No Saved Progress"){
+                    m_DeathsLabel->setText(m_SessionStrings[0].first);
+                }
+                else{
+                    std::string mergedString = "";
+                    if (m_SessionStrings[0].first != "No Saved Progress"){
+                        for (int i = 0; i < m_SessionStrings.size(); i++)
+                        {
+                            mergedString += m_SessionStrings[i].first;
+                            if (i != m_SessionStrings.size() - 1) mergedString += '\n';
+                        }
+
+                        mergedString += '\n';
+                    }
+
+                    if (m_SessionRunStrings[0] != "No Saved Progress")
+                        for (int i = 0; i < m_SessionRunStrings.size(); i++)
+                        {
+                            mergedString += m_SessionRunStrings[i];
+                            if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
+                        }
+                    
+                    m_DeathsLabel->setText(mergedString);
+                }
+            }
+        }
+        //set to session with pass rate
+        else if (textID == texts::SessionsPassRate){
+            this->setTitle("Session Pass Rate");
+            if (m_SessionStrings[0].first != "-1" && m_SessionRunStrings[0] != "-1"){
+                if (m_SessionStrings[0].first == "No Saved Progress" && m_SessionRunStrings[0] == "No Saved Progress"){
+                    m_DeathsLabel->setText(m_SessionStrings[0].first);
+                }
+                else{
+                    std::string mergedString = "";
+                    if (m_SessionStrings[0].first != "No Saved Progress"){
+                        for (int i = 0; i < m_SessionStrings.size(); i++)
+                        {
+                            mergedString += m_SessionStrings[i].first + fmt::format(" ({:.2f}%)",m_SessionStrings[i].second);
+                            if (i != m_SessionStrings.size() - 1) mergedString += '\n';
+                        }
+
+                        mergedString += '\n';
+                    }
+
+                    if (m_SessionRunStrings[0] != "No Saved Progress")
+                        for (int i = 0; i < m_SessionRunStrings.size(); i++)
+                        {
+                            mergedString += m_SessionRunStrings[i];
+                            if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
+                        }
+                    
+                    m_DeathsLabel->setText(mergedString);
+                }
             }
         }
     }
-    //set to deaths with pass rate
-    else if (textID == texts::DeathsPassRate){
-        this->setTitle("Deaths Pass Rate");
-        if (m_DeathStrings[0].first != "-1"){
-            if (m_DeathStrings[0].first == "No Saved Progress"){
-                log::info("didnt find progress");
-            }
-            else{
-                std::string mergedString = "";
-                for (int i = 0; i < m_DeathStrings.size(); i++)
-                {
-                    mergedString += m_DeathStrings[i].first;
-                    if (i != m_DeathStrings.size() - 1) mergedString += '\n';
-                }
-                
-                m_DeathsLabel->setText(mergedString);
-
-                if (m_DeathsLabel->getContentSize().height > m_SLayer->getContentSize().height){
-                    m_SLayer->m_contentLayer->setContentSize({m_SLayer->m_contentLayer->getContentSize().width, m_DeathsLabel->getContentSize().height});
-                    m_DeathsLabel->setPositionY(m_DeathsLabel->getPositionY() + (m_SLayer->m_contentLayer->getContentSize().height - m_SLayer->getContentSize().height));                    
-                }
-                    
-                m_SLayer->moveToTop();
-            }
+    else{
+        m_DeathsLabel->setText("No Saved Progress");
+        if (textID == texts::deaths){
+            this->setTitle("Deaths");
+        }
+        //set to deaths with pass rate
+        else if (textID == texts::DeathsPassRate){
+            this->setTitle("Deaths Pass Rate");
+        }
+        //set to session
+        else if (textID == texts::Sessions){
+            this->setTitle("Session");
+        }
+        //set to session with pass rate
+        else if (textID == texts::SessionsPassRate){
+            this->setTitle("Session Pass Rate");
         }
     }
-    //set to session
-    else if (textID == texts::Sessions){
-        this->setTitle("Session");
+
+    if (m_DeathsLabel->getContentSize().height > m_SLayer->getContentSize().height){
+        m_SLayer->m_contentLayer->setContentSize({m_SLayer->m_contentLayer->getContentSize().width, m_DeathsLabel->getContentSize().height});
+        m_DeathsLabel->setPosition({m_SLayer->getContentSize().width / 2, m_SLayer->getContentSize().height + (m_SLayer->m_contentLayer->getContentSize().height - m_SLayer->getContentSize().height)});                  
     }
-    //set to session with pass rate
-    else if (textID == texts::SessionsPassRate){
-        this->setTitle("Session Pass Rate");
+    else{
+        m_DeathsLabel->setPosition({m_SLayer->getContentSize().width / 2, m_SLayer->getContentSize().height});
     }
+
+    if (m_DeathsLabel->getText() == "No Saved Progress"){
+        m_DeathsLabel->setPosition({m_SLayer->getContentSize().width / 2, m_SLayer->getContentSize().height / 2 + m_DeathsLabel->getContentSize().height / 2});
+    }
+                    
+    m_SLayer->moveToTop();
 
     //set coloring
     for (int i = 0; i < m_DeathsLabel->getLines().size(); i++)
@@ -426,16 +578,14 @@ void DTPopup::refreshText(texts textID){
         if (m_DeathsLabel->getLines()[i]->getString() != "")
             currentTextStr = m_DeathsLabel->getLines()[i]->getString();
 
-        if (currentTextStr.length() >= 3){
-            if (currentTextStr[0] == '<' && currentTextStr[1] == 'c' && currentTextStr[2] == 'y' && currentTextStr[3] == '>'){
-                m_DeathsLabel->getLines()[i]->setColor({ 255, 255, 0 });
-                didColorText = true;
-            }
+        if (StatsManager::ContainsAtIndex(0, "<cy>", currentTextStr)){
+            m_DeathsLabel->getLines()[i]->setColor({ 255, 255, 0 });
+            didColorText = true;
+        }
 
-            if (currentTextStr[0] == '<' && currentTextStr[1] == 'c' && currentTextStr[2] == 'o' && currentTextStr[3] == '>'){
-                m_DeathsLabel->getLines()[i]->setColor({ 236, 126, 0 });
-                didColorText = true;
-            }
+        if (StatsManager::ContainsAtIndex(0, "<co>", currentTextStr)){
+            m_DeathsLabel->getLines()[i]->setColor({ 236, 126, 0 });
+            didColorText = true;
         }
 
         if (!didColorText)
@@ -446,4 +596,37 @@ void DTPopup::refreshText(texts textID){
         }
     }
     
+}
+
+const std::string INFO_ALERT_MESSAGES[8]{
+	// side scroll, total, deaths
+	"Percentages in <cy>yellow</c> indicate a new best.",
+
+	// side scroll, total, pass rate
+	"Pass rate indicates how likely you are to pass a percentage.\n\nPercentages in <cy>yellow</c> indicate a new best.",
+
+	// side scroll, session, deaths
+	"Percentages in <co>orange</c> indicate a new best for your current session.",
+
+	// side scroll, session, pass rate
+	"Session pass rate indicates how likely you are to pass a percentage for your current session.\n\nPercentages in <co>orange</c> indicate a new best for your current session.",
+
+	// platformer, total, deaths
+	"Checkpoints in <cy>yellow</c> indicate a new best.",
+
+	// platformer, total, pass rate
+	"Pass rate indicates how likely you are to pass a checkpoint.\n\nCheckpoints in <cy>yellow</c> indicate a new best.",
+
+	// platformer, session, deaths
+	"Checkpoints in <co>orange</c> indicate a new best for your current session.",
+
+	// platformer, session, pass rate
+	"Pass rate indicates how likely you are to pass a checkpoint for your current session.\n\nCheckpoints in <co>orange</c> indicate a new best for your current session."
+};
+
+void DTPopup::ShowInfo(CCObject* sender){
+    DTPopupManager::setInfoAlertOpen(false);
+    auto alert = FLAlertLayer::create("info", INFO_ALERT_MESSAGES[static_cast<int>(m_CurrentPage)], "OK");
+    alert->show();
+    DTPopupManager::setInfoAlertOpen(true);
 }

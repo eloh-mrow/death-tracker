@@ -28,20 +28,29 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         CCSprite*  m_passRateButtonIconActive;
 
         std::vector<std::pair<std::string, float>> m_DeathStrings;
+        std::vector<std::string> m_RunStrings;
+
+        std::vector<std::pair<std::string, float>> m_SessionStrings;
+        std::vector<std::string> m_SessionRunStrings;
 
         void update(float delta);
     public:
         static DTPopup* create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level);
 
-        void CreateDeathsStrings();
+        std::vector<std::pair<std::string, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
+        std::vector<std::string> CreateRunsString(Runs runs);
 
-        void GetLevelStats();
+        bool GetLevelStats();
 
         void CopyText(CCObject* sender);
 
         void TogglePassRate(CCObject* sender);
         void ToggleSessions(CCObject* sender);
 
-        enum texts {Deaths, DeathsPassRate, Sessions, SessionsPassRate};
+        enum texts {deaths, DeathsPassRate, Sessions, SessionsPassRate};
         void refreshText(texts textID);
+
+        texts m_CurrentPage;
+
+        void ShowInfo(CCObject* sender);
 };

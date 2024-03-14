@@ -405,3 +405,15 @@ ghc::filesystem::path StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
     filePath = m_savesFolderPath / (levelKey + ".json");
     return filePath;
 }
+
+bool StatsManager::ContainsAtIndex(int startIndex, std::string check, std::string str){
+    if (startIndex + check.length() >= str.length()) return false;
+    bool toReturn = true;
+
+    for (int i = 0; i < check.length(); i++)
+    {
+        if (str[startIndex + i] != check[i]) toReturn = false;
+    }
+    
+    return toReturn;
+}
