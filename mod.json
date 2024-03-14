@@ -14,14 +14,6 @@
 	},
 	"tags": ["Utility", "Interface"],
 	"settings": {
-		"precision": {
-			"name": "Percentage Precision",
-			"description": "Number of decimal places displayed in your deaths and runs.",
-			"type": "int",
-			"default": 0,
-			"min": 0,
-			"max": 2
-		},
 		"session-length": {
 			"name": "Session Length",
 			"description": "Allows a session to continue if entering a level before this duration (in seconds) has passed since exiting the level.\n\n<cy>A value of -2</c> means the session will end when you exit the level (default).\n\n<co>A value of -1</c> means the session will end when you exit the game.",

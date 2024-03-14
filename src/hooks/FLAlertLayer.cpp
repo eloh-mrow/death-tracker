@@ -11,11 +11,9 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
         if (!FLAlertLayer::init(p0, p1, p2, p3, p4, p5, p6, p7, p8))
             return false;
 
-        log::info("hooked alert");
         if (!DTPopupManager::isInfoAlertOpen()) return true;
-        log::info("found a info layer");
-        auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
 
+        auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         auto btnSpr = CCSprite::create("dt_skullBtn.png"_spr);
@@ -26,21 +24,22 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
             this,
             menu_selector(MyFLAlertLayer::openPopup)
         );
+
         btn->setPosition({
             winSize.width / 2 + alertBgSize.width / 2 - btn->getContentSize().width / 2 - 13,
             winSize.height / 2 - alertBgSize.height / 2 + btn->getContentSize().height / 2 + 13
         });
 
         auto menu = CCMenu::create();
-        menu->setZOrder(100);
 
+        menu->setZOrder(100);
         menu->setPosition({0,0});
 
         menu->addChild(btn);
         this->m_mainLayer->addChild(menu);
         m_fields->m_dtBtnMenu = menu;
-        handleTouchPriority(this);
 
+        handleTouchPriority(this);
         return true;
     }
 

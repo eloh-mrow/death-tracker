@@ -13,7 +13,6 @@ DTPopup* DTPopup::create(float width, float hight, FLAlertLayer* const& InfoAler
 }
 
 bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level) {
-
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     m_InfoAlertLayer = InfoAlertLayer;
@@ -175,31 +174,16 @@ void DTPopup::onClose(cocos2d::CCObject* object){
 
 std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString){
     if (!m_Level) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("-1", 0)};
-    if (!deaths.size()) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)}; // display an alert saying you dont have any progress recorded
+    if (!deaths.size()) return std::vector<std::pair<std::string, float>>{std::pair<std::string, float>("No Saved Progress", 0)};
 
     int totalDeaths = 0;
-    Deaths roundedDeaths{};
-    NewBests roundedNewBests{};
     std::vector<std::tuple<std::string, int>> sortedDeaths{};
 
-    // round all the deaths and new bests
-    for (const auto [percentStr, count] : deaths) {
-        auto roundedPercentStr = StatsManager::toPercentStr(std::stof(percentStr), Settings::getPrecision());
-
-        if (!roundedDeaths[roundedPercentStr]) roundedDeaths[roundedPercentStr] = 0;
-        roundedDeaths[roundedPercentStr] += count;
+    // sort the deaths
+    for (const auto [percentKey, count] : deaths) {
+        sortedDeaths.push_back(std::make_tuple(percentKey, count));
         totalDeaths += count;
     }
-
-    for (const auto newBest : newBests) {
-        auto roundedNewBest = StatsManager::toPercentStr(std::stof(newBest), Settings::getPrecision());
-
-        roundedNewBests.insert(roundedNewBest);
-    }
-
-    // sort them
-    for (const auto [percentStr, count] : roundedDeaths)
-        sortedDeaths.push_back(std::make_tuple(percentStr, count));
 
     std::ranges::sort(sortedDeaths, [](const std::tuple<std::string, int> a, const std::tuple<std::string, int> b) {
         auto percentA = std::stof(std::get<0>(a));
@@ -214,7 +198,7 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
 
     std::vector<std::pair<std::string, float>> output{};
 
-    for (const auto [percentStr, count] : sortedDeaths) {
+    for (const auto [percentKey, count] : sortedDeaths) {
         // calculate pass rate
         totalDeaths -= count;
 
@@ -222,9 +206,9 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
         float passRate = (passCount + offset) / (passCount + count + offset) * 100;
 
         // format output
-        auto labelStr = fmt::format("{}% x{}", percentStr, count);
+        auto labelStr = fmt::format("{}% x{}", percentKey, count);
 
-        if (roundedNewBests.contains(percentStr))
+        if (newBests.contains(std::stoi(percentKey)))
             labelStr.insert(0, NewBestsColorString);
 
         output.push_back({labelStr, passRate});
@@ -235,73 +219,34 @@ std::vector<std::pair<std::string, float>> DTPopup::CreateDeathsString(Deaths de
 }
 
 std::vector<std::string> DTPopup::CreateRunsString(Runs runs){
-    if (!m_Level) return std::vector<std::string>{"-1", 0};
-    if (!runs.size()) return std::vector<std::string>{"No Saved Progress"}; // display an alert saying you dont have any progress recorded
+    if (!m_Level) return std::vector<std::string>{"-1"};
+    if (!runs.size()) return std::vector<std::string>{"No Saved Progress"};
 
-    std::vector<std::string> toReturn{};
+    std::vector<std::tuple<std::string, int>> sortedRuns{};
 
-    std::vector<std::pair<Run, int>> runsSorted;
+    for (const auto [runKey, count] : runs)
+        sortedRuns.push_back(std::make_tuple(runKey, count));
 
-    for (auto i : runs){
-        Run currRun = StatsManager::splitRunKey(i.first);
+    // sort the runs
+    std::ranges::sort(sortedRuns, [](const std::tuple<std::string, int> a, const std::tuple<std::string, int> b) {
+        auto runA = StatsManager::splitRunKey(std::get<0>(a));
+        auto runB = StatsManager::splitRunKey(std::get<0>(b));
 
-        bool addNew = true;
-        for (int b = 0; b < runsSorted.size(); b++){
-            std::string a1s = StatsManager::toPercentStr(currRun.start, Settings::getPrecision());
-            std::string a1e = StatsManager::toPercentStr(currRun.end, Settings::getPrecision());
+        // start is equal, compare end
+        if (runA.start == runB.start) return runA.end < runB.end;
+        return runA.start < runB.start;
+    });
 
-            std::string b1s = StatsManager::toPercentStr(runsSorted[b].first.start, Settings::getPrecision());
-            std::string b1e = StatsManager::toPercentStr(runsSorted[b].first.end, Settings::getPrecision());
+    // create output
+    std::vector<std::string> output{};
 
-            if (a1s == b1s && a1e == b1e){
-                runsSorted[b].second += i.second;
-                addNew = false;
-            }
-        }
-
-        if (addNew){
-            runsSorted.push_back(std::pair<Run, int>(currRun, i.second));
-
-            std::pair<Run, int> prevOne;
-
-            int currentMEIndex = runsSorted.size() - 1;
-
-            for (int b = 0; b < runsSorted.size(); b++)
-            {
-                if (currentMEIndex != 0){
-                    if (runsSorted[currentMEIndex - 1].first.start == runsSorted[currentMEIndex].first.start){
-                        if (runsSorted[currentMEIndex - 1].first.end > runsSorted[currentMEIndex].first.end){
-                            prevOne = runsSorted[currentMEIndex - 1];
-                            runsSorted[currentMEIndex - 1] = runsSorted[currentMEIndex];
-                            runsSorted[currentMEIndex] = prevOne;
-                        }
-                    }
-                    else if (runsSorted[currentMEIndex - 1].first.start > runsSorted[currentMEIndex].first.start){
-                        prevOne = runsSorted[currentMEIndex - 1];
-                        runsSorted[currentMEIndex - 1] = runsSorted[currentMEIndex];
-                        runsSorted[currentMEIndex] = prevOne;
-                    }
-                }
-                currentMEIndex--;
-            }
-        }
+    for (const auto [runKey, count] : sortedRuns) {
+        auto run = StatsManager::splitRunKey(runKey);
+        auto labelStr = fmt::format("{}% - {}% x{}", run.start, run.end, count);
+        output.push_back(labelStr);
     }
 
-    for (int i = 0; i < runsSorted.size(); i++)
-    {
-        std::string start = StatsManager::toPercentStr(runsSorted[i].first.start, Settings::getPrecision());
-        std::string end = StatsManager::toPercentStr(runsSorted[i].first.end, Settings::getPrecision());
-
-        std::string currentPair;
-
-        currentPair += fmt::format("{}% - {}% x{}", start, end, runsSorted[i].second);
-        toReturn.push_back(currentPair);
-    }
-
-    if (toReturn.size() == 0)
-        toReturn.push_back("No Saved Progress");
-
-    return toReturn;
+    return output;
 }
 
 void DTPopup::CopyText(CCObject* sender){

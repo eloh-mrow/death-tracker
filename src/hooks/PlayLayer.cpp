@@ -92,7 +92,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         m_fields->hasRespawned = true;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.start = this->getCurrentPercent();
+            m_fields->currentRun.start = this->getCurrentPercentInt();
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* p1) {
@@ -110,7 +110,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercent();
+            m_fields->currentRun.end = this->getCurrentPercentInt();
 
         log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,
@@ -139,7 +139,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercent();
+            m_fields->currentRun.end = this->getCurrentPercentInt();
 
         log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,

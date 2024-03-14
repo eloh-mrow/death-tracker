@@ -30,7 +30,7 @@ std::set<std::string> StatsManager::m_playedLevels{};
 Deaths StatsManager::m_deaths{};
 Runs StatsManager::m_runs{};
 NewBests StatsManager::m_newBests{};
-float StatsManager::m_currentBest = 0;
+int StatsManager::m_currentBest = 0;
 
 std::vector<Session> StatsManager::m_sessions{};
 bool StatsManager::m_scheduleCreateNewSession = false;
@@ -60,24 +60,24 @@ LevelStats StatsManager::loadLevelStats(GJGameLevel* level) {
     return levelStats;
 }
 
-void StatsManager::logDeath(float percent) {
+void StatsManager::logDeath(int percent) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    log::info("StatsManager::logDeath() -- {:.2f}", percent);
+    log::info("StatsManager::logDeath() -- {}%", percent);
 
-    auto percentStr = StatsManager::toPercentStr(percent);
+    auto percentKey = StatsManager::toPercentKey(percent);
 
-    m_deaths[percentStr]++;
-    session->deaths[percentStr]++;
+    m_deaths[percentKey]++;
+    session->deaths[percentKey]++;
 
     if (percent > m_currentBest) {
         m_currentBest = percent;
-        m_newBests.insert(percentStr);
+        m_newBests.insert(percent);
     }
 
     if (percent > session->currentBest) {
         session->currentBest = percent;
-        session->newBests.insert(percentStr);
+        session->newBests.insert(percent);
     }
 
     StatsManager::updateSessionLastPlayed();
@@ -87,11 +87,11 @@ void StatsManager::logDeath(float percent) {
 void StatsManager::logRun(Run run) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    log::info("StatsManager::logRun() -- {:.2f}-{:.2f}", run.start, run.end);
+    log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
 
     auto runKey = fmt::format("{}-{}",
-        StatsManager::toPercentStr(run.start),
-        StatsManager::toPercentStr(run.end)
+        StatsManager::toPercentKey(run.start),
+        StatsManager::toPercentKey(run.end)
     );
 
     m_runs[runKey]++;
@@ -127,18 +127,6 @@ std::string StatsManager::getLevelKey(GJGameLevel* level) {
 		levelId += "-gauntlet";
 
 	return levelId;
-
-    // if (!level) return "-1";
-
-    // auto levelType = static_cast<int>(level->m_levelType);
-    // if (!levelType) levelType = 3;
-
-    // return fmt::format("{}-{}-{}-{}",
-    //     level->m_levelID.value(),
-    //     levelType,
-    //     level->m_dailyID.value(),
-    //     int(level->m_gauntletLevel)
-    // );
 }
 
 Run StatsManager::splitRunKey(std::string runKey) {
@@ -207,28 +195,8 @@ bool StatsManager::hasPlayedLevel() {
     return m_playedLevels.contains(levelKey);
 }
 
-std::string StatsManager::toPercentStr(int percent, int precision) {
-    return StatsManager::toPercentStr(static_cast<float>(percent));
-}
-
-std::string StatsManager::toPercentStr(float percent, int precision) {
-    /* Example:
-     * percent = 10.49, precision = 1
-     * mult = 10^1 = 10
-     *
-     * 10.49 * 10 = 104.9
-     * floor(104.9) = 104
-     * 104 / 10 = 10.4
-     */
-
-    auto mult = std::pow(10, precision);
-    percent *= mult;
-    percent = std::floor(percent);
-    percent /= mult;
-
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(precision) << percent;
-    return ss.str();
+std::string StatsManager::toPercentKey(int percent) {
+    return std::to_string(percent);
 }
 
 /* internal functions
@@ -266,27 +234,27 @@ void StatsManager::saveData() {
      *
      * {
      *   "deaths": {
-     *     "1.23": 8,
-     *     "7.23": 12,
-     *     "24.21": 2,
+     *     "1": 8,
+     *     "7": 12,
+     *     "24": 2,
      *     ...
      *   },
      *
      *   "runs": {
-     *     "2.34-7.89": 2,
-     *     "23.11-67.32": 5,
+     *     "2-7": 2,
+     *     "23-67": 5,
      *     ...
      *   },
      *
-     *   "newBests": ["1.23", "24.21", "32.45", ...],
-     *   "currentBest": 32.45,
+     *   "newBests": [1, 24, 32, ...],
+     *   "currentBest": 32,
      *
      *   "sessions": [{
      *     "lastPlayed": 123456789,
      *     "deaths": {...},
      *     "runs": {...},
      *     "newBests": [...],
-     *     "currentBest": 12.67
+     *     "currentBest": 12
      *   }, {...}, ...],
      * }
      *
@@ -314,30 +282,28 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     Deaths deaths{};
     Deaths sessionDeaths{};
     NewBests sessionBests{};
-    float currentSessionBest = -1;
+    int currentSessionBest = -1;
 
     for (int percent = 0; percent < old__deaths.size(); percent++) {
-        auto percentStr = StatsManager::toPercentStr(percent);
+        auto percentKey = StatsManager::toPercentKey(percent);
 
         if (old__deaths[percent] > 0)
-            deaths[percentStr] = old__deaths[percent];
+            deaths[percentKey] = old__deaths[percent];
     }
 
     for (int percent = 0; percent < old__sessionDeaths.size(); percent++) {
-        auto percentStr = StatsManager::toPercentStr(percent);
+        auto percentKey = StatsManager::toPercentKey(percent);
 
         if (old__sessionDeaths[percent] > 0)
-            sessionDeaths[percentStr] = old__sessionDeaths[percent];
+            sessionDeaths[percentKey] = old__sessionDeaths[percent];
 
         // some older versions of v1.x.x do not
         // have session best tracking
         if (!old__sessionBests.size()) continue;
 
         if (old__sessionBests[percent]) {
-            sessionBests.insert(percentStr);
-
-            if (percent > currentSessionBest)
-                currentSessionBest = static_cast<float>(percent);
+            sessionBests.insert(percent);
+            if (percent > currentSessionBest) currentSessionBest = percent;
         }
     }
 
@@ -354,17 +320,14 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
 
     // calculate m_newBests, m_currentBest
     NewBests newBests{};
-    float currentBest = 0;
+    int currentBest = 0;
 
     if (level->isPlatformer()) {
         for (int checkpt = 0; checkpt < old__platBests.size(); checkpt++) {
-            auto checkptStr = StatsManager::toPercentStr(checkpt);
 
             if (old__platBests[checkpt]) {
-                newBests.insert(checkptStr);
-
-                if (checkpt > currentBest)
-                    currentBest = static_cast<float>(checkpt);
+                newBests.insert(checkpt);
+                if (checkpt > currentBest) currentBest = checkpt;
             }
         }
     } else {
@@ -378,22 +341,17 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
 
     // default deaths to newBests x1
     if (!deaths.size()) {
-        NewBests::iterator itr;
-        auto start = levelStats.newBests.begin();
-        auto end = levelStats.newBests.end();
-
-        for (itr = start; itr != end; itr++) {
-            auto percentStr = *itr;
-            if (percentStr == "100.00") continue;
-
-            levelStats.deaths[percentStr] = 1;
+        for (const auto percent : levelStats.newBests) {
+            if (percent == 100) continue;
+            auto percentKey = StatsManager::toPercentKey(percent);
+            levelStats.deaths[percentKey] = 1;
         }
     }
 
     return levelStats;
 }
 
-std::tuple<NewBests, float> StatsManager::calcNewBests(GJGameLevel* level) {
+std::tuple<NewBests, int> StatsManager::calcNewBests(GJGameLevel* level) {
     NewBests newBests{};
     std::stringstream bestsStream(level->m_personalBests);
     std::string currentBest;
@@ -401,11 +359,10 @@ std::tuple<NewBests, float> StatsManager::calcNewBests(GJGameLevel* level) {
 
     while (getline(bestsStream, currentBest, ',')) {
         currentPercent += std::stoi(currentBest);
-        auto percentStr = StatsManager::toPercentStr(currentPercent);
-        newBests.insert(percentStr);
+        newBests.insert(currentPercent);
     }
 
-    return std::tuple<NewBests, float>(newBests, static_cast<float>(currentPercent));
+    return std::make_tuple(newBests, currentPercent);
 }
 
 ghc::filesystem::path StatsManager::getLevelSaveFilePath(GJGameLevel* level) {

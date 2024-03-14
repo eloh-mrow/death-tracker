@@ -7,11 +7,11 @@ using namespace geode::prelude;
 
 typedef std::map<std::string, int> Deaths;
 typedef std::map<std::string, int> Runs;
-typedef std::set<std::string> NewBests;
+typedef std::set<int> NewBests;
 
 typedef struct {
-    float start;
-    float end;
+    int start;
+    int end;
 } Run;
 
 typedef struct {
@@ -19,14 +19,14 @@ typedef struct {
     Deaths deaths;
     Runs runs;
     NewBests newBests;
-    float currentBest;
+    int currentBest;
 } Session;
 
 typedef struct {
     Deaths deaths;
     Runs runs;
     NewBests newBests;
-    float currentBest;
+    int currentBest;
     std::vector<Session> sessions;
 } LevelStats;
 
@@ -39,7 +39,7 @@ struct matjson::Serialize<Session> {
             .deaths = value["deaths"].as<Deaths>(),
             .runs = value["runs"].as<Runs>(),
             .newBests = value["newBests"].as<NewBests>(),
-            .currentBest = std::stof(value["currentBest"].as_string()),
+            .currentBest = value["currentBest"].as_int(),
         };
     }
 
@@ -49,9 +49,7 @@ struct matjson::Serialize<Session> {
         obj["deaths"] = value.deaths;
         obj["runs"] = value.runs;
         obj["newBests"] = value.newBests;
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << value.currentBest;
-        obj["currentBest"] = ss.str();
+        obj["currentBest"] = value.currentBest;
         return obj;
     }
 };
@@ -63,7 +61,7 @@ struct matjson::Serialize<LevelStats> {
             .deaths = value["deaths"].as<Deaths>(),
             .runs = value["runs"].as<Runs>(),
             .newBests = value["newBests"].as<NewBests>(),
-            .currentBest = static_cast<float>(value["currentBest"].as_double()),
+            .currentBest = value["currentBest"].as_int(),
             .sessions = value["sessions"].as<std::vector<Session>>()
         };
     }
@@ -87,7 +85,7 @@ private:
     static Deaths m_deaths;
     static Runs m_runs;
     static NewBests m_newBests;
-    static float m_currentBest;
+    static int m_currentBest;
 
     static std::vector<Session> m_sessions;
     static bool m_scheduleCreateNewSession;
@@ -96,14 +94,14 @@ private:
     // internal functions
     static void saveData();
     static LevelStats loadData(GJGameLevel* level);
-    static std::tuple<NewBests, float> calcNewBests(GJGameLevel* level);
+    static std::tuple<NewBests, int> calcNewBests(GJGameLevel* level);
 
 public:
     StatsManager() = delete;
 
     // main functions
     static LevelStats loadLevelStats(GJGameLevel* level);
-    static void logDeath(float percent);
+    static void logDeath(int percent);
     static void logRun(Run run);
 
     // utility functions
@@ -114,8 +112,7 @@ public:
     static void updateSessionLastPlayed(bool save = false);
     static void scheduleCreateNewSession(bool scheduled);
     static bool hasPlayedLevel();
-    static std::string toPercentStr(int percent, int precision = 2);
-    static std::string toPercentStr(float percent, int precision = 2);
+    static std::string toPercentKey(int percent);
     static ghc::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
     static bool ContainsAtIndex(int startIndex, std::string check, std::string str);
 };

@@ -8,7 +8,7 @@ class DTPopupManager {
 private:
     static bool m_infoAlertOpen;
     static CCMenu* m_dtBtnMenu;
-    static GJGameLevel* m_CurrentLevel;
+    static GJGameLevel* m_level;
 
 public:
     static bool isInfoAlertOpen();
