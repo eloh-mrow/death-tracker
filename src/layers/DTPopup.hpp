@@ -20,6 +20,7 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         ScrollLayer* m_SLayer;
 
         LevelStats m_MyLevelStats;
+        bool m_noSavedData;
 
         CCSprite* m_SessionsButtonIconInactive;
         CCSprite* m_SessionsButtonIconActive;
@@ -39,8 +40,6 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
 
         std::vector<std::pair<std::string, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
         std::vector<std::string> CreateRunsString(Runs runs);
-
-        bool GetLevelStats();
 
         void CopyText(CCObject* sender);
 

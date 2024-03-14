@@ -19,7 +19,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         auto btnSpr = CCSprite::create("dt_skullBtn.png"_spr);
-        btnSpr->setScale(0.3f);
+        btnSpr->setScale(0.25f);
 
         auto btn = CCMenuItemSpriteExtra::create(
             btnSpr,
