@@ -10,7 +10,6 @@ class $modify(LevelInfoLayer) {
 
     void onLevelInfo(CCObject* sender) {
         DTPopupManager::setInfoAlertOpen(true);
-        log::info("did thing");
         LevelInfoLayer::onLevelInfo(sender);
     }
 
@@ -18,5 +17,6 @@ class $modify(LevelInfoLayer) {
         if (!LevelInfoLayer::init(level, p1)) return false;
 
         DTPopupManager::setCurrentLevel(level);
+        return true;
     }
 };

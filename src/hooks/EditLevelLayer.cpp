@@ -17,5 +17,6 @@ class $modify(EditLevelLayer) {
         if (!EditLevelLayer::init(level)) return false;
 
         DTPopupManager::setCurrentLevel(level);
+        return true;
     }
 };
