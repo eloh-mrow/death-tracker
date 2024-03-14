@@ -115,7 +115,7 @@ public:
     static void scheduleCreateNewSession(bool scheduled);
     static bool hasPlayedLevel();
     static std::string toPercentStr(int percent, int precision = 2);
-    static std::string toPercentStr(float percent, int precision = 2, bool fixRounding = false);
+    static std::string toPercentStr(float percent, int precision = 2);
     static ghc::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
     static bool ContainsAtIndex(int startIndex, std::string check, std::string str);
 };

@@ -204,19 +204,30 @@ void StatsManager::scheduleCreateNewSession(bool scheduled) {
 bool StatsManager::hasPlayedLevel() {
     if (!m_level) return false;
     auto levelKey = StatsManager::getLevelKey();
-    return m_playedLevels.count(levelKey);
+    return m_playedLevels.contains(levelKey);
 }
 
 std::string StatsManager::toPercentStr(int percent, int precision) {
     return StatsManager::toPercentStr(static_cast<float>(percent));
 }
 
-std::string StatsManager::toPercentStr(float percent, int precision, bool fixRounding) {
+std::string StatsManager::toPercentStr(float percent, int precision) {
+    /* Example:
+     * percent = 10.49, precision = 1
+     * mult = 10^1 = 10
+     *
+     * 10.49 * 10 = 104.9
+     * floor(104.9) = 104
+     * 104 / 10 = 10.4
+     */
+
+    auto mult = std::pow(10, precision);
+    percent *= mult;
+    percent = std::floor(percent);
+    percent /= mult;
+
     std::stringstream ss;
-    float fixedPrecent = percent;
-    if (percent > 0.5f && fixRounding && Mod::get()->getSettingValue<int64_t>("precision") == 0) fixedPrecent -= 0.5f;
-    if (percent > 0.05f && fixRounding && Mod::get()->getSettingValue<int64_t>("precision") == 1) fixedPrecent -= 0.05f;
-    ss << std::fixed << std::setprecision(precision) << fixedPrecent;
+    ss << std::fixed << std::setprecision(precision) << percent;
     return ss.str();
 }
 
@@ -414,6 +425,6 @@ bool StatsManager::ContainsAtIndex(int startIndex, std::string check, std::strin
     {
         if (str[startIndex + i] != check[i]) toReturn = false;
     }
-    
+
     return toReturn;
 }
