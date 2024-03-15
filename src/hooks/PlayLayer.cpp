@@ -128,8 +128,8 @@ class $modify(DTPlayLayer, PlayLayer) {
             StatsManager::logRun(m_fields->currentRun);
     }
 
-    void levelComplete() {
-        PlayLayer::levelComplete();
+    void showCompleteEffect() {
+        PlayLayer::showCompleteEffect();
 
         // same as PlayLayer::destroyPlayer()
         if (!m_fields->hasRespawned) return;
@@ -139,9 +139,9 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercentInt();
+            m_fields->currentRun.end = 100;
 
-        log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+        log::info("PlayLayer::showCompleteEffect()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,
             m_fields->currentRun.end,
             m_level->isPlatformer()
