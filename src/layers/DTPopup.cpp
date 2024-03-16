@@ -154,6 +154,17 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     m_DeathsLabel->setPosition({m_SLayer->getContentSize().width / 2, m_SLayer->getContentSize().height});
     m_SLayer->m_contentLayer->addChild(m_DeathsLabel);
 
+    /*
+    //creates a graph for a deaths string
+
+    auto graph = CreateGraph(m_DeathStrings, GetBestRun(m_MyLevelStats.newBests), {8, 0.5f});
+
+    if (graph){
+        this->addChild(graph);
+    }
+    */
+    
+
     refreshText(texts::deaths);
 
     scheduleUpdate();
@@ -552,4 +563,109 @@ void DTPopup::ShowInfo(CCObject* sender){
     auto alert = FLAlertLayer::create("info", INFO_ALERT_MESSAGES[static_cast<int>(m_CurrentPage)], "OK");
     alert->show();
     DTPopupManager::setInfoAlertOpen(true);
+}
+
+float DTPopup::GetBestRun(NewBests bests){
+    int bestRun = 0;
+
+    for (auto const& best : bests)
+    {
+        if (best > bestRun) bestRun = best;
+    }
+
+    return bestRun;
+}
+
+/*
+    //
+    creates a graph with a given deaths string
+    change the scaling to change the space between the points on the x and y
+    //
+*/
+CCNode* DTPopup::CreateGraph(std::vector<std::pair<std::string, float>> deathsString, float bestRun, CCPoint Scaling){
+    if (deathsString[0].first == "-1" || deathsString[0].first == "No Saved Progress") return nullptr;
+
+    auto toReturnNode = CCNode::create();
+
+    //calculate the points of the graph
+    std::vector<CCPoint> drawPoints;
+
+    for (int i = 0; i < 101; i++)
+    {
+        bool makePointB = true;
+        for (int d = 0; d < deathsString.size(); d++)
+        {
+            std::string editedDeathString = deathsString[d].first;
+            if (StatsManager::ContainsAtIndex(0, "<cy>", editedDeathString) || StatsManager::ContainsAtIndex(0, "<co>", editedDeathString)){
+                editedDeathString = editedDeathString.erase(0, 4);
+            }
+            
+            for (int b = 0; b < editedDeathString.length(); b++)
+            {
+                if (editedDeathString[b] == '%'){
+                    editedDeathString.erase(b, editedDeathString.length() - b);
+                    break;
+                }
+            }
+            if (std::stof(editedDeathString) == i){
+                drawPoints.push_back({static_cast<float>(i), deathsString[d].second});
+                makePointB = false;
+            }
+        }
+
+        if (i == 0 && makePointB){
+            drawPoints.insert(drawPoints.begin(), {0, 100});
+        }
+
+        bool IBehind = false;
+        bool IInfront = false;
+        if (!makePointB){
+            if (drawPoints.size() > 2){
+                if (drawPoints[drawPoints.size() - 2].x != i - 1){
+                    IBehind = true;
+                }
+            }
+        }
+        else{
+            if (drawPoints.size() > 1)
+                if (drawPoints[drawPoints.size() - 1].y != 100 && i > drawPoints[drawPoints.size() - 1].x){
+                    if (i > bestRun){
+                        drawPoints.insert(drawPoints.end(), {100, 0});
+                    }
+                    else{
+                        IInfront = true;
+                    }
+                }
+        }
+
+        if (IBehind)
+            drawPoints.insert(drawPoints.end() - 1, {static_cast<float>(i - 1), 100});
+
+        if (IInfront)
+            drawPoints.insert(drawPoints.end(), {static_cast<float>(i), 100});
+
+    }
+    
+    //connect those points with lines
+    CCPoint PrevPoint = {-1, -1};
+
+    for (int i = 0; i < drawPoints.size(); i++)
+    {
+        CCPoint currPoint = {drawPoints[i].x * Scaling.x, drawPoints[i].y * Scaling.y};
+        auto c = CCSprite::createWithSpriteFrameName("d_circle_02_001.png");
+        c->setPosition(currPoint);
+        c->setScale(0.05f);
+        c->setColor({ 38, 255, 49 });
+        toReturnNode->addChild(c);
+        if (PrevPoint != ccp(-1, -1)){
+            auto line = CCDrawNode::create();
+            line->drawSegment(PrevPoint, currPoint, 1, { 38, 255, 49 });
+            line->setCascadeColorEnabled(false);
+            toReturnNode->addChild(line);
+        }
+
+        PrevPoint = currPoint;
+    }
+
+    return toReturnNode;
 }

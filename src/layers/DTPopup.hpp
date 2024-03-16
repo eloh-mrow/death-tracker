@@ -52,4 +52,7 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         texts m_CurrentPage;
 
         void ShowInfo(CCObject* sender);
+
+        CCNode* CreateGraph(std::vector<std::pair<std::string, float>> deathsString, float bestRun, CCPoint Scaling = {1, 1});
+        float GetBestRun(NewBests bests);
 };
