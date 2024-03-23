@@ -18,6 +18,7 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
 
         SimpleTextArea* m_DeathsLabel;
         ScrollLayer* m_SLayer;
+        CCNode* m_PlatformerInfoCont;
 
         LevelStats m_MyLevelStats;
         bool m_noSavedData;
@@ -28,18 +29,18 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         CCSprite*  m_passRateButtonIconInactive;
         CCSprite*  m_passRateButtonIconActive;
 
-        std::vector<std::pair<std::string, float>> m_DeathStrings;
-        std::vector<std::string> m_RunStrings;
+        std::vector<std::tuple<std::string, int, float>> m_DeathStrings;
+        std::vector<std::tuple<std::string, int>> m_RunStrings;
 
-        std::vector<std::pair<std::string, float>> m_SessionStrings;
-        std::vector<std::string> m_SessionRunStrings;
+        std::vector<std::tuple<std::string, int, float>> m_SessionStrings;
+        std::vector<std::tuple<std::string, int>> m_SessionRunStrings;
 
         void update(float delta);
     public:
         static DTPopup* create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level);
 
-        std::vector<std::pair<std::string, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
-        std::vector<std::string> CreateRunsString(Runs runs);
+        std::vector<std::tuple<std::string, int, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
+        std::vector<std::tuple<std::string, int>> CreateRunsString(Runs runs);
 
         void CopyText(CCObject* sender);
 
@@ -48,11 +49,15 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
 
         enum texts {deaths, DeathsPassRate, Sessions, SessionsPassRate};
         void refreshText(texts textID);
+        void refreshPlatformerRuns(texts textID);
 
         texts m_CurrentPage;
 
         void ShowInfo(CCObject* sender);
 
-        CCNode* CreateGraph(std::vector<std::pair<std::string, float>> deathsString, float bestRun, CCPoint Scaling = {1, 1});
+        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, float bestRun, CCPoint Scaling = {1, 1});
         float GetBestRun(NewBests bests);
+
+        CCNode* createPlatformerDeath(std::string deathP, int Count, float passRate = -1);
+        std::pair<CCNode*, float> createCheckpointLabel(std::string deathP);
 };
