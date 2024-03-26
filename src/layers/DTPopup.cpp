@@ -656,14 +656,14 @@ CCNode* DTPopup::CreateGraph(std::vector<std::tuple<std::string, int, float>> de
         bool IBehind = false;
         bool IInfront = false;
         if (!makePointB){
-            if (drawPoints.size() > 2){
+            if (drawPoints.size() > 1){
                 if (drawPoints[drawPoints.size() - 2].x != i - 1){
                     IBehind = true;
                 }
             }
         }
         else{
-            if (drawPoints.size() > 1)
+            if (drawPoints.size() > 0)
                 if (drawPoints[drawPoints.size() - 1].y != 100 && i > drawPoints[drawPoints.size() - 1].x){
                     if (i > bestRun){
                         drawPoints.insert(drawPoints.end(), {100, 0});
