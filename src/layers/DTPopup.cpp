@@ -716,7 +716,7 @@ void DTPopup::refreshPlatformerRuns(texts textID){
     m_SLayer->m_contentLayer->addChild(m_PlatformerInfoCont);
 
     int amountAdded = 0;
-    float hight = 31.5f;
+    float hight = 32.f * 0.7f;
 
     if (!m_noSavedData){
         if (textID == texts::deaths){
@@ -888,6 +888,7 @@ std::pair<CCNode*, float> DTPopup::createCheckpointLabel(std::string deathP){
 
     if (!isRun){
         auto chackpSymble = CCSprite::createWithSpriteFrameName("checkpoint_01_001.png");
+        chackpSymble->setScale(0.7f);
 
         auto CheckNumLabel = CCLabelBMFont::create(CheckNumLabelText.c_str(), "bigFont.fnt");
         CheckNumLabel->setScale(0.35f);
