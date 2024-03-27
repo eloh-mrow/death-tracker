@@ -26,20 +26,15 @@ std::vector<std::string> splitStr(std::string str, std::string delim) {
 =========================== */
 GJGameLevel* StatsManager::m_level = nullptr;
 std::set<std::string> StatsManager::m_playedLevels{};
-
-Deaths StatsManager::m_deaths{};
-Runs StatsManager::m_runs{};
-NewBests StatsManager::m_newBests{};
-int StatsManager::m_currentBest = 0;
-
-std::vector<Session> StatsManager::m_sessions{};
 bool StatsManager::m_scheduleCreateNewSession = false;
+
+LevelStats StatsManager::m_levelStats{};
 
 ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
 
 /* main functions
 ================== */
-LevelStats StatsManager::loadLevelStats(GJGameLevel* level) {
+void StatsManager::loadLevelStats(GJGameLevel* level) {
     auto levelStats = StatsManager::loadData(level);
 
     log::info("StatsManager::loadLevelStats() --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
@@ -51,13 +46,12 @@ LevelStats StatsManager::loadLevelStats(GJGameLevel* level) {
     );
 
     m_level = level;
-    m_deaths = levelStats.deaths;
-    m_runs = levelStats.runs;
-    m_newBests = levelStats.newBests;
-    m_currentBest = levelStats.currentBest;
-    m_sessions = levelStats.sessions;
+    m_levelStats = levelStats;
+}
 
-    return levelStats;
+LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
+    if (!m_level) StatsManager::loadLevelStats(level);
+    return m_levelStats;
 }
 
 void StatsManager::logDeath(int percent) {
@@ -67,12 +61,12 @@ void StatsManager::logDeath(int percent) {
 
     auto percentKey = StatsManager::toPercentKey(percent);
 
-    m_deaths[percentKey]++;
+    m_levelStats.deaths[percentKey]++;
     session->deaths[percentKey]++;
 
-    if (percent > m_currentBest) {
-        m_currentBest = percent;
-        m_newBests.insert(percent);
+    if (percent > m_levelStats.currentBest) {
+        m_levelStats.currentBest = percent;
+        m_levelStats.newBests.insert(percent);
     }
 
     if (percent > session->currentBest) {
@@ -94,7 +88,7 @@ void StatsManager::logRun(Run run) {
         StatsManager::toPercentKey(run.end)
     );
 
-    m_runs[runKey]++;
+    m_levelStats.runs[runKey]++;
     session->runs[runKey]++;
 
     StatsManager::updateSessionLastPlayed();
@@ -141,7 +135,7 @@ Run StatsManager::splitRunKey(std::string runKey) {
 Session* StatsManager::getSession() {
     log::info("StatsManager::getSession()");
 
-    auto currentSession = &m_sessions[m_sessions.size() - 1];
+    auto currentSession = &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
 
     // new sessions can be scheduled
     // and are created when the player dies
@@ -164,8 +158,8 @@ Session* StatsManager::getSession() {
         .currentBest = -1
     };
 
-    m_sessions.push_back(session);
-    return &m_sessions[m_sessions.size() - 1];
+    m_levelStats.sessions.push_back(session);
+    return &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
 }
 
 void StatsManager::updateSessionLastPlayed(bool save) {
@@ -216,18 +210,11 @@ void StatsManager::saveData() {
     }
 
     // save the data
-    LevelStats levelSaveData{};
-    levelSaveData.deaths = m_deaths;
-    levelSaveData.runs = m_runs;
-    levelSaveData.newBests = m_newBests;
-    levelSaveData.currentBest = m_currentBest;
-    levelSaveData.sessions = m_sessions;
-
     auto indentation = Dev::MINIFY_SAVE_FILE
         ? matjson::NO_INDENTATION
         : 4;
 
-    auto jsonStr = matjson::Value(levelSaveData).dump(indentation);
+    auto jsonStr = matjson::Value(m_levelStats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 
     /* <save_dir>/levels/<levelKey>.json
