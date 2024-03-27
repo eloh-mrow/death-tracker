@@ -375,8 +375,8 @@ void DTPopup::refreshText(texts textID){
     if (!m_noSavedData){
         if (textID == texts::deaths){
             this->setTitle("Deaths");
-            if (std::get<0>(m_DeathStrings[0]) != "-1" && std::get<0>(m_RunStrings[0]) != "-1"){
-                if (std::get<0>(m_DeathStrings[0]) == "No Saved Progress" && std::get<0>(m_RunStrings[0]) == "No Saved Progress"){
+            if (std::get<0>(m_DeathStrings[0]) != "-1"/* && std::get<0>(m_RunStrings[0]) != "-1"*/){
+                if (std::get<0>(m_DeathStrings[0]) == "No Saved Progress"/* && std::get<0>(m_RunStrings[0]) == "No Saved Progress"*/){
                     m_DeathsLabel->setText(std::get<0>(m_DeathStrings[0]));
                 }
                 else{
@@ -405,8 +405,8 @@ void DTPopup::refreshText(texts textID){
         //set to deaths with pass rate
         else if (textID == texts::DeathsPassRate){
             this->setTitle("Deaths Pass Rate");
-            if (std::get<0>(m_DeathStrings[0]) != "-1" && std::get<0>(m_RunStrings[0]) != "-1"){
-                if (std::get<0>(m_DeathStrings[0]) == "No Saved Progress" && std::get<0>(m_RunStrings[0]) == "No Saved Progress"){
+            if (std::get<0>(m_DeathStrings[0]) != "-1"/* && std::get<0>(m_RunStrings[0]) != "-1"*/){
+                if (std::get<0>(m_DeathStrings[0]) == "No Saved Progress"/* && std::get<0>(m_RunStrings[0]) == "No Saved Progress"*/){
                     m_DeathsLabel->setText(std::get<0>(m_DeathStrings[0]));
                 }
                 else{
@@ -435,8 +435,8 @@ void DTPopup::refreshText(texts textID){
         //set to session
         else if (textID == texts::Sessions){
             this->setTitle("Session");
-            if (std::get<0>(m_SessionStrings[0]) != "-1" && std::get<0>(m_SessionRunStrings[0]) != "-1"){
-                if (std::get<0>(m_SessionStrings[0]) == "No Saved Progress" && std::get<0>(m_SessionRunStrings[0]) == "No Saved Progress"){
+            if (std::get<0>(m_SessionStrings[0]) != "-1"/* && std::get<0>(m_SessionRunStrings[0]) != "-1"*/){
+                if (std::get<0>(m_SessionStrings[0]) == "No Saved Progress"/* && std::get<0>(m_SessionRunStrings[0]) == "No Saved Progress"*/){
                     m_DeathsLabel->setText(std::get<0>(m_SessionStrings[0]));
                 }
                 else{
@@ -465,8 +465,8 @@ void DTPopup::refreshText(texts textID){
         //set to session with pass rate
         else if (textID == texts::SessionsPassRate){
             this->setTitle("Session Pass Rate");
-            if (std::get<0>(m_SessionStrings[0]) != "-1" && std::get<0>(m_SessionRunStrings[0]) != "-1"){
-                if (std::get<0>(m_SessionStrings[0]) == "No Saved Progress" && std::get<0>(m_SessionRunStrings[0]) == "No Saved Progress"){
+            if (std::get<0>(m_SessionStrings[0]) != "-1"/* && std::get<0>(m_SessionRunStrings[0]) != "-1"*/){
+                if (std::get<0>(m_SessionStrings[0]) == "No Saved Progress"/* && std::get<0>(m_SessionRunStrings[0]) == "No Saved Progress"*/){
                     m_DeathsLabel->setText(std::get<0>(m_SessionStrings[0]));
                 }
                 else{
