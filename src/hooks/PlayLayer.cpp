@@ -30,6 +30,10 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     /* hooks
     ========== */
+    static void onModify(auto& self) {
+        auto _ = self.setHookPriority("PlayLayer::levelComplete", -9999);
+    }
+
     bool init(GJGameLevel* level, bool p1, bool p2) {
         if (!PlayLayer::init(level, p1, p2)) return false;
 
@@ -128,8 +132,8 @@ class $modify(DTPlayLayer, PlayLayer) {
             StatsManager::logRun(m_fields->currentRun);
     }
 
-    void showCompleteEffect() {
-        PlayLayer::showCompleteEffect();
+    void levelComplete() {
+        PlayLayer::levelComplete();
 
         // same as PlayLayer::destroyPlayer()
         if (!m_fields->hasRespawned) return;
@@ -141,7 +145,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (!m_level->isPlatformer())
             m_fields->currentRun.end = 100;
 
-        log::info("PlayLayer::showCompleteEffect()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+        log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
             m_fields->currentRun.start,
             m_fields->currentRun.end,
             m_level->isPlatformer()
