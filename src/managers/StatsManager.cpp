@@ -39,13 +39,13 @@ void StatsManager::loadLevelStats(GJGameLevel* level) {
 
     auto levelStats = StatsManager::loadData(level);
 
-    log::info("StatsManager::loadLevelStats() --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
-        levelStats.deaths.size(),
-        levelStats.runs.size(),
-        levelStats.newBests.size(),
-        levelStats.currentBest,
-        levelStats.sessions.size()
-    );
+    // log::info("StatsManager::loadLevelStats() --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
+    //     levelStats.deaths.size(),
+    //     levelStats.runs.size(),
+    //     levelStats.newBests.size(),
+    //     levelStats.currentBest,
+    //     levelStats.sessions.size()
+    // );
 
     m_levelStats = levelStats;
     m_level = level;
@@ -59,7 +59,7 @@ LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
 void StatsManager::logDeath(int percent) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    log::info("StatsManager::logDeath() -- {}%", percent);
+    // log::info("StatsManager::logDeath() -- {}%", percent);
 
     auto percentKey = StatsManager::toPercentKey(percent);
 
@@ -83,7 +83,7 @@ void StatsManager::logDeath(int percent) {
 void StatsManager::logRun(Run run) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
+    // log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
 
     auto runKey = fmt::format("{}-{}",
         StatsManager::toPercentKey(run.start),
@@ -135,7 +135,7 @@ Run StatsManager::splitRunKey(std::string runKey) {
 }
 
 Session* StatsManager::getSession() {
-    log::info("StatsManager::getSession()");
+    // log::info("StatsManager::getSession()");
 
     auto currentSession = &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
 
@@ -170,18 +170,18 @@ void StatsManager::updateSessionLastPlayed(bool save) {
 
     session->lastPlayed = now;
 
-    log::info("StatsManager::updateSessionLastPlayed()\nnow = {}\nsave = {}\n# of deaths = {}",
-        now,
-        save,
-        session->deaths.size()
-    );
+    // log::info("StatsManager::updateSessionLastPlayed()\nnow = {}\nsave = {}\n# of deaths = {}",
+    //     now,
+    //     save,
+    //     session->deaths.size()
+    // );
 
     if (save && session->deaths.size() > 0)
         StatsManager::saveData();
 }
 
 void StatsManager::scheduleCreateNewSession(bool scheduled) {
-    log::info("StatsManager::scheduleCreateNewSession() -- {}", scheduled);
+    // log::info("StatsManager::scheduleCreateNewSession() -- {}", scheduled);
     m_scheduleCreateNewSession = scheduled;
 }
 
@@ -198,7 +198,7 @@ std::string StatsManager::toPercentKey(int percent) {
 /* internal functions
 ======================= */
 void StatsManager::saveData() {
-    log::info("StatsManager::saveData()");
+    // log::info("StatsManager::saveData()");
 
     std::string levelKey = StatsManager::getLevelKey();
     if (levelKey == "-1") return;
@@ -252,7 +252,7 @@ void StatsManager::saveData() {
 
 LevelStats StatsManager::loadData(GJGameLevel* level) {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
-    log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
+    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
     if (ghc::filesystem::exists(levelSaveFilePath))
         return file::readJson(levelSaveFilePath).value().as<LevelStats>();

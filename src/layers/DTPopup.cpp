@@ -132,13 +132,13 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     m_MyLevelStats = StatsManager::getLevelStats(m_Level);
     m_noSavedData = !m_MyLevelStats.deaths.size() && !m_MyLevelStats.runs.size();
 
-    log::info("m_MyLevelStats --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
-        m_MyLevelStats.deaths.size(),
-        m_MyLevelStats.runs.size(),
-        m_MyLevelStats.newBests.size(),
-        m_MyLevelStats.currentBest,
-        m_MyLevelStats.sessions.size()
-    );
+    // log::info("m_MyLevelStats --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
+    //     m_MyLevelStats.deaths.size(),
+    //     m_MyLevelStats.runs.size(),
+    //     m_MyLevelStats.newBests.size(),
+    //     m_MyLevelStats.currentBest,
+    //     m_MyLevelStats.sessions.size()
+    // );
 
     m_DeathStrings = CreateDeathsString(m_MyLevelStats.deaths, m_MyLevelStats.newBests, "<cy>");
     m_RunStrings = CreateRunsString(m_MyLevelStats.runs);

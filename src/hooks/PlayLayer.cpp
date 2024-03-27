@@ -19,10 +19,10 @@ class $modify(DTPlayLayer, PlayLayer) {
     void updateSessionLastPlayed() {
         auto session = StatsManager::getSession();
 
-        log::info("DTPlayLayer::updateSessionLastPlayed()\nisPrevSession = {}\nisSessionExpired = {}",
-            session == m_fields->prevSession,
-            m_fields->isSessionExpired
-        );
+        // log::info("DTPlayLayer::updateSessionLastPlayed()\nisPrevSession = {}\nisSessionExpired = {}",
+        //     session == m_fields->prevSession,
+        //     m_fields->isSessionExpired
+        // );
 
         if (session == m_fields->prevSession && m_fields->isSessionExpired) return;
         StatsManager::updateSessionLastPlayed(true);
@@ -37,7 +37,7 @@ class $modify(DTPlayLayer, PlayLayer) {
     bool init(GJGameLevel* level, bool p1, bool p2) {
         if (!PlayLayer::init(level, p1, p2)) return false;
 
-        log::info("PlayLayer::init()");
+        // log::info("PlayLayer::init()");
 
         StatsManager::loadLevelStats(level);
         auto session = StatsManager::getSession();
@@ -91,7 +91,7 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void resetLevel() {
         PlayLayer::resetLevel();
-        log::info("PlayLayer::resetLevel()");
+        // log::info("PlayLayer::resetLevel()");
 
         m_fields->hasRespawned = true;
 
@@ -115,11 +115,11 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (!m_level->isPlatformer())
             m_fields->currentRun.end = this->getCurrentPercentInt();
 
-        log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
-            m_fields->currentRun.start,
-            m_fields->currentRun.end,
-            m_level->isPlatformer()
-        );
+        // log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+        //     m_fields->currentRun.start,
+        //     m_fields->currentRun.end,
+        //     m_level->isPlatformer()
+        // );
 
         // log deaths from 0 in normal mode
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
@@ -144,11 +144,11 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (!m_level->isPlatformer())
             m_fields->currentRun.end = 100;
 
-        log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
-            m_fields->currentRun.start,
-            m_fields->currentRun.end,
-            m_level->isPlatformer()
-        );
+        // log::info("PlayLayer::levelComplete()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
+        //     m_fields->currentRun.start,
+        //     m_fields->currentRun.end,
+        //     m_level->isPlatformer()
+        // );
 
         if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
             StatsManager::logRun(m_fields->currentRun);
@@ -159,19 +159,19 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (m_isPracticeMode) return;
 
         m_fields->currentRun.end++;
-        log::info("PlayLayer::checkpointActivated() -- {}", m_fields->currentRun.end);
+        // log::info("PlayLayer::checkpointActivated() -- {}", m_fields->currentRun.end);
     }
 
     void resetLevelFromStart() {
         PlayLayer::resetLevelFromStart();
-        log::info("PlayLayer::resetLevelFromStart()");
+        // log::info("PlayLayer::resetLevelFromStart()");
 
         m_fields->currentRun.end = 0;
     }
 
     void onQuit() {
         PlayLayer::onQuit();
-        log::info("PlayLayer::onQuit()");
+        // log::info("PlayLayer::onQuit()");
 
         // schedule session gets reset
         // this cancels creating a new session
