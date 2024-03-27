@@ -35,6 +35,8 @@ ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir()
 /* main functions
 ================== */
 void StatsManager::loadLevelStats(GJGameLevel* level) {
+    if (m_level == level) return;
+
     auto levelStats = StatsManager::loadData(level);
 
     log::info("StatsManager::loadLevelStats() --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
@@ -45,12 +47,12 @@ void StatsManager::loadLevelStats(GJGameLevel* level) {
         levelStats.sessions.size()
     );
 
-    m_level = level;
     m_levelStats = levelStats;
+    m_level = level;
 }
 
 LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
-    if (!m_level) StatsManager::loadLevelStats(level);
+    StatsManager::loadLevelStats(level);
     return m_levelStats;
 }
 
