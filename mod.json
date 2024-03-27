@@ -4,7 +4,7 @@
         "android": "2.205",
         "win": "2.204"
     },
-	"version": "v1.7.2",
+	"version": "v2.0.0-beta.1",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developers": ["ElohmroW", "abb2k"],
