@@ -157,7 +157,7 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
     m_PlatformerInfoCont = CCNode::create();
     m_SLayer->m_contentLayer->addChild(m_PlatformerInfoCont);
 
-    
+
     //creates a graph for a deaths string
 
     /*
@@ -167,7 +167,7 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
         this->addChild(graph);
     }
     */
-    
+
     if (!m_Level->isPlatformer())
         refreshText(texts::deaths);
     else{
@@ -280,7 +280,7 @@ void DTPopup::CopyText(CCObject* sender){
     std::string textToSend = m_DeathsLabel->getText();
     for (int i = 0; i < textToSend.length(); i++)
     {
-        
+
         if (StatsManager::ContainsAtIndex(i, "<cy>", textToSend) || StatsManager::ContainsAtIndex(i, "<co>", textToSend)){
             textToSend = textToSend.erase(i, 4);
         }
@@ -340,13 +340,13 @@ void DTPopup::ToggleSessions(CCObject* sender){
                 refreshPlatformerRuns(texts::Sessions);
             else
                 refreshText(texts::Sessions);
-            
+
         else{
             if (m_Level->isPlatformer())
                 refreshPlatformerRuns(texts::SessionsPassRate);
             else
                 refreshText(texts::SessionsPassRate);
-            
+
         }
     }
     else{
@@ -358,7 +358,7 @@ void DTPopup::ToggleSessions(CCObject* sender){
                 refreshPlatformerRuns(texts::deaths);
             else
                 refreshText(texts::deaths);
-            
+
         else{
             if (m_Level->isPlatformer())
                 refreshPlatformerRuns(texts::DeathsPassRate);
@@ -391,12 +391,12 @@ void DTPopup::refreshText(texts textID){
                         mergedString += '\n';
                     }
 
-                    if (std::get<0>(m_RunStrings[0]) != "No Saved Progress")
-                        for (int i = 0; i < m_RunStrings.size(); i++)
-                        {
-                            mergedString += fmt::format("{} x{}", std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
-                            if (i != m_RunStrings.size() - 1) mergedString += '\n';
-                        }
+                    // if (std::get<0>(m_RunStrings[0]) != "No Saved Progress")
+                    //     for (int i = 0; i < m_RunStrings.size(); i++)
+                    //     {
+                    //         mergedString += fmt::format("{} x{}", std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
+                    //         if (i != m_RunStrings.size() - 1) mergedString += '\n';
+                    //     }
 
                     m_DeathsLabel->setText(mergedString);
                 }
@@ -421,12 +421,12 @@ void DTPopup::refreshText(texts textID){
                         mergedString += '\n';
                     }
 
-                    if (std::get<0>(m_RunStrings[0]) != "No Saved Progress")
-                        for (int i = 0; i < m_RunStrings.size(); i++)
-                        {
-                            mergedString += fmt::format("{} x{}", std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
-                            if (i != m_RunStrings.size() - 1) mergedString += '\n';
-                        }
+                    // if (std::get<0>(m_RunStrings[0]) != "No Saved Progress")
+                    //     for (int i = 0; i < m_RunStrings.size(); i++)
+                    //     {
+                    //         mergedString += fmt::format("{} x{}", std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
+                    //         if (i != m_RunStrings.size() - 1) mergedString += '\n';
+                    //     }
 
                     m_DeathsLabel->setText(mergedString);
                 }
@@ -451,12 +451,12 @@ void DTPopup::refreshText(texts textID){
                         mergedString += '\n';
                     }
 
-                    if (std::get<0>(m_SessionRunStrings[0]) != "No Saved Progress")
-                        for (int i = 0; i < m_SessionRunStrings.size(); i++)
-                        {
-                            mergedString += fmt::format("{} x{}", std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
-                            if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
-                        }
+                    // if (std::get<0>(m_SessionRunStrings[0]) != "No Saved Progress")
+                    //     for (int i = 0; i < m_SessionRunStrings.size(); i++)
+                    //     {
+                    //         mergedString += fmt::format("{} x{}", std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
+                    //         if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
+                    //     }
 
                     m_DeathsLabel->setText(mergedString);
                 }
@@ -481,12 +481,12 @@ void DTPopup::refreshText(texts textID){
                         mergedString += '\n';
                     }
 
-                    if (std::get<0>(m_SessionRunStrings[0]) != "No Saved Progress")
-                        for (int i = 0; i < m_SessionRunStrings.size(); i++)
-                        {
-                            mergedString += fmt::format("{} x{}", std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
-                            if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
-                        }
+                    // if (std::get<0>(m_SessionRunStrings[0]) != "No Saved Progress")
+                    //     for (int i = 0; i < m_SessionRunStrings.size(); i++)
+                    //     {
+                    //         mergedString += fmt::format("{} x{}", std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
+                    //         if (i != m_SessionRunStrings.size() - 1) mergedString += '\n';
+                    //     }
 
                     m_DeathsLabel->setText(mergedString);
                 }
@@ -635,7 +635,7 @@ CCNode* DTPopup::CreateGraph(std::vector<std::tuple<std::string, int, float>> de
             if (StatsManager::ContainsAtIndex(0, "<cy>", editedDeathString) || StatsManager::ContainsAtIndex(0, "<co>", editedDeathString)){
                 editedDeathString = editedDeathString.erase(0, 4);
             }
-            
+
             for (int b = 0; b < editedDeathString.length(); b++)
             {
                 if (editedDeathString[b] == '%'){
@@ -681,7 +681,7 @@ CCNode* DTPopup::CreateGraph(std::vector<std::tuple<std::string, int, float>> de
             drawPoints.insert(drawPoints.end(), {static_cast<float>(i), 100});
 
     }
-    
+
     //connect those points with lines
     CCPoint PrevPoint = {-1, -1};
 
@@ -807,7 +807,7 @@ void DTPopup::refreshPlatformerRuns(texts textID){
         //no save
 
     }
-    
+
     float contentLayerHeight = amountAdded * hight;
 
     if (contentLayerHeight > m_SLayer->getContentSize().height){
@@ -835,7 +835,7 @@ void DTPopup::refreshPlatformerRuns(texts textID){
     }
 
     m_SLayer->moveToTop();
-    
+
 }
 
 CCNode* DTPopup::createPlatformerDeath(std::string deathP, int Count, float passRate){
@@ -885,7 +885,7 @@ std::pair<CCNode*, float> DTPopup::createCheckpointLabel(std::string deathP){
         if (CheckNumLabelText[i] == '-')
             isRun = true;
     }
-    
+
     if (!isRun){
         auto chackpSymble = CCSprite::createWithSpriteFrameName("checkpoint_01_001.png");
 
@@ -947,7 +947,7 @@ std::pair<CCNode*, float> DTPopup::createCheckpointLabel(std::string deathP){
         contNode->setPositionX(-10);
     }
 
-    
+
 
     return std::pair<CCNode*, float>(contNode, lengthOfLabel);
 }
