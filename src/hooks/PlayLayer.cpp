@@ -103,7 +103,6 @@ class $modify(DTPlayLayer, PlayLayer) {
         PlayLayer::destroyPlayer(player, p1);
 
         if (!player->m_isDead) return;
-        if (player != m_player1) return;
 
         // just in case some mod accidentally calls
         // PlayLayer::destroyPlayer() twice
