@@ -736,16 +736,6 @@ void DTPopup::refreshPlatformerRuns(texts textID){
                             amountAdded++;
                         }
                     }
-                    for (int i = 0; i < m_RunStrings.size(); i++)
-                    {
-                        auto contNode = createPlatformerDeath(std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
-
-                        if (contNode){
-                            m_PlatformerInfoCont->addChild(contNode);
-                            contNode->setPositionY(-amountAdded * hight);
-                            amountAdded++;
-                        }
-                    }
                 }
             }
         }
@@ -760,16 +750,6 @@ void DTPopup::refreshPlatformerRuns(texts textID){
                     for (int i = 0; i < m_DeathStrings.size(); i++)
                     {
                         auto contNode = createPlatformerDeath(std::get<0>(m_DeathStrings[i]), std::get<1>(m_DeathStrings[i]), std::get<2>(m_DeathStrings[i]));
-
-                        if (contNode){
-                            m_PlatformerInfoCont->addChild(contNode);
-                            contNode->setPositionY(-amountAdded * hight);
-                            amountAdded++;
-                        }
-                    }
-                    for (int i = 0; i < m_RunStrings.size(); i++)
-                    {
-                        auto contNode = createPlatformerDeath(std::get<0>(m_RunStrings[i]), std::get<1>(m_RunStrings[i]));
 
                         if (contNode){
                             m_PlatformerInfoCont->addChild(contNode);
@@ -798,16 +778,6 @@ void DTPopup::refreshPlatformerRuns(texts textID){
                             amountAdded++;
                         }
                     }
-                    for (int i = 0; i < m_SessionRunStrings.size(); i++)
-                    {
-                        auto contNode = createPlatformerDeath(std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
-
-                        if (contNode){
-                            m_PlatformerInfoCont->addChild(contNode);
-                            contNode->setPositionY(-amountAdded * hight);
-                            amountAdded++;
-                        }
-                    }
                 }
             }
         }
@@ -822,16 +792,6 @@ void DTPopup::refreshPlatformerRuns(texts textID){
                     for (int i = 0; i < m_SessionStrings.size(); i++)
                     {
                         auto contNode = createPlatformerDeath(std::get<0>(m_SessionStrings[i]), std::get<1>(m_SessionStrings[i]), std::get<2>(m_SessionStrings[i]));
-
-                        if (contNode){
-                            m_PlatformerInfoCont->addChild(contNode);
-                            contNode->setPositionY(-amountAdded * hight);
-                            amountAdded++;
-                        }
-                    }
-                    for (int i = 0; i < m_SessionRunStrings.size(); i++)
-                    {
-                        auto contNode = createPlatformerDeath(std::get<0>(m_SessionRunStrings[i]), std::get<1>(m_SessionRunStrings[i]));
 
                         if (contNode){
                             m_PlatformerInfoCont->addChild(contNode);
