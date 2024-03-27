@@ -1,10 +1,26 @@
 # Changelog
 ## v2.0.0-beta.1
-- added run tracking
-- added customizable decimal precision tracking
-- added multi-session tracking
-- added automatic backups (TODO)
-- complete UI overhaul (TODO)
+
+<---------- DONE ---------->
+
+- <cg>added Android support</c>
+- <cg>code refactor</c>
+- <cg>added scrolling</c>
+
+<---------- IN PROGRESS ---------->
+
+- <cg>added macOS support</c>
+- <cy>added run tracking</c>
+- <cy>added multi-session tracking</c>
+- <co>complete UI overhaul</c>
+- <co>added graphs</c>
+
+<---------- TO-DO ---------->
+
+- <co>linking between levels</c>
+- <co>per-level and global customization settings</c>
+- <co>custom save data folder path</c>
+- <co>import/export save data</c>
 
 ## v1.7.2
 - fixed an incompatibility with xdBot
