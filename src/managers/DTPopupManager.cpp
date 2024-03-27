@@ -17,6 +17,7 @@ void DTPopupManager::setInfoAlertOpen(bool open) {
 GJGameLevel* DTPopupManager::getCurrentLevel() {
     return m_level;
 }
+
 void DTPopupManager::setCurrentLevel(GJGameLevel* level){
     m_level = level;
 }

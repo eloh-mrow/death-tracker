@@ -82,12 +82,8 @@ private:
     static GJGameLevel* m_level;
     static std::set<std::string> m_playedLevels;
 
-    static Deaths m_deaths;
-    static Runs m_runs;
-    static NewBests m_newBests;
-    static int m_currentBest;
+    static LevelStats m_levelStats;
 
-    static std::vector<Session> m_sessions;
     static bool m_scheduleCreateNewSession;
     static ghc::filesystem::path m_savesFolderPath;
 
@@ -100,7 +96,8 @@ public:
     StatsManager() = delete;
 
     // main functions
-    static LevelStats loadLevelStats(GJGameLevel* level);
+    static void loadLevelStats(GJGameLevel* level);
+    static LevelStats getLevelStats(GJGameLevel* level);
     static void logDeath(int percent);
     static void logRun(Run run);
 

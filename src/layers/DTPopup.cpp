@@ -129,7 +129,7 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
 
     // ================================== //
     // loading data
-    m_MyLevelStats = StatsManager::loadLevelStats(m_Level);
+    m_MyLevelStats = StatsManager::getLevelStats(m_Level);
     m_noSavedData = !m_MyLevelStats.deaths.size() && !m_MyLevelStats.runs.size();
 
     log::info("m_MyLevelStats --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",

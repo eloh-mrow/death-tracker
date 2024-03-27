@@ -13,7 +13,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
 
         if (!DTPopupManager::isInfoAlertOpen()) return true;
 
-        auto alertBgSize = getChildOfType<CCScale9Sprite>(this->m_mainLayer, 0)->getContentSize();
+        auto alertBgSize = getChildOfType<CCScale9Sprite>(m_mainLayer, 0)->getContentSize();
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         auto btnSpr = CCSprite::create("dt_skullBtn.png"_spr);
@@ -36,7 +36,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
         menu->setPosition({0,0});
 
         menu->addChild(btn);
-        this->m_mainLayer->addChild(menu);
+        m_mainLayer->addChild(menu);
         m_fields->m_dtBtnMenu = menu;
 
         handleTouchPriority(this);
@@ -63,7 +63,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
     void onBtn1(CCObject* sender) {
         FLAlertLayer::onBtn1(sender);
 
-        if (this->m_button1->getParent() == sender)
+        if (m_button1->getParent() == sender)
             DTPopupManager::setInfoAlertOpen(false);
     }
 
@@ -73,9 +73,9 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
     }
 
     void openPopup(CCObject* sender) {
-        this->m_mainLayer->setVisible(false);
+        m_mainLayer->setVisible(false);
 
-        DTPopup* mypopup = DTPopup::create(160, 240, this, DTPopupManager::getCurrentLevel());
-        this->addChild(mypopup);
+        auto dtPopup = DTPopup::create(160, 240, this, DTPopupManager::getCurrentLevel());
+        this->addChild(dtPopup);
     }
 };
