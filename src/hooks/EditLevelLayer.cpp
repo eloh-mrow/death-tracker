@@ -10,13 +10,7 @@ class $modify(EditLevelLayer) {
 
     void onLevelInfo(CCObject* sender) {
         DTPopupManager::setInfoAlertOpen(true);
+        DTPopupManager::setCurrentLevel(m_level);
         EditLevelLayer::onLevelInfo(sender);
-    }
-
-    bool init(GJGameLevel* level){
-        if (!EditLevelLayer::init(level)) return false;
-
-        DTPopupManager::setCurrentLevel(level);
-        return true;
     }
 };

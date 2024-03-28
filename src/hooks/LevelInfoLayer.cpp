@@ -10,13 +10,7 @@ class $modify(LevelInfoLayer) {
 
     void onLevelInfo(CCObject* sender) {
         DTPopupManager::setInfoAlertOpen(true);
+        DTPopupManager::setCurrentLevel(m_level);
         LevelInfoLayer::onLevelInfo(sender);
-    }
-
-    bool init(GJGameLevel* level, bool p1){
-        if (!LevelInfoLayer::init(level, p1)) return false;
-
-        DTPopupManager::setCurrentLevel(level);
-        return true;
     }
 };
