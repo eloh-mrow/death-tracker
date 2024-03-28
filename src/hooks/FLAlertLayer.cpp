@@ -54,9 +54,9 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
         // force remove the button
         DTPopupManager::setInfoAlertOpen(false);
 
-        if (m_dtBtnMenu) {
-            m_dtBtnMenu->removeFromParent();
-            m_dtBtnMenu = nullptr;
+        if (m_fields->m_dtBtnMenu) {
+            m_fields->m_dtBtnMenu->removeFromParent();
+            m_fields->m_dtBtnMenu = nullptr;
         }
     }
 
