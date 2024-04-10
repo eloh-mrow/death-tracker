@@ -1,5 +1,6 @@
 #include "../layers/LabelSettingsLayer.hpp"
 #include "../managers/StatsManager.hpp"
+#include "../hooks/CCControlColourPickerBypass.h"
 
 LabelSettingsLayer* LabelSettingsLayer::create(LabelLayoutWindow* const& labelWin) {
     auto ret = new LabelSettingsLayer();
@@ -357,7 +358,7 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
         return;
     }
     int value;
-    ccColor3B currentColorPickerColor = m_ColorPicker->getColorValue();
+    ccColor3B currentColorPickerColor = static_cast<CCControlColourPickerBypass*>(m_ColorPicker)->getPickedColor();
 
     //alpha changed
     if (input == m_ColorInputA->getInput()){
