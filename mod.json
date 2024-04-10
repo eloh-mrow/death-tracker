@@ -2,7 +2,8 @@
 	"geode": "2.0.0-beta.14",
 	"gd": {
         "android": "2.205",
-        "win": "2.204"
+        "win": "2.204",
+		"mac": "2.200"
     },
 	"version": "v2.0.0-beta.3",
 	"id": "elohmrow.death_tracker",

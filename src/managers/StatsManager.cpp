@@ -32,6 +32,71 @@ LevelStats StatsManager::m_levelStats{};
 
 ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
 
+std::vector<std::string> StatsManager::m_AllFontsMap{
+    "bigFont.fnt",
+    "chatFont.fnt",
+    "goldFont.fnt",
+    "gjFont01.fnt",
+    "gjFont02.fnt",
+    "gjFont03.fnt",
+    "gjFont04.fnt",
+    "gjFont05.fnt",
+    "gjFont06.fnt",
+    "gjFont07.fnt",
+    "gjFont08.fnt",
+    "gjFont09.fnt",
+    "gjFont10.fnt",
+    "gjFont11.fnt",
+    "gjFont12.fnt",
+    "gjFont13.fnt",
+    "gjFont14.fnt",
+    "gjFont15.fnt",
+    "gjFont16.fnt",
+    "gjFont17.fnt",
+    "gjFont18.fnt",
+    "gjFont19.fnt",
+    "gjFont20.fnt",
+    "gjFont21.fnt",
+    "gjFont22.fnt",
+    "gjFont23.fnt",
+    "gjFont24.fnt",
+    "gjFont25.fnt",
+    "gjFont26.fnt",
+    "gjFont27.fnt",
+    "gjFont28.fnt",
+    "gjFont29.fnt",
+    "gjFont30.fnt",
+    "gjFont31.fnt",
+    "gjFont32.fnt",
+    "gjFont33.fnt",
+    "gjFont34.fnt",
+    "gjFont35.fnt",
+    "gjFont36.fnt",
+    "gjFont37.fnt",
+    "gjFont38.fnt",
+    "gjFont39.fnt",
+    "gjFont40.fnt",
+    "gjFont41.fnt",
+    "gjFont42.fnt",
+    "gjFont43.fnt",
+    "gjFont44.fnt",
+    "gjFont45.fnt",
+    "gjFont46.fnt",
+    "gjFont47.fnt",
+    "gjFont48.fnt",
+    "gjFont49.fnt",
+    "gjFont50.fnt",
+    "gjFont51.fnt",
+    "gjFont52.fnt",
+    "gjFont53.fnt",
+    "gjFont54.fnt",
+    "gjFont55.fnt",
+    "gjFont56.fnt",
+    "gjFont57.fnt",
+    "gjFont58.fnt",
+    "gjFont59.fnt",
+};
+
 /* main functions
 ================== */
 void StatsManager::loadLevelStats(GJGameLevel* level) {
@@ -373,4 +438,43 @@ bool StatsManager::ContainsAtIndex(int startIndex, std::string check, std::strin
     }
 
     return toReturn;
+}
+
+ccColor3B StatsManager::inverseColor(ccColor3B color){
+    return {(byte)abs(color.r - 255), (byte)abs(color.g - 255), (byte)abs(color.b - 255)};
+}
+
+std::string StatsManager::getFont(int fontID){
+    for (int i = 0; i < m_AllFontsMap.size(); i++)
+    {
+        if (i == fontID)
+            return m_AllFontsMap[i];
+    }
+    return "-1";
+}
+
+std::string StatsManager::getFontName(int fontID){
+    for (int i = 0; i < m_AllFontsMap.size(); i++)
+    {
+        if (i == fontID){
+            std::string fontName = "";
+
+            if (i == 0)
+                fontName = "Big Font";
+            else if (i == 1)
+                fontName = "Chat Font";
+            else if (i == 2)
+                fontName = "Gold Font";
+            else{
+                fontName = "Font " + std::to_string(i - 2);
+            }
+
+            return fontName;
+        }
+    }
+    return "-1";
+}
+
+std::vector<std::string> StatsManager::getAllFont(){
+    return m_AllFontsMap;
 }

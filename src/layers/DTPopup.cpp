@@ -160,13 +160,13 @@ bool DTPopup::setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Lev
 
     //creates a graph for a deaths string
 
-    /*
+    
     auto graph = CreateGraph(m_DeathStrings, GetBestRun(m_MyLevelStats.newBests), {8, 0.5f});
 
     if (graph){
         this->addChild(graph);
     }
-    */
+    
 
     if (!m_Level->isPlatformer())
         refreshText(texts::deaths);

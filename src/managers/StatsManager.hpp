@@ -83,7 +83,7 @@ private:
     static std::set<std::string> m_playedLevels;
 
     static LevelStats m_levelStats;
-
+    
     static bool m_scheduleCreateNewSession;
     static ghc::filesystem::path m_savesFolderPath;
 
@@ -91,6 +91,7 @@ private:
     static void saveData();
     static LevelStats loadData(GJGameLevel* level);
     static std::tuple<NewBests, int> calcNewBests(GJGameLevel* level);
+    static std::vector<std::string> m_AllFontsMap;
 
 public:
     StatsManager() = delete;
@@ -112,4 +113,8 @@ public:
     static std::string toPercentKey(int percent);
     static ghc::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
     static bool ContainsAtIndex(int startIndex, std::string check, std::string str);
+    static ccColor3B inverseColor(ccColor3B color);
+    static std::string getFont(int fontID);
+    static std::string getFontName(int fontID);
+    static std::vector<std::string> getAllFont();
 };
