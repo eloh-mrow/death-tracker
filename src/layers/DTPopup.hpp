@@ -35,7 +35,7 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
         std::vector<std::tuple<std::string, int, float>> m_SessionStrings;
         std::vector<std::tuple<std::string, int>> m_SessionRunStrings;
 
-        void update(float delta);
+        void update(float delta) override;
     public:
         static DTPopup* create(float width, float hight, FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level);
 

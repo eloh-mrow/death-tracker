@@ -35,7 +35,7 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextI
     InputNode* m_ColorInputB;
     InputNode* m_ColorInputA;
     InputNode* m_ColorInputHex;
-    void textChanged(CCTextInputNode* input);
+    void textChanged(CCTextInputNode* input) override;
     int m_BlockSelfCall;
 
     //text

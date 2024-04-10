@@ -10,10 +10,10 @@ using namespace geode::prelude;
 class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
     protected:
         bool setup(GJGameLevel* const& Level) override;
+
+        void update(float delta) override;
     public:
         static DTLayer* create(GJGameLevel* const& Level);
-
-        void update(float delta);
 
         //data
         GJGameLevel* m_Level;
@@ -67,13 +67,13 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
         void addBox(CCObject*);
 
         //general
-        bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
-        void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
-        void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
-        void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
+        bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
+        void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) override;
+        void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
+        void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
         bool m_IsClicking;
 
-        void textChanged(CCTextInputNode* input);
-        void textInputOpened(CCTextInputNode* input);
-        void textInputClosed(CCTextInputNode* input);
+        void textChanged(CCTextInputNode* input) override;
+        void textInputOpened(CCTextInputNode* input) override;
+        void textInputClosed(CCTextInputNode* input) override;
 };
