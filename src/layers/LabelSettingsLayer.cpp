@@ -357,6 +357,7 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
         return;
     }
     int value;
+    ccColor3B currentColorPickerColor = m_ColorPicker->getColorValue();
 
     //alpha changed
     if (input == m_ColorInputA->getInput()){
@@ -390,7 +391,7 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
             input->setString("255");
         }
 
-        ccColor3B colorCreated = {static_cast<GLubyte>(value), m_ColorPicker->getColorValue().g, m_ColorPicker->getColorValue().b};
+        ccColor3B colorCreated = {static_cast<GLubyte>(value), currentColorPickerColor.g, currentColorPickerColor.b};
 
         m_BlockSelfCall += 2;
         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
@@ -412,7 +413,7 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
             input->setString("255");
         }
 
-        ccColor3B colorCreated = {m_ColorPicker->getColorValue().r, static_cast<GLubyte>(value), m_ColorPicker->getColorValue().b};
+        ccColor3B colorCreated = {currentColorPickerColor.r, static_cast<GLubyte>(value), currentColorPickerColor.b};
 
         m_BlockSelfCall += 2;
         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
@@ -434,7 +435,7 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
             input->setString("255");
         }
 
-        ccColor3B colorCreated = {m_ColorPicker->getColorValue().r, m_ColorPicker->getColorValue().g, static_cast<GLubyte>(value)};
+        ccColor3B colorCreated = {currentColorPickerColor.r, currentColorPickerColor.g, static_cast<GLubyte>(value)};
 
         m_BlockSelfCall += 2;
         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
