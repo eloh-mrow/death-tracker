@@ -483,7 +483,7 @@ void DTLayer::RefreshText(bool moveToTop){
                 if (isKeyInIndex(s, 1, "sbc>")){
                     s.erase(0, 5);
                     line->setString(s.c_str());
-                    line->setColor({ 235, 125, 0 });
+                    line->setColor({ 235, 125, 0 }); 
                 }
             }
         }
