@@ -1,5 +1,3 @@
-#pragma once
-
 #include "DTPopupManager.hpp"
 
 bool DTPopupManager::m_infoAlertOpen = false;

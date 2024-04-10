@@ -10,7 +10,7 @@ class DTPopup : public Popup<FLAlertLayer* const&, GJGameLevel* const&> {
     protected:
         bool setup(FLAlertLayer* const& InfoAlertLayer, GJGameLevel* const& Level) override;
 
-        void onClose(cocos2d::CCObject*);
+        void onClose(cocos2d::CCObject*) override;
 
         FLAlertLayer* m_InfoAlertLayer;
 

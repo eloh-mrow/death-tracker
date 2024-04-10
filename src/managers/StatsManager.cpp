@@ -441,7 +441,7 @@ bool StatsManager::ContainsAtIndex(int startIndex, std::string check, std::strin
 }
 
 ccColor3B StatsManager::inverseColor(ccColor3B color){
-    return {(byte)abs(color.r - 255), (byte)abs(color.g - 255), (byte)abs(color.b - 255)};
+    return {static_cast<GLubyte>(abs(color.r - 255)), static_cast<GLubyte>(abs(color.g - 255)), static_cast<GLubyte>(abs(color.b - 255))};
 }
 
 std::string StatsManager::getFont(int fontID){

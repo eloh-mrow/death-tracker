@@ -27,7 +27,7 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextI
 
     //color
     CCControlColourPicker* m_ColorPicker;
-    void colorValueChanged(ccColor3B color);
+    void colorValueChanged(ccColor3B color) override;
     Slider* m_OpacitySlider;
     void OnOpacitySliderChanged(CCObject* object);
     InputNode* m_ColorInputR;
