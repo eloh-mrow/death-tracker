@@ -10,10 +10,10 @@ using namespace geode::prelude;
 class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
     protected:
         bool setup(GJGameLevel* const& Level) override;
-
-        void update(float delta);
     public:
         static DTLayer* create(GJGameLevel* const& Level);
+
+        void update(float delta);
 
         //data
         GJGameLevel* m_Level;
