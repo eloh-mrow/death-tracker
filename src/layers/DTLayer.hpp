@@ -72,6 +72,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
         void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
         void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
         bool m_IsClicking;
+        CCTouch* ClickPos = nullptr;
 
         void textChanged(CCTextInputNode* input) override;
         void textInputOpened(CCTextInputNode* input) override;

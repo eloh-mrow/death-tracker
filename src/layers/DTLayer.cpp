@@ -281,19 +281,23 @@ void DTLayer::onEditLayoutApply(CCObject*){
 
 bool DTLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = true;
+    ClickPos = pTouch;
     return true;
 }
 
 void DTLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent){
     //m_IsClicking = false;
+    ClickPos = pTouch;
 }
 
 void DTLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = false;
+    ClickPos = pTouch;
 }
 
 void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = false;
+    ClickPos = pTouch;
 }
 
 void DTLayer::EditLayoutEnabled(bool b){

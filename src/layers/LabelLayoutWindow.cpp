@@ -37,7 +37,8 @@ bool LabelLayoutWindow::init(LabelLayout MyLayout, DTLayer* DTLayer){
 }
 
 CCPoint LabelLayoutWindow::mousePosToNode(CCNode* node){
-    CCPoint mousePos = getMousePos();
+    if (!m_DTLayer->ClickPos) return {0, 0};
+    CCPoint mousePos = m_DTLayer->ClickPos->getLocation();
 
     bool HasreachedEndOfParentCheck = false;
 
