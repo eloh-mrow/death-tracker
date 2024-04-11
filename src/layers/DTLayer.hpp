@@ -37,9 +37,21 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
 
         std::vector<std::tuple<std::string, int, float>> m_DeathsInfo;
         std::vector<std::tuple<std::string, int, float>> selectedSessionInfo;
+        std::vector<std::tuple<std::string, int>> m_RunInfo;
+        std::vector<std::tuple<std::string, int>> m_SelectedSessionRunInfo;
 
         std::string deathsString;
         std::string selectedSessionString;
+
+        std::string RunString;
+        std::string selectedSessionRunString;
+
+        //run managment
+        GJListLayer* m_RunsList = nullptr;
+        InputNode* m_AddRunAllowedInput;
+        void addRunAllowed(CCObject*);
+        void updateRunsAllowed();
+        void refreshRunAllowedListView();
 
         //session selection
         InputNode* m_SessionSelectionInput;

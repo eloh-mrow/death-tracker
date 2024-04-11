@@ -28,6 +28,7 @@ typedef struct {
     NewBests newBests;
     int currentBest;
     std::vector<Session> sessions;
+    std::vector<int> RunsToSave;
 } LevelStats;
 
 // matjson fuckery
@@ -57,13 +58,19 @@ struct matjson::Serialize<Session> {
 template <>
 struct matjson::Serialize<LevelStats> {
     static LevelStats from_json(const matjson::Value& value) {
-        return LevelStats {
+
+        LevelStats stats{
             .deaths = value["deaths"].as<Deaths>(),
             .runs = value["runs"].as<Runs>(),
             .newBests = value["newBests"].as<NewBests>(),
             .currentBest = value["currentBest"].as_int(),
             .sessions = value["sessions"].as<std::vector<Session>>()
         };
+
+        if (value.contains("RunsToSave"))
+            stats.RunsToSave = value["RunsToSave"].as<std::vector<int>>();
+
+        return stats;
     }
 
     static matjson::Value to_json(const LevelStats& value) {
@@ -73,6 +80,7 @@ struct matjson::Serialize<LevelStats> {
         obj["newBests"] = value.newBests;
         obj["currentBest"] = value.currentBest;
         obj["sessions"] = value.sessions;
+        obj["RunsToSave"] = value.RunsToSave;
         return obj;
     }
 };
@@ -117,4 +125,5 @@ public:
     static std::string getFont(int fontID);
     static std::string getFontName(int fontID);
     static std::vector<std::string> getAllFont();
+    static void saveData(LevelStats stats, GJGameLevel* level);
 };

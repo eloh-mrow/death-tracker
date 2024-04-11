@@ -146,6 +146,17 @@ void StatsManager::logDeath(int percent) {
 }
 
 void StatsManager::logRun(Run run) {
+    bool TrackRun = false;
+    for (int i = 0; i < m_levelStats.RunsToSave.size(); i++)
+    {
+        if (m_levelStats.RunsToSave[i] == run.start){
+            TrackRun = true;
+            break;
+        }
+    }
+
+    if (!TrackRun) return;
+
     auto session = StatsManager::getSession();
     if (!session) return;
     // log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
@@ -313,6 +324,32 @@ void StatsManager::saveData() {
      * }
      *
     */
+}
+
+void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
+    // log::info("StatsManager::saveData()");
+
+    std::string levelKey = StatsManager::getLevelKey(level);
+    if (levelKey == "-1") return;
+    
+    if (level == m_level)
+        m_levelStats = stats;
+
+    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
+
+    // create the json file if it doesnt exist
+    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+        std::ofstream levelSaveFile(levelSaveFilePath);
+        levelSaveFile.close();
+    }
+
+    // save the data
+    auto indentation = Dev::MINIFY_SAVE_FILE
+        ? matjson::NO_INDENTATION
+        : 4;
+
+    auto jsonStr = matjson::Value(stats).dump(indentation);
+    auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
 LevelStats StatsManager::loadData(GJGameLevel* level) {
