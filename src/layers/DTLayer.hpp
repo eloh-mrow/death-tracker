@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
+class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol {
     protected:
         bool setup(GJGameLevel* const& Level) override;
 
@@ -49,9 +49,13 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
         //run managment
         GJListLayer* m_RunsList = nullptr;
         InputNode* m_AddRunAllowedInput;
+        CCMenu* m_RunStuffMenu;
         void addRunAllowed(CCObject*);
         void updateRunsAllowed();
         void refreshRunAllowedListView();
+        void deleteUnused(CCObject*);
+        FLAlertLayer* m_RunDeleteAlert;
+        void FLAlert_Clicked(FLAlertLayer* layer, bool selected);
 
         //session selection
         InputNode* m_SessionSelectionInput;
@@ -89,4 +93,9 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate {
         void textChanged(CCTextInputNode* input) override;
         void textInputOpened(CCTextInputNode* input) override;
         void textInputClosed(CCTextInputNode* input) override;
+
+        void onClose(cocos2d::CCObject*) override;
+
+        //graph
+        void openGraphMenu(CCObject*);
 };

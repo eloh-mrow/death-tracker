@@ -3,6 +3,7 @@
 #include "../utils/Settings.hpp"
 #include "../layers/LabelLayoutWindow.hpp"
 #include "../layers/RunAllowedCell.hpp"
+#include "../layers/DTGraphLayer.hpp"
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -30,6 +31,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     */
 
     this->setZOrder(100);
+    m_buttonMenu->setZOrder(1);
 
     //texts bg
     m_TextBG = CCScale9Sprite::create("GJ_square05.png", {0,0, 80, 80});
@@ -114,7 +116,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     //session selection
 
-    CCNode* SessionSelectCont = CCNode::create();
+    auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
     SessionSelectCont->setPosition({77, 253});
     m_mainLayer->addChild(SessionSelectCont);
@@ -172,13 +174,16 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     refreshRunAllowedListView();
 
-    m_AddRunAllowedInput = InputNode::create(90, "Start %");
+    m_AddRunAllowedInput = InputNode::create(90, "ST%");
     m_AddRunAllowedInput->getInput()->setMaxLabelLength(3);
     m_AddRunAllowedInput->getInput()->setAllowedChars("1234567890");
     m_AddRunAllowedInput->getInput()->setDelegate(this);
     m_AddRunAllowedInput->setPosition({67, 221});
     m_AddRunAllowedInput->setScale(0.5f);
     m_mainLayer->addChild(m_AddRunAllowedInput);
+
+    m_RunStuffMenu = CCMenu::create();
+    m_mainLayer->addChild(m_RunStuffMenu);
 
     auto AddRunAllowedButtonS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
     AddRunAllowedButtonS->setScale(0.75f);
@@ -189,7 +194,31 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         menu_selector(DTLayer::addRunAllowed)
     );
     AddRunAllowedButton->setPosition({-180, 61});
-    m_buttonMenu->addChild(AddRunAllowedButton);
+    m_RunStuffMenu->addChild(AddRunAllowedButton);
+
+    auto DeleteUnusedButtonS = ButtonSprite::create("Delete Unused", "bigFont.fnt", "GJ_button_06.png");
+    DeleteUnusedButtonS->setScale(0.3f);
+    auto DeleteUnusedButton = CCMenuItemSpriteExtra::create(
+        DeleteUnusedButtonS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::deleteUnused)
+    );
+    DeleteUnusedButton->setPosition({-207, -26});
+    m_RunStuffMenu->addChild(DeleteUnusedButton);
+
+    //graph
+
+    auto GraphButtonS = ButtonSprite::create("Graph", "bigFont.fnt", "GJ_button_01.png");
+    GraphButtonS->setScale(0.3f);
+    auto GraphButton = CCMenuItemSpriteExtra::create(
+        GraphButtonS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::openGraphMenu)
+    );
+    GraphButton->setPosition({-207, -60});
+    m_buttonMenu->addChild(GraphButton);
 
     createLayoutBlocks();
     refreshStrings();
@@ -273,37 +302,30 @@ void DTLayer::updateSessionString(int session){
     selectedSessionInfo = CreateDeathsString(currentSession.deaths, currentSession.newBests, "<sbc>");
     m_SelectedSessionRunInfo = CreateRunsString(currentSession.runs);
 
+    std::string mergedString = "";
     for (int i = 0; i < selectedSessionInfo.size(); i++)
     {
         if (std::get<0>(selectedSessionInfo[0]) != "-1"){
-            std::string mergedString = "";
             if (std::get<0>(selectedSessionInfo[0]) != "No Saved Progress"){
-                for (int i = 0; i < selectedSessionInfo.size(); i++)
-                {
-                    mergedString += fmt::format("{} x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
-                    if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
-                }
-                mergedString += '\n';
+                mergedString += fmt::format("{} x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
+                if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
             }
-            selectedSessionString = mergedString;
         }
     }
+    selectedSessionString = mergedString;
 
+    mergedString = "";
     for (int i = 0; i < m_SelectedSessionRunInfo.size(); i++)
     {
         if (std::get<0>(m_SelectedSessionRunInfo[0]) != "-1"){
-            std::string mergedString = "";
+            
             if (std::get<0>(m_SelectedSessionRunInfo[0]) != "No Saved Progress"){
-                for (int i = 0; i < m_SelectedSessionRunInfo.size(); i++)
-                   {
-                    mergedString += fmt::format("{} x{}", std::get<0>(m_SelectedSessionRunInfo[i]), std::get<1>(m_SelectedSessionRunInfo[i]));
-                    if (i != m_SelectedSessionRunInfo.size() - 1) mergedString += '\n';
-                   }
-                mergedString += '\n';
+                mergedString += fmt::format("{} x{}", std::get<0>(m_SelectedSessionRunInfo[i]), std::get<1>(m_SelectedSessionRunInfo[i]));
+                if (i != m_SelectedSessionRunInfo.size() - 1) mergedString += '\n';
             }
-            selectedSessionRunString = mergedString;
         }
     }
+    selectedSessionRunString = mergedString;
 }
 
 void DTLayer::onEditLayoutApply(CCObject*){
@@ -345,6 +367,7 @@ void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
 void DTLayer::EditLayoutEnabled(bool b){
     this->m_buttonMenu->setEnabled(!b);
     m_SessionSelectMenu->setEnabled(!b);
+    m_RunStuffMenu->setEnabled(!b);
     m_EditLayoutMenu->setVisible(b);
     m_EditLayoutBtn->setVisible(!b);
     m_BlackSquare->setVisible(b);
@@ -377,7 +400,6 @@ void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
 
         if (PrevLine){
             float calH = abs(sortedLayoutLines[i]->getPositionY() - PrevLine->getPositionY());
-            log::info("h{}: {}", i, calH);
             hight += calH;
         }
         else{
@@ -523,13 +545,13 @@ void DTLayer::RefreshText(bool moveToTop){
                 if (isKeyInIndex(s, 1, "nbc>")){
                     s.erase(0, 5);
                     line->setString(s.c_str());
-                    line->setColor({ 255, 255, 0 });
+                    line->setColor(Save::getNewBestColor());
                 }
                 //sessions best color
                 if (isKeyInIndex(s, 1, "sbc>")){
                     s.erase(0, 5);
                     line->setString(s.c_str());
-                    line->setColor({ 235, 125, 0 }); 
+                    line->setColor(Save::getSessionBestColor()); 
                 }
             }
         }
@@ -641,36 +663,30 @@ void DTLayer::refreshStrings(){
     m_DeathsInfo = CreateDeathsString(m_MyLevelStats.deaths, m_MyLevelStats.newBests, "<nbc>");
     m_RunInfo = CreateRunsString(m_MyLevelStats.runs);
 
+    std::string mergedString = "";
     for (int i = 0; i < m_DeathsInfo.size(); i++)
     {
         if (std::get<0>(m_DeathsInfo[0]) != "-1"){
-            std::string mergedString = "";
+            
             if (std::get<0>(m_DeathsInfo[0]) != "No Saved Progress"){
-                for (int i = 0; i < m_DeathsInfo.size(); i++)
-                {
-                    mergedString += fmt::format("{} x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
-                    if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
-                }
-                mergedString += '\n';
+                mergedString += fmt::format("{} x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
+                if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
             }
-            deathsString = mergedString;
         }
     }
+    deathsString = mergedString;
+
+    mergedString = "";
     for (int i = 0; i < m_RunInfo.size(); i++)
     {
         if (std::get<0>(m_RunInfo[0]) != "-1"){
-            std::string mergedString = "";
             if (std::get<0>(m_RunInfo[0]) != "No Saved Progress"){
-                for (int i = 0; i < m_RunInfo.size(); i++)
-                {
-                    mergedString += fmt::format("{} x{}", std::get<0>(m_RunInfo[i]), std::get<1>(m_RunInfo[i]));
-                    if (i != m_RunInfo.size() - 1) mergedString += '\n';
-                }
-                mergedString += '\n';
+                mergedString += fmt::format("{} x{}", std::get<0>(m_RunInfo[i]), std::get<1>(m_RunInfo[i]));
+                if (i != m_RunInfo.size() - 1) mergedString += '\n';
             }
-            RunString = mergedString;
         }
     }
+    RunString = mergedString;
 
     updateSessionString(m_SessionSelected);
 }
@@ -884,4 +900,74 @@ void DTLayer::refreshRunAllowedListView(){
 
     title->setScale(0.4f);
     title->setPosition({39, 96});
+}
+
+void DTLayer::deleteUnused(CCObject*){
+    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Delete", "Cancle");
+    m_RunDeleteAlert->setZOrder(101);
+    this->addChild(m_RunDeleteAlert);
+}
+
+void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
+    if (m_RunDeleteAlert == layer && !selected){
+        for (auto it = m_MyLevelStats.runs.cbegin(); it != m_MyLevelStats.runs.cend();)
+        {
+            bool erase = true;
+            for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
+            {
+                
+                if (StatsManager::splitRunKey(it->first).start == m_MyLevelStats.RunsToSave[i]){
+                    erase = false;
+                }
+            }
+            if (erase){
+                m_MyLevelStats.runs.erase(it++);
+            }
+            else{
+                ++it;
+            }
+        }
+
+        for (int i = 0; i < m_MyLevelStats.sessions.size(); i++)
+        {
+            for (auto it = m_MyLevelStats.sessions[i].runs.cbegin(); it != m_MyLevelStats.sessions[i].runs.cend();)
+            {
+                bool erase = true;
+                for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
+                {
+                    
+                    if (StatsManager::splitRunKey(it->first).start == m_MyLevelStats.RunsToSave[i]){
+                        erase = false;
+                    }
+                }
+                if (erase){
+                    m_MyLevelStats.sessions[i].runs.erase(it++);
+                }
+                else{
+                    ++it;
+                }
+            }
+        }
+        
+
+        StatsManager::saveData(m_MyLevelStats, m_Level);
+    }
+
+}
+
+void DTLayer::onClose(cocos2d::CCObject*) {
+    if (m_EditLayoutMenu->isVisible()){
+        EditLayoutEnabled(false);
+    }
+    else{
+        this->setKeypadEnabled(false);
+        this->setTouchEnabled(false);
+        this->removeFromParentAndCleanup(true);
+    }
+}
+
+void DTLayer::openGraphMenu(CCObject*){
+    auto graph = DTGraphLayer::create(this);
+    graph->setZOrder(100);
+    this->addChild(graph);
 }

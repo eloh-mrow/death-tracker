@@ -38,26 +38,26 @@ bool LabelLayoutWindow::init(LabelLayout MyLayout, DTLayer* DTLayer){
 
 CCPoint LabelLayoutWindow::mousePosToNode(CCNode* node){
     if (!m_DTLayer->ClickPos) return {0, 0};
-    CCPoint mousePos = m_DTLayer->ClickPos->getLocation();
+    CCPoint mousePos = node->getParent()->convertTouchToNodeSpace(m_DTLayer->ClickPos);
 
-    bool HasreachedEndOfParentCheck = false;
+    // bool HasreachedEndOfParentCheck = false;
 
-    CCNode* LastParent = node->getParent();
+    // CCNode* LastParent = node->getParent();
 
-    CCNode* Scene = nullptr;
+    // CCNode* Scene = nullptr;
 
-    while(!HasreachedEndOfParentCheck){
+    // while(!HasreachedEndOfParentCheck){
 
-        if (LastParent != nullptr){
-            mousePos = ccp(mousePos.x - LastParent->getPositionX(), mousePos.y - LastParent->getPositionY());
+    //     if (LastParent != nullptr){
+    //         mousePos = ccp(mousePos.x - LastParent->getPositionX(), mousePos.y - LastParent->getPositionY());
 
-            Scene = LastParent;
-            LastParent = LastParent->getParent();
-        }
-        else {
-            HasreachedEndOfParentCheck = true;
-        }
-    }
+    //         Scene = LastParent;
+    //         LastParent = LastParent->getParent();
+    //     }
+    //     else {
+    //         HasreachedEndOfParentCheck = true;
+    //     }
+    // }
 
     return mousePos;
 }

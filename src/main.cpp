@@ -10,8 +10,8 @@ $execute {
         std::vector<LabelLayout> defaultLayout{
             {
                 .labelName = "from 0",
-                .text = "From 0:{nl}{f0}",
-                .line = 1,
+                .text = "From 0:{nl}{f0}{nl}{runs}",
+                .line = 2,
                 .position = 0,
                 .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
@@ -20,8 +20,8 @@ $execute {
             },
             {
                 .labelName = "Session",
-                .text = "Session:{nl}{s0}",
-                .line = 1,
+                .text = "Session:{nl}{s0}{nl}{sruns}",
+                .line = 2,
                 .position = 1,
                 .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
@@ -38,8 +38,21 @@ $execute {
                 .font = 2,
                 .fontSize = 1
             },
+            {
+                .labelName = "att",
+                .text = "{att} attempts",
+                .line = 1,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 1,
+                .fontSize = 0.75f
+            }
         };
 
         Save::setLayout(defaultLayout);
+
+        Save::setNewBestColor({255, 255, 0});
+        Save::setSessionBestColor({ 255, 136, 0 });
     }
 }

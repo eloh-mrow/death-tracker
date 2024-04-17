@@ -150,8 +150,13 @@ class $modify(DTPlayLayer, PlayLayer) {
         //     m_level->isPlatformer()
         // );
 
-        if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
-            StatsManager::logRun(m_fields->currentRun);
+        if (!m_level->isPlatformer()){
+            if (m_fields->currentRun.start == 0)
+                StatsManager::logDeath(m_fields->currentRun.end);
+            else
+                StatsManager::logRun(m_fields->currentRun);
+        }
+            
     }
 
     void checkpointActivated(CheckpointGameObject* checkpt) {

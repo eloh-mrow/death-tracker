@@ -49,4 +49,10 @@ class Save {
     public:
         static std::vector<LabelLayout> getLayout();
         static void setLayout(std::vector<LabelLayout> layout);
+
+        static ccColor3B getNewBestColor();
+        static void setNewBestColor(ccColor3B color);
+
+        static ccColor3B getSessionBestColor();
+        static void setSessionBestColor(ccColor3B color);
 };
