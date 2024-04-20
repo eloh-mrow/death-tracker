@@ -305,11 +305,9 @@ void DTLayer::updateSessionString(int session){
     std::string mergedString = "";
     for (int i = 0; i < selectedSessionInfo.size(); i++)
     {
-        if (std::get<0>(selectedSessionInfo[0]) != "-1"){
-            if (std::get<0>(selectedSessionInfo[0]) != "No Saved Progress"){
-                mergedString += fmt::format("{} x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
-                if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
-            }
+        if (std::get<0>(selectedSessionInfo[0]) != "-1" && std::get<0>(selectedSessionInfo[0]) != "No Saved Progress"){
+            mergedString += fmt::format("{}% x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
+            if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
         }
     }
     selectedSessionString = mergedString;
@@ -317,12 +315,11 @@ void DTLayer::updateSessionString(int session){
     mergedString = "";
     for (int i = 0; i < m_SelectedSessionRunInfo.size(); i++)
     {
-        if (std::get<0>(m_SelectedSessionRunInfo[0]) != "-1"){
-            
-            if (std::get<0>(m_SelectedSessionRunInfo[0]) != "No Saved Progress"){
-                mergedString += fmt::format("{} x{}", std::get<0>(m_SelectedSessionRunInfo[i]), std::get<1>(m_SelectedSessionRunInfo[i]));
-                if (i != m_SelectedSessionRunInfo.size() - 1) mergedString += '\n';
-            }
+        if (std::get<0>(m_SelectedSessionRunInfo[0]) != "-1" && std::get<0>(m_SelectedSessionRunInfo[0]) != "No Saved Progress"){
+            Run SplittedKey = StatsManager::splitRunKey(std::get<0>(m_SelectedSessionRunInfo[i]));
+
+            mergedString += fmt::format("{}% - {}% x{}", SplittedKey.start, SplittedKey.end, std::get<1>(m_SelectedSessionRunInfo[i]));
+            if (i != m_SelectedSessionRunInfo.size() - 1) mergedString += '\n';
         }
     }
     selectedSessionRunString = mergedString;
@@ -666,12 +663,9 @@ void DTLayer::refreshStrings(){
     std::string mergedString = "";
     for (int i = 0; i < m_DeathsInfo.size(); i++)
     {
-        if (std::get<0>(m_DeathsInfo[0]) != "-1"){
-            
-            if (std::get<0>(m_DeathsInfo[0]) != "No Saved Progress"){
-                mergedString += fmt::format("{} x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
-                if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
-            }
+        if (std::get<0>(m_DeathsInfo[0]) != "-1" && std::get<0>(m_DeathsInfo[0]) != "No Saved Progress"){
+            mergedString += fmt::format("{}% x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
+            if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
         }
     }
     deathsString = mergedString;
@@ -679,11 +673,11 @@ void DTLayer::refreshStrings(){
     mergedString = "";
     for (int i = 0; i < m_RunInfo.size(); i++)
     {
-        if (std::get<0>(m_RunInfo[0]) != "-1"){
-            if (std::get<0>(m_RunInfo[0]) != "No Saved Progress"){
-                mergedString += fmt::format("{} x{}", std::get<0>(m_RunInfo[i]), std::get<1>(m_RunInfo[i]));
-                if (i != m_RunInfo.size() - 1) mergedString += '\n';
-            }
+        if (std::get<0>(m_RunInfo[0]) != "-1" && std::get<0>(m_RunInfo[0]) != "No Saved Progress"){
+            Run SplittedKey = StatsManager::splitRunKey(std::get<0>(m_RunInfo[i]));
+
+            mergedString += fmt::format("{}% - {}% x{}", SplittedKey.start, SplittedKey.end, std::get<1>(m_RunInfo[i]));
+            if (i != m_RunInfo.size() - 1) mergedString += '\n';
         }
     }
     RunString = mergedString;
@@ -717,6 +711,13 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Dea
 
     std::vector<std::tuple<std::string, int, float>> output{};
 
+    int bestRun = 0;
+
+    for (const auto& best : newBests)
+    {
+        if (best > bestRun) bestRun = best;
+    }
+
     for (const auto [percentKey, count] : sortedDeaths) {
         // calculate pass rate
         totalDeaths -= count;
@@ -725,10 +726,16 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Dea
         float passRate = (passCount + offset) / (passCount + count + offset) * 100;
 
         // format output
-        auto labelStr = fmt::format("{}%", percentKey);
+        auto labelStr = percentKey;
 
         if (newBests.contains(std::stoi(percentKey)))
             labelStr.insert(0, NewBestsColorString);
+            
+        if (std::stoi(percentKey) == bestRun)
+            if (bestRun != 100)
+                passRate = 0;
+            else
+                passRate = 100;
 
         output.push_back(std::tuple<std::string, int, float>(labelStr, count, passRate));
     }
@@ -737,10 +744,11 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Dea
     return output;
 }
 
-std::vector<std::tuple<std::string, int>> DTLayer::CreateRunsString(Runs runs){
-    if (!m_Level) return std::vector<std::tuple<std::string, int>>{std::tuple<std::string, int>("-1", 0)};
-    if (!runs.size()) return std::vector<std::tuple<std::string, int>>{std::tuple<std::string, int>("No Saved Progress", 0)};
+std::vector<std::tuple<std::string, int, float>> DTLayer::CreateRunsString(Runs runs){
+    if (!m_Level) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("-1", 0, 0)};
+    if (!runs.size()) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("No Saved Progress", 0, 0)};
 
+    std::map<int, int> totalDeaths;
     std::vector<std::tuple<std::string, int>> sortedRuns{};
 
     for (const auto [runKey, count] : runs){
@@ -748,6 +756,9 @@ std::vector<std::tuple<std::string, int>> DTLayer::CreateRunsString(Runs runs){
         {
             if (m_MyLevelStats.RunsToSave[i] == StatsManager::splitRunKey(runKey).start){
                 sortedRuns.push_back(std::make_tuple(runKey, count));
+                
+                totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
+                
                 break;
             }
         }
@@ -764,12 +775,17 @@ std::vector<std::tuple<std::string, int>> DTLayer::CreateRunsString(Runs runs){
     });
 
     // create output
-    std::vector<std::tuple<std::string, int>> output{};
+    std::vector<std::tuple<std::string, int, float>> output{};
+
 
     for (const auto [runKey, count] : sortedRuns) {
-        auto run = StatsManager::splitRunKey(runKey);
-        auto labelStr = fmt::format("{}% - {}%", run.start, run.end);
-        output.push_back(std::tuple<std::string, int>(labelStr, count));
+
+        totalDeaths[StatsManager::splitRunKey(runKey).start] -= count;
+
+        float passCount = totalDeaths[StatsManager::splitRunKey(runKey).start];
+        float passRate = (passCount) / (passCount + count) * 100;
+
+        output.push_back(std::tuple<std::string, int, float>(runKey, count, passRate));
     }
 
     return output;
@@ -846,6 +862,10 @@ void DTLayer::addRunAllowed(CCObject*){
     
     if (!doesExist){
         m_MyLevelStats.RunsToSave.push_back(startPrecent);
+
+        std::ranges::sort(m_MyLevelStats.RunsToSave, [](const int a, const int b) {
+            return a < b; // true --> A before B
+        });
 
         refreshRunAllowedListView();
         updateRunsAllowed();

@@ -32,13 +32,13 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         bool isKeyInIndex(std::string s, int Index, std::string key);
 
         std::vector<std::tuple<std::string, int, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
-        std::vector<std::tuple<std::string, int>> CreateRunsString(Runs runs);
+        std::vector<std::tuple<std::string, int, float>> CreateRunsString(Runs runs);
         void refreshStrings();
 
         std::vector<std::tuple<std::string, int, float>> m_DeathsInfo;
         std::vector<std::tuple<std::string, int, float>> selectedSessionInfo;
-        std::vector<std::tuple<std::string, int>> m_RunInfo;
-        std::vector<std::tuple<std::string, int>> m_SelectedSessionRunInfo;
+        std::vector<std::tuple<std::string, int, float>> m_RunInfo;
+        std::vector<std::tuple<std::string, int, float>> m_SelectedSessionRunInfo;
 
         std::string deathsString;
         std::string selectedSessionString;

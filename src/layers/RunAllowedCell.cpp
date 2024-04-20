@@ -49,6 +49,11 @@ void RunAllowedCell::DeleteMe(CCObject*){
             break;
         }
     }
+
+    std::ranges::sort(static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave, [](const int a, const int b) {
+        return a < b; // true --> A before B
+    });
+
     static_cast<DTLayer*>(m_DTLayer)->refreshRunAllowedListView();
     static_cast<DTLayer*>(m_DTLayer)->updateRunsAllowed();
 }

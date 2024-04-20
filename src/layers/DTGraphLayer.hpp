@@ -18,8 +18,10 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         DTLayer* m_DTLayer;
 
-        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, float bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery);
-        float GetBestRun(NewBests bests);
+        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery);
+        CCNode* CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery);
+        int GetBestRun(NewBests bests);
+        int GetBestRun(std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo);
 
         std::vector<GraphPoint*> pointToDisplay;
         CCLabelBMFont* npsLabel;
@@ -39,10 +41,18 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         void onClose(cocos2d::CCObject*);
 
         ButtonSprite* viewModeButtonS;
+        ButtonSprite* runViewModeButtonS;
         void onViewModeButton(CCObject*);
+        void onRunViewModeButton(CCObject*);
         bool ViewModeNormal = true;
+        bool RunViewModeFromZero = true;
 
         void refreshGraph();
         CCNode* m_graph = nullptr;
         CCLabelBMFont* noGraphLabel;
+
+        InputNode* m_RunSelectInput;
+        int m_SelectedRunPrecent;
+        GJListLayer* m_RunsList;
+        void RunChosen(int run);
 };

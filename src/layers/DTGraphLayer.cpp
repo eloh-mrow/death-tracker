@@ -1,4 +1,5 @@
 #include "../layers/DTGraphLayer.hpp"
+#include "../layers/ChooseRunCell.hpp"
 
 DTGraphLayer* DTGraphLayer::create(DTLayer* const& layer) {
     auto ret = new DTGraphLayer();
@@ -62,7 +63,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
-    SessionSelectCont->setPosition({69, 225});
+    SessionSelectCont->setPosition({69, 210});
     SessionSelectCont->setScale(0.85f);
     m_mainLayer->addChild(SessionSelectCont);
 
@@ -131,6 +132,59 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     viewModeButton->setPosition({-215, 99});
     this->m_buttonMenu->addChild(viewModeButton);
 
+    runViewModeButtonS = ButtonSprite::create("From 0");
+    runViewModeButtonS->setScale(0.475f);
+    auto runViewModeButton = CCMenuItemSpriteExtra::create(
+        runViewModeButtonS,
+        nullptr,
+        this,
+        menu_selector(DTGraphLayer::onRunViewModeButton)
+    );
+    runViewModeButton->setPosition({-215, 79});
+    this->m_buttonMenu->addChild(runViewModeButton);
+
+    m_RunSelectInput = InputNode::create(120, "Run %");
+    m_RunSelectInput->getInput()->setDelegate(this);
+    m_RunSelectInput->getInput()->setAllowedChars("1234567890");
+    m_RunSelectInput->setScale(0.45f);
+    m_RunSelectInput->setPosition({69, 195});
+    this->addChild(m_RunSelectInput);
+
+    CCArray* runsAllowed = CCArray::create();
+
+    for (int i = 0; i < m_DTLayer->m_MyLevelStats.RunsToSave.size(); i++)
+    {
+        runsAllowed->addObject(ChooseRunCell::create(m_DTLayer->m_MyLevelStats.RunsToSave[i], this));
+    }
+    
+    auto runsAllowedView = ListView::create(runsAllowed, 20, 65, 55);
+
+    m_RunsList = GJListLayer::create(runsAllowedView, "", {0,0,0,75}, 65, 55, 1);
+    m_RunsList->setPosition({36, 130});
+    m_mainLayer->addChild(m_RunsList);
+
+    CCObject* child;
+
+    CCARRAY_FOREACH(m_RunsList->m_listView->m_tableView->m_cellArray, child){
+        auto childCell = dynamic_cast<GenericListCell*>(child);
+        if (childCell)
+            childCell->m_backgroundLayer->setOpacity(30);
+    }
+
+    std::vector<CCSprite*> spritesToRemove;
+    CCLabelBMFont* title;
+
+    CCARRAY_FOREACH(m_RunsList->getChildren(), child){
+        auto childSprite = dynamic_cast<CCSprite*>(child);
+        if (childSprite)
+            spritesToRemove.push_back(childSprite);
+    }
+
+    for (int i = 0; i < spritesToRemove.size(); i++)
+    {
+        spritesToRemove[i]->removeMeAndCleanup();
+    }
+
     scheduleUpdate();
 
     return true;
@@ -174,6 +228,18 @@ void DTGraphLayer::onViewModeButton(CCObject*){
     refreshGraph();
 }
 
+void DTGraphLayer::onRunViewModeButton(CCObject*){
+    if (RunViewModeFromZero){
+        RunViewModeFromZero = false;
+        runViewModeButtonS->m_label->setString("Runs");
+    }
+    else{
+        RunViewModeFromZero = true;
+        runViewModeButtonS->m_label->setString("From 0");
+    }
+    refreshGraph();
+}
+
 void DTGraphLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInput() && m_DTLayer->m_SessionsAmount > 0){
         int selected = 1;
@@ -195,6 +261,22 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
         m_DTLayer->m_SessionSelected = selected;
         m_DTLayer->updateSessionString(m_DTLayer->m_SessionSelected);
         if (!ViewModeNormal)
+            refreshGraph();
+    }
+
+    if (input == m_RunSelectInput->getInput()){
+        int selected = 0;
+        if (input->getString() != "")
+            selected = std::stoi(input->getString());
+
+        if (selected > 100){
+            selected = 100;
+            input->setString("100");
+        }
+
+        m_SelectedRunPrecent = selected;
+
+        if (!RunViewModeFromZero)
             refreshGraph();
     }
 }
@@ -219,7 +301,7 @@ void DTGraphLayer::textInputClosed(CCTextInputNode* input){
     change the scaling to change the space between the points on the x and y
     //
 */
-CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, float bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery){
+CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery){
     if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
 
     auto toReturnNode = CCNode::create();
@@ -249,88 +331,269 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
     std::vector<CCPoint> lines;
 
-    //calculate the points of the graph
-    std::vector<std::tuple<CCPoint, std::string, float>> drawPoints;
-
-    for (int i = 0; i < 101; i++)
+    for (int i = 0; i < deathsString.size(); i++)
     {
-        bool makePointB = true;
-        for (int d = 0; d < deathsString.size(); d++)
-        {
-            std::string editedDeathString = std::get<0>(deathsString[d]);
-            if (StatsManager::ContainsAtIndex(0, "<nbc>", editedDeathString) || StatsManager::ContainsAtIndex(0, "<sbc>", editedDeathString)){
-                editedDeathString = editedDeathString.erase(0, 5);
-            }
+        //remove extra coloring
+        std::string editedDString = std::get<0>(deathsString[i]);
 
-            for (int b = 0; b < editedDeathString.length(); b++)
-            {
-                if (editedDeathString[b] == '%'){
-                    editedDeathString.erase(b, editedDeathString.length() - b);
-                    break;
-                }
-            }
-            if (std::stof(editedDeathString) == i){
-                if (i == 100){
-                    drawPoints.push_back(std::tuple<CCPoint, std::string, float>(ccp(static_cast<float>(i), 100), std::get<0>(deathsString[d]), 100));
-                }
-                else{
-                    drawPoints.push_back(std::tuple<CCPoint, std::string, float>(ccp(static_cast<float>(i), std::get<2>(deathsString[d])), std::get<0>(deathsString[d]), std::get<2>(deathsString[d])));
-                }
-                
-                makePointB = false;
-            }
-        }
-
-        if (i == 0 && makePointB){
-            drawPoints.insert(drawPoints.begin(), std::tuple<CCPoint, std::string, float>(ccp(0, 100), "0%", 100));
-        }
-
-        bool IBehind = false;
-        bool IInfront = false;
-        if (!makePointB){
-            if (drawPoints.size() > 1){
-                if (std::get<0>(drawPoints[drawPoints.size() - 2]).x != i - 1 && i != 100){
-                    IBehind = true;
-                }
-            }
-        }
-        else{
-            if (drawPoints.size() > 0)
-                if (std::get<0>(drawPoints[drawPoints.size() - 1]).y != 100 && i > std::get<0>(drawPoints[drawPoints.size() - 1]).x){
-                    if (i > bestRun){
-                        drawPoints.insert(drawPoints.end(), std::tuple<CCPoint, std::string, float>(ccp(100, 0), "100%", 0));
-                    }
-                    else{
-                        IInfront = true;
-                    }
-                }
-        }
-
-        if (IBehind)
-            drawPoints.insert(drawPoints.end() - 1, std::tuple<CCPoint, std::string, float>(ccp(static_cast<float>(i - 1), 100), std::to_string(i - 1) + "%", 100));
-
-        if (IInfront)
-            drawPoints.insert(drawPoints.end(), std::tuple<CCPoint, std::string, float>(ccp(static_cast<float>(i), 100), std::to_string(i) + "%", 100));
-
-    }
-
-    CCPoint pushMinusLine0;
-
-    //connect those points with lines
-    for (int i = 0; i < drawPoints.size(); i++)
-    {
-        if (std::get<0>(drawPoints[i]).x == 0){
-            pushMinusLine0 = ccp(-10 * Scaling.x,std::get<0>(drawPoints[i]).y * Scaling.y);
-        }
-
-        if (std::get<0>(drawPoints[i]).x == 100){
-            lines.push_back({110 * Scaling.x, std::get<0>(drawPoints[i]).y * Scaling.y});
+        if (StatsManager::ContainsAtIndex(0, "<nbc>", editedDString) || StatsManager::ContainsAtIndex(0, "<sbc>", editedDString)){
+            std::get<0>(deathsString[i]) = editedDString.erase(0, 5);
         }
     }
     
-    lines.push_back({110 * Scaling.x, -10 * Scaling.y});
-    lines.push_back({-10 * Scaling.x, -10 * Scaling.y});
-    lines.push_back(pushMinusLine0);
+    //sort
+    std::ranges::sort(deathsString, [](const std::tuple<std::string, int, float> a, const std::tuple<std::string, int, float> b) {
+        //log::info("a:{}, b:{}", a, b);
+        auto percentA = std::stoi(std::get<0>(a));
+        auto percentB = std::stoi(std::get<0>(b));
+        return percentA < percentB; // true --> A before B
+    });
+
+    //log::info("sorting done");
+
+    //add the min and max points if needed
+    if (std::stoi(std::get<0>(deathsString[0])) > 0)
+        deathsString.insert(deathsString.begin(), std::tuple<std::string, int, float>{"0", 0, 100});
+    
+    if (std::stoi(std::get<0>(deathsString[deathsString.size() - 1])) < 100)
+        deathsString.push_back(std::tuple<std::string, int, float>{"100", 0, 0});
+    else
+        std::get<2>(deathsString[deathsString.size() - 1]) = 100;
+    
+
+    //log::info("added extras");
+
+    CCPoint previousPoint = ccp(-1, -1);
+
+    for (int i = 0; i < deathsString.size(); i++)
+    {
+        //save point
+        CCPoint myPoint = ccp(std::stoi(std::get<0>(deathsString[i])), std::get<2>(deathsString[i]));
+
+        
+        //add extra points
+        if (previousPoint.x != -1){
+
+            //add a before point if needed
+            if (previousPoint.x != myPoint.x - 1){
+
+                if (previousPoint.x != myPoint.x - 2 && previousPoint.y != 100 && previousPoint.x + 1 <= bestRun){
+                    lines.push_back(ccp(previousPoint.x + 1, 100) * Scaling);
+                }
+
+                if (myPoint.x - 1 <= bestRun && myPoint.y != 100)
+                    lines.push_back(ccp(myPoint.x - 1, 100) * Scaling);
+            }
+        }
+
+        lines.push_back(myPoint * Scaling);
+        previousPoint = myPoint;
+    }
+
+    //log::info("added lines");
+
+    ccColor3B colorOfPoints;
+
+    //add points
+    if ((color.r + color.g + color.b) / 3 > 200)
+        colorOfPoints = {255, 255, 255};
+    else
+        colorOfPoints = { 136, 136, 136};
+
+    for (int i = 0; i < lines.size(); i++)
+    {
+        auto GP = GraphPoint::create(fmt::format("{}%", lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
+        GP->setDelegate(this);
+        GP->setPosition(lines[i]);
+        GP->setScale(0.05f);
+        MenuForGP->addChild(GP);
+    }
+
+    //add wrapping
+    lines.push_back(ccp(lines[lines.size() - 1].x + 100, lines[lines.size() - 1].y));
+    lines.push_back(ccp(lines[lines.size() - 1].x + 100, -100));
+    lines.push_back(ccp(-100, -100));
+    lines.push_back(ccp(-100, lines[0].y));
+
+    //create graph
+    auto line = CCDrawNode::create();
+    line->drawPolygon(&lines[0], lines.size(), ccc4FFromccc4B({ 0, 0, 0, 0}), 1, ccc4FFromccc3B(color));
+    clippingNode->addChild(line);
+
+    //create measuring labels
+    auto tempT = CCLabelBMFont::create("100", "chatFont.fnt");
+    tempT->setScale(0.4f);
+    float XForPr = tempT->getScaledContentSize().width;
+
+    auto gridNode = CCDrawNode::create();
+    gridNode->setZOrder(-1);
+    clippingNode->addChild(gridNode);
+
+    for (int i = 0; i <= 100; i++)
+    {
+        auto labelPr = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
+        labelPr->setPositionX(i * Scaling.x);
+        labelPr->setRotation(90);
+        labelPr->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
+        labelPr->setOpacity(labelLineColor.a);
+        LabelsNode->addChild(labelPr);
+        
+        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
+            labelPr->setScaleX(0.2f);
+
+            auto labelPrText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
+            labelPrText->setPositionX(i * Scaling.x);
+            labelPrText->setScale(0.4f);
+            labelPrText->setPositionY(-labelPr->getScaledContentSize().width - labelPrText->getScaledContentSize().height);
+            labelPrText->setColor({labelColor.r, labelColor.g, labelColor.b});
+            labelPrText->setOpacity(labelColor.a);
+            LabelsNode->addChild(labelPrText);
+        }
+        else{
+            labelPr->setScaleX(0.1f);
+            labelPr->setScaleY(0.8f);
+        }
+        labelPr->setPositionY(-labelPr->getScaledContentSize().width);
+        
+
+        //
+
+        auto labelPS = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
+        labelPS->setPositionY(i * Scaling.y);
+        labelPS->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
+        labelPS->setOpacity(labelLineColor.a);
+        LabelsNode->addChild(labelPS);
+
+        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
+            labelPS->setScaleX(0.2f);
+
+            auto labelPSText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
+            labelPSText->setPositionY(i * Scaling.y);
+            labelPSText->setScale(0.4f);
+            labelPSText->setPositionX(-labelPS->getScaledContentSize().width - XForPr);
+            labelPSText->setColor({labelColor.r, labelColor.g, labelColor.b});
+            labelPSText->setOpacity(labelColor.a);
+            LabelsNode->addChild(labelPSText);
+        }
+        else{
+            labelPS->setScaleX(0.1f);
+            labelPS->setScaleY(0.8f);
+        }
+
+        labelPS->setPositionX(-labelPS->getScaledContentSize().width);
+
+        //add grid
+
+        if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
+            CCPoint gridLineH[4]{
+                ccp(0, i * Scaling.y),
+                ccp(0, i * Scaling.y),
+                ccp(100 * Scaling.x, i * Scaling.y),
+                ccp(100 * Scaling.x, i * Scaling.y)
+            };
+
+            CCPoint gridLineS[4]{
+                ccp(i * Scaling.x, 0),
+                ccp(i * Scaling.x, 0),
+                ccp(i * Scaling.x, 100 * Scaling.y),
+                ccp(i * Scaling.x, 100 * Scaling.y)
+            };
+
+            gridNode->drawPolygon(gridLineH, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
+            gridNode->drawPolygon(gridLineS, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
+        }
+    }
+    
+
+    return toReturnNode;
+}
+
+CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery){
+    if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
+
+    auto toReturnNode = CCNode::create();
+
+    auto LabelsNode = CCNode::create();
+    toReturnNode->addChild(LabelsNode);
+
+    CCPoint MaskShape[4] = {
+        ccp(0, 0),
+        ccp(100 * Scaling.x, 0),
+        ccp(100 * Scaling.x, 100 * Scaling.y),
+        ccp(0, 100 * Scaling.y)
+    };
+
+    auto clippingNode = CCClippingNode::create();
+    toReturnNode->addChild(clippingNode);
+
+    auto mask = CCDrawNode::create();
+    mask->drawPolygon(MaskShape, 4, ccc4FFromccc4B(graphBoxFillColor), graphBoxOutlineThickness, ccc4FFromccc4B(graphBoxOutlineColor));
+    clippingNode->setStencil(mask);
+    clippingNode->addChild(mask);
+
+    auto MenuForGP = CCMenu::create();
+    MenuForGP->setPosition({0,0});
+    MenuForGP->setZOrder(1);
+    toReturnNode->addChild(MenuForGP);
+
+    float RunStartPrecent = StatsManager::splitRunKey(std::get<0>(deathsString[0])).start;
+
+    std::vector<CCPoint> lines;
+    
+    //sort
+    std::ranges::sort(deathsString, [](const std::tuple<std::string, int, float> a, const std::tuple<std::string, int, float> b) {
+        auto runA = StatsManager::splitRunKey(std::get<0>(a));
+        auto runB = StatsManager::splitRunKey(std::get<0>(b));
+
+        // start is equal, compare end
+        if (runA.start == runB.start) return runA.end < runB.end;
+        return runA.start < runB.start;
+    });
+
+    //log::info("sorting done");
+
+    std::get<2>(deathsString[deathsString.size() - 1]) = 0;
+
+    //add the min and max points if needed
+    if (StatsManager::splitRunKey(std::get<0>(deathsString[0])).end > RunStartPrecent)
+        deathsString.insert(deathsString.begin(), std::tuple<std::string, int, float>{fmt::format("{}-{}", RunStartPrecent, RunStartPrecent), 0, 100});
+    
+    if (StatsManager::splitRunKey(std::get<0>(deathsString[deathsString.size() - 1])).end < 100)
+        deathsString.push_back(std::tuple<std::string, int, float>{fmt::format("{}-100", RunStartPrecent), 100, 0});
+    else
+        std::get<2>(deathsString[deathsString.size() - 1]) = 100;
+    
+
+    //log::info("added extras");
+
+    CCPoint previousPoint = ccp(-1, -1);
+
+    for (int i = 0; i < deathsString.size(); i++)
+    {
+        //save point
+        CCPoint myPoint = ccp(StatsManager::splitRunKey(std::get<0>(deathsString[i])).end, std::get<2>(deathsString[i]));
+
+        
+        //add extra points
+        if (previousPoint.x != -1){
+
+            //add a before point if needed
+            if (previousPoint.x != myPoint.x - 1){
+
+                if (previousPoint.x != myPoint.x - 2 && previousPoint.y != 100 && previousPoint.x + 1 <= bestRun){
+                    lines.push_back(ccp(previousPoint.x + 1, 100) * Scaling);
+                }
+
+                if (myPoint.x - 1 <= bestRun && myPoint.y != 100)
+                    lines.push_back(ccp(myPoint.x - 1, 100) * Scaling);
+            }
+        }
+
+        lines.push_back(myPoint * Scaling);
+        previousPoint = myPoint;
+    }
+
+    //log::info("added lines");
 
     ccColor3B colorOfPoints;
 
@@ -339,18 +602,19 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     else
         colorOfPoints = { 136, 136, 136};
 
-    for (int i = 0; i < drawPoints.size(); i++)
+    for (int i = 0; i < lines.size(); i++)
     {
-        
-        auto GP = GraphPoint::create(std::get<1>(drawPoints[i]), std::get<2>(drawPoints[i]), colorOfPoints);
+        auto GP = GraphPoint::create(fmt::format("{}% - {}%", RunStartPrecent, lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
         GP->setDelegate(this);
-        CCPoint currPoint = {std::get<0>(drawPoints[i]).x * Scaling.x, std::get<0>(drawPoints[i]).y * Scaling.y};
-        GP->setPosition(currPoint);
+        GP->setPosition(lines[i]);
         GP->setScale(0.05f);
         MenuForGP->addChild(GP);
-        lines.push_back(currPoint);
-
     }
+
+    //add wrapping
+    lines.push_back(ccp(lines[lines.size() - 1].x + 100, lines[lines.size() - 1].y));
+    lines.push_back(ccp(lines[lines.size() - 1].x + 100, -100));
+    lines.push_back(ccp(lines[0].x, -100));
 
     auto line = CCDrawNode::create();
     line->drawPolygon(&lines[0], lines.size(), ccc4FFromccc4B({ 0, 0, 0, 0}), 1, ccc4FFromccc3B(color));
@@ -443,12 +707,25 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     return toReturnNode;
 }
 
-float DTGraphLayer::GetBestRun(NewBests bests){
+int DTGraphLayer::GetBestRun(NewBests bests){
     int bestRun = 0;
 
     for (auto const& best : bests)
     {
         if (best > bestRun) bestRun = best;
+    }
+
+    return bestRun;
+}
+
+int DTGraphLayer::GetBestRun(std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo){
+    if (std::get<0>(selectedPrecentRunInfo[0]) == "-1" || std::get<0>(selectedPrecentRunInfo[0]) == "No Saved Progress") return -1;
+
+    int bestRun = 0;
+
+    for (auto const& best : selectedPrecentRunInfo)
+    {
+        if (StatsManager::splitRunKey(std::get<0>(best)).end > bestRun) bestRun = StatsManager::splitRunKey(std::get<0>(best)).end;
     }
 
     return bestRun;
@@ -517,7 +794,28 @@ void DTGraphLayer::refreshGraph(){
     if (m_graph) m_graph->removeMeAndCleanup();
 
     if (ViewModeNormal){
-        m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRun(m_DTLayer->m_MyLevelStats.newBests), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        if (RunViewModeFromZero){
+            m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRun(m_DTLayer->m_MyLevelStats.newBests), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        }
+        else{
+            std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
+            for (int i = 0; i < m_DTLayer->m_RunInfo.size(); i++)
+            {
+                std::string currentRunString = std::get<0>(m_DTLayer->m_RunInfo[i]);
+
+                if (currentRunString != "-1" && currentRunString != "No Saved Progress")
+                    if (StatsManager::splitRunKey(currentRunString).start == m_SelectedRunPrecent){
+                        selectedPrecentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
+                    }
+                        
+            }
+            
+            if (!selectedPrecentRunInfo.size())
+                selectedPrecentRunInfo.push_back(std::tuple<std::string, int, float>{"No Saved Progress", -1, 0});
+
+            m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        }
+        
         if (m_graph){
             m_graph->setPosition({129, 52});
             m_graph->setZOrder(1);
@@ -529,7 +827,27 @@ void DTGraphLayer::refreshGraph(){
         }
     }
     else{
-        m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRun(m_DTLayer->m_MyLevelStats.sessions[m_DTLayer->m_SessionSelected - 1].newBests), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        if (RunViewModeFromZero){
+            m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRun(m_DTLayer->m_MyLevelStats.sessions[m_DTLayer->m_SessionSelected - 1].newBests), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        }
+        else{
+            std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
+            for (int i = 0; i < m_DTLayer->m_SelectedSessionRunInfo.size(); i++)
+            {
+                std::string currentRunString = std::get<0>(m_DTLayer->m_SelectedSessionRunInfo[i]);
+
+                if (currentRunString != "-1" && currentRunString != "No Saved Progress")
+                    if (StatsManager::splitRunKey(currentRunString).start == m_SelectedRunPrecent){
+                        selectedPrecentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
+                    }
+            }
+            
+            if (!selectedPrecentRunInfo.size())
+                selectedPrecentRunInfo.push_back(std::tuple<std::string, int, float>{"No Saved Progress", -1, 0});
+
+            m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+        }
+
         if (m_graph){
             m_graph->setPosition({129, 52});
             m_graph->setZOrder(1);
@@ -541,4 +859,11 @@ void DTGraphLayer::refreshGraph(){
         }
     }
     
+}
+
+void DTGraphLayer::RunChosen(int run){
+    m_RunSelectInput->setString(std::to_string(run));
+    m_SelectedRunPrecent = run;
+    if (!RunViewModeFromZero)
+        refreshGraph();
 }
