@@ -10,7 +10,7 @@ $execute {
         std::vector<LabelLayout> defaultLayout{
             {
                 .labelName = "from 0",
-                .text = "From 0:{nl}{f0}{nl}{runs}",
+                .text = "From 0:{nl}{f0}{nl} ",
                 .line = 2,
                 .position = 0,
                 .color = {255,255,255,255},
@@ -20,8 +20,28 @@ $execute {
             },
             {
                 .labelName = "Session",
-                .text = "Session:{nl}{s0}{nl}{sruns}",
+                .text = "Session:{nl}{s0}{nl} ",
                 .line = 2,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "Runs",
+                .text = "Runs:{runs}{nl} ",
+                .line = 3,
+                .position = 0,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "SRuns",
+                .text = "Session Runs:{sruns}{nl} ",
+                .line = 3,
                 .position = 1,
                 .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
