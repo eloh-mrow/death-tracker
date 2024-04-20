@@ -30,7 +30,7 @@ $execute {
             },
             {
                 .labelName = "Runs",
-                .text = "Runs:{runs}{nl} ",
+                .text = "Runs:{nl}{runs}{nl} ",
                 .line = 3,
                 .position = 0,
                 .color = {255,255,255,255},
@@ -40,7 +40,7 @@ $execute {
             },
             {
                 .labelName = "SRuns",
-                .text = "Session Runs:{sruns}{nl} ",
+                .text = "Session Runs:{nl}{sruns}{nl} ",
                 .line = 3,
                 .position = 1,
                 .color = {255,255,255,255},
