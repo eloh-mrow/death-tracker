@@ -121,6 +121,31 @@ LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
     return m_levelStats;
 }
 
+LevelStats StatsManager::getLevelStats(ghc::filesystem::path level){
+    auto levelSaveFilePath = level;
+    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
+
+    if (ghc::filesystem::exists(levelSaveFilePath))
+        return file::readJson(levelSaveFilePath).value().as<LevelStats>();
+
+    LevelStats none;
+
+    return none;
+}
+
+LevelStats StatsManager::getLevelStats(std::string levelKey){
+    auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");;
+    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
+
+    if (ghc::filesystem::exists(levelSaveFilePath))
+        return file::readJson(levelSaveFilePath).value().as<LevelStats>();
+
+    LevelStats none;
+
+    return none;
+}
+
+
 void StatsManager::logDeath(int percent) {
     auto session = StatsManager::getSession();
     if (!session) return;
@@ -147,13 +172,19 @@ void StatsManager::logDeath(int percent) {
 
 void StatsManager::logRun(Run run) {
     bool TrackRun = false;
-    for (int i = 0; i < m_levelStats.RunsToSave.size(); i++)
-    {
-        if (m_levelStats.RunsToSave[i] == run.start){
+    if (m_levelStats.RunsToSave.size())
+        if (m_levelStats.RunsToSave[0] == -1){
             TrackRun = true;
-            break;
         }
-    }
+        else{
+            for (int i = 0; i < m_levelStats.RunsToSave.size(); i++)
+            {
+                if (m_levelStats.RunsToSave[i] == run.start){
+                    TrackRun = true;
+                    break;
+                }
+            }
+        }
 
     if (!TrackRun) return;
 
@@ -352,6 +383,29 @@ void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
+void StatsManager::saveData(LevelStats stats, std::string levelKey) {
+    // log::info("StatsManager::saveData()");
+    
+    if (levelKey == getLevelKey(m_level))
+        m_levelStats = stats;
+
+    auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");
+
+    // create the json file if it doesnt exist
+    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+        std::ofstream levelSaveFile(levelSaveFilePath);
+        levelSaveFile.close();
+    }
+
+    // save the data
+    auto indentation = Dev::MINIFY_SAVE_FILE
+        ? matjson::NO_INDENTATION
+        : 4;
+
+    auto jsonStr = matjson::Value(stats).dump(indentation);
+    auto _ = file::writeString(levelSaveFilePath, jsonStr);
+}
+
 LevelStats StatsManager::loadData(GJGameLevel* level) {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
@@ -514,4 +568,54 @@ std::string StatsManager::getFontName(int fontID){
 
 std::vector<std::string> StatsManager::getAllFont(){
     return m_AllFontsMap;
+}
+
+std::vector<std::pair<std::string, LevelStats>> StatsManager::getAllLevels(){
+    auto allLevels = file::readDirectory(m_savesFolderPath).value();
+
+    std::vector<std::pair<std::string, LevelStats>> toReturn;
+
+    for (int i = 0; i < allLevels.size(); i++)
+    {
+        toReturn.push_back(std::pair<std::string, LevelStats>{allLevels[i].stem().string(), getLevelStats(allLevels[i])});
+    }
+    
+    return toReturn;
+}
+
+std::pair<std::string, std::string> StatsManager::splitLevelKey(std::string levelKey){
+    auto levelKeySplit = splitStr(levelKey, "-");
+
+    std::pair<std::string, std::string> toReturn;
+
+    toReturn.first = levelKeySplit[0];
+
+    if (levelKeySplit.size() == 2){
+        toReturn.second = levelKeySplit[1];
+    }
+    else{
+        toReturn.second = "online";
+    }
+
+    return toReturn;
+}
+
+int StatsManager::getDifficulty(GJGameLevel* level){
+    if (level->m_autoLevel)
+        return -1;
+
+    if (level->m_ratingsSum != 0)
+        if (level->m_demon == 1){
+            int fixedNum = level->m_demonDifficulty;
+
+            if (fixedNum != 0)
+                fixedNum -= 2;
+
+            return 6 + fixedNum;
+        }
+        else{
+            return level->m_ratingsSum / level->m_ratings;
+        }
+    else 
+        return 0;
 }

@@ -71,7 +71,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     m_SessionSelectMenu->setPosition({0, 0});
     SessionSelectCont->addChild(m_SessionSelectMenu);
 
-    std::ranges::sort(m_DTLayer->m_MyLevelStats.sessions, [](const Session a, const Session b) {
+    std::ranges::sort(m_DTLayer->m_SharedLevelStats.sessions, [](const Session a, const Session b) {
         return a.lastPlayed > b.lastPlayed;
     });
 
@@ -795,7 +795,7 @@ void DTGraphLayer::refreshGraph(){
 
     if (ViewModeNormal){
         if (RunViewModeFromZero){
-            m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRun(m_DTLayer->m_MyLevelStats.newBests), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+            m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRun(m_DTLayer->m_SharedLevelStats.newBests), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
         }
         else{
             std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
@@ -828,7 +828,7 @@ void DTGraphLayer::refreshGraph(){
     }
     else{
         if (RunViewModeFromZero){
-            m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRun(m_DTLayer->m_MyLevelStats.sessions[m_DTLayer->m_SessionSelected - 1].newBests), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+            m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRun(m_DTLayer->m_SharedLevelStats.sessions[m_DTLayer->m_SessionSelected - 1].newBests), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
         }
         else{
             std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;

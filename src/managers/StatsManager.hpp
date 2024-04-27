@@ -29,6 +29,10 @@ typedef struct {
     int currentBest;
     std::vector<Session> sessions;
     std::vector<int> RunsToSave;
+    std::vector<std::string> LinkedLevels;
+    std::string levelName;
+    int attempts;
+    int difficulty;
 } LevelStats;
 
 // matjson fuckery
@@ -70,6 +74,24 @@ struct matjson::Serialize<LevelStats> {
         if (value.contains("RunsToSave"))
             stats.RunsToSave = value["RunsToSave"].as<std::vector<int>>();
 
+        if (value.contains("LinkedLevels"))
+            stats.LinkedLevels = value["LinkedLevels"].as<std::vector<std::string>>();
+        
+        if (value.contains("levelName"))
+            stats.levelName = value["levelName"].as_string();
+        else
+            stats.levelName = "-1";
+
+        if (value.contains("attempts"))
+            stats.attempts = value["attempts"].as_int();
+        else
+            stats.attempts = -1;
+
+        if (value.contains("difficulty"))
+            stats.difficulty = value["difficulty"].as_int();
+        else
+            stats.difficulty = 0;
+
         return stats;
     }
 
@@ -81,6 +103,10 @@ struct matjson::Serialize<LevelStats> {
         obj["currentBest"] = value.currentBest;
         obj["sessions"] = value.sessions;
         obj["RunsToSave"] = value.RunsToSave;
+        obj["LinkedLevels"] = value.LinkedLevels;
+        obj["levelName"] = value.levelName;
+        obj["attempts"] = value.attempts;
+        obj["difficulty"] = value.difficulty;
         return obj;
     }
 };
@@ -107,6 +133,8 @@ public:
     // main functions
     static void loadLevelStats(GJGameLevel* level);
     static LevelStats getLevelStats(GJGameLevel* level);
+    static LevelStats getLevelStats(ghc::filesystem::path level);
+    static LevelStats getLevelStats(std::string levelKey);
     static void logDeath(int percent);
     static void logRun(Run run);
 
@@ -126,4 +154,13 @@ public:
     static std::string getFontName(int fontID);
     static std::vector<std::string> getAllFont();
     static void saveData(LevelStats stats, GJGameLevel* level);
+    static void saveData(LevelStats stats, std::string levelKey);
+    static std::vector<std::pair<std::string, LevelStats>> getAllLevels();
+    static std::pair<std::string, std::string> splitLevelKey(std::string levelKey);
+    /*
+    -1 = auto, 0 = NA, 1 = Easy, 2 = Normal
+    3 = Hard, 4 = Harder, 5 = Insane, 6 = Hard Demon
+    7 = Easy Demon, 8 = Medium Demon, 9 = Insane Demon, 10 = Extreme Demon
+    */
+    static int getDifficulty(GJGameLevel* level);
 };

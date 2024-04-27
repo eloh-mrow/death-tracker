@@ -1,6 +1,7 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include "../managers/DTPopupManager.hpp"
 #include "../layers/DTLayer.hpp"
+#include "../managers/StatsManager.hpp"
 
 using namespace geode::prelude;
 
@@ -30,6 +31,16 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
         btn->setZOrder(1);
 
         this->m_playBtnMenu->addChild(btn);
+
+        if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(p0))){
+            auto stats = StatsManager::getLevelStats(p0);
+
+            stats.attempts = p0->m_attempts;
+            stats.levelName = p0->m_levelName;
+            stats.difficulty = StatsManager::getDifficulty(p0);
+
+            StatsManager::saveData(stats, p0);
+        }
 
         return true;
     }

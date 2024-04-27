@@ -19,6 +19,8 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         GJGameLevel* m_Level;
         LevelStats m_MyLevelStats;
         bool m_noSavedData;
+
+        LevelStats m_SharedLevelStats;
         
         //main page
         CCScale9Sprite* m_TextBG;
@@ -55,10 +57,11 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void refreshRunAllowedListView();
         void deleteUnused(CCObject*);
         FLAlertLayer* m_RunDeleteAlert;
-        void FLAlert_Clicked(FLAlertLayer* layer, bool selected);
+        CCMenuItemToggler* allRunsToggle;
+        void OnToggleAllRuns(CCObject*);
 
         //session selection
-        InputNode* m_SessionSelectionInput;
+        InputNode* m_SessionSelectionInput = nullptr;
         CCMenu* m_SessionSelectMenu;
         int m_SessionsAmount;
         int m_SessionSelected;
@@ -66,6 +69,10 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void updateSessionString(int session);
         void SwitchSessionRight(CCObject*);
         void SwitchSessionLeft(CCObject*);
+
+        //linking
+        void OnLinkButtonClicked(CCObject*);
+        void UpdateSharedStats();
 
         //edit layout mode
         CCMenuItemSpriteExtra* m_EditLayoutBtn;
@@ -93,6 +100,8 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void textChanged(CCTextInputNode* input) override;
         void textInputOpened(CCTextInputNode* input) override;
         void textInputClosed(CCTextInputNode* input) override;
+
+        void FLAlert_Clicked(FLAlertLayer* layer, bool selected);
 
         void onClose(cocos2d::CCObject*) override;
 

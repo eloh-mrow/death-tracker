@@ -4,6 +4,7 @@
 #include "../layers/LabelLayoutWindow.hpp"
 #include "../layers/RunAllowedCell.hpp"
 #include "../layers/DTGraphLayer.hpp"
+#include "../layers/DTLinkLayer.hpp"
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -24,6 +25,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     // ================================== //
     // loading data
     m_MyLevelStats = StatsManager::getLevelStats(m_Level);
+
+    UpdateSharedStats();
     // ================================== //
 
     /*
@@ -125,11 +128,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_SessionSelectMenu->setPosition({0, 0});
     SessionSelectCont->addChild(m_SessionSelectMenu);
 
-    std::ranges::sort(m_MyLevelStats.sessions, [](const Session a, const Session b) {
-        return a.lastPlayed > b.lastPlayed;
-    });
-
-    m_SessionsAmount = m_MyLevelStats.sessions.size();
+    m_SessionsAmount = m_SharedLevelStats.sessions.size();
     m_SessionSelected = 1;
 
     m_SessionSelectionInput = InputNode::create(120, "Session");
@@ -196,6 +195,29 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     AddRunAllowedButton->setPosition({-180, 61});
     m_RunStuffMenu->addChild(AddRunAllowedButton);
 
+    auto checkOn = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
+    auto checkOff = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
+    allRunsToggle = CCMenuItemToggler::create(
+        checkOff,
+        checkOn,
+        this,
+        menu_selector(DTLayer::OnToggleAllRuns)
+    );
+
+    if (m_MyLevelStats.RunsToSave.size())
+        if (m_MyLevelStats.RunsToSave[0] == -1){
+            allRunsToggle->toggle(true);
+        }
+
+    allRunsToggle->setPosition({-238, -26});
+    allRunsToggle->setScale(0.35f);
+    m_RunStuffMenu->addChild(allRunsToggle);
+
+    auto allRunsToggleLabel = CCLabelBMFont::create("Track any run", "bigFont.fnt");
+    allRunsToggleLabel->setPosition({-198, -26});
+    allRunsToggleLabel->setScale(0.25f);
+    m_RunStuffMenu->addChild(allRunsToggleLabel);
+
     auto DeleteUnusedButtonS = ButtonSprite::create("Delete Unused", "bigFont.fnt", "GJ_button_06.png");
     DeleteUnusedButtonS->setScale(0.3f);
     auto DeleteUnusedButton = CCMenuItemSpriteExtra::create(
@@ -204,7 +226,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         this,
         menu_selector(DTLayer::deleteUnused)
     );
-    DeleteUnusedButton->setPosition({-207, -26});
+    DeleteUnusedButton->setPosition({-207, -40});
     m_RunStuffMenu->addChild(DeleteUnusedButton);
 
     //graph
@@ -219,6 +241,18 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     );
     GraphButton->setPosition({-207, -60});
     m_buttonMenu->addChild(GraphButton);
+
+    //linking
+
+    auto LinkLevelsButtonS = CCSprite::createWithSpriteFrameName("gj_linkBtn_001.png");
+    auto LinkLevelsButton = CCMenuItemSpriteExtra::create(
+        LinkLevelsButtonS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::OnLinkButtonClicked)
+    );
+    LinkLevelsButton->setPosition({-208, -108});
+    m_buttonMenu->addChild(LinkLevelsButton);
 
     createLayoutBlocks();
     refreshStrings();
@@ -295,9 +329,9 @@ void DTLayer::textInputClosed(CCTextInputNode* input){
 }
 
 void DTLayer::updateSessionString(int session){
-    if (session - 1 < 0 || session - 1 >= m_MyLevelStats.sessions.size()) return;
+    if (session - 1 < 0 || session - 1 >= m_SharedLevelStats.sessions.size()) return;
 
-    Session currentSession = m_MyLevelStats.sessions[session - 1];
+    Session currentSession = m_SharedLevelStats.sessions[session - 1];
 
     selectedSessionInfo = CreateDeathsString(currentSession.deaths, currentSession.newBests, "<sbc>");
     m_SelectedSessionRunInfo = CreateRunsString(currentSession.runs);
@@ -374,8 +408,9 @@ void DTLayer::EditLayoutEnabled(bool b){
         changeScrollSizeByBoxes(true);
         m_TextBG->setOpacity(200);
     }
-    else
+    else{
         m_TextBG->setOpacity(100);
+    }
 }
 
 void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
@@ -437,6 +472,7 @@ void DTLayer::createLayoutBlocks(){
     {
         auto currentWindow = LabelLayoutWindow::create(m_CurretLayout[i], this);
         m_LayoutStuffCont->addChild(currentWindow);
+        handleTouchPriority(this);
         m_LayoutLines.push_back(currentWindow);
     }
 
@@ -621,7 +657,7 @@ std::string DTLayer::modifyString(std::string ToModify){
                 }
                 if (isKeyInIndex(ToModify, i + 1, "att}")){
                     ToModify.erase(i, 5);
-                    ToModify.insert(i, std::to_string(m_Level->m_attempts));
+                    ToModify.insert(i, std::to_string(m_SharedLevelStats.attempts));
                 }
                 if (isKeyInIndex(ToModify, i + 1, "s0}")){
                     ToModify.erase(i, 4);
@@ -657,8 +693,8 @@ bool DTLayer::isKeyInIndex(std::string s, int Index, std::string key){
 }
 
 void DTLayer::refreshStrings(){
-    m_DeathsInfo = CreateDeathsString(m_MyLevelStats.deaths, m_MyLevelStats.newBests, "<nbc>");
-    m_RunInfo = CreateRunsString(m_MyLevelStats.runs);
+    m_DeathsInfo = CreateDeathsString(m_SharedLevelStats.deaths, m_SharedLevelStats.newBests, "<nbc>");
+    m_RunInfo = CreateRunsString(m_SharedLevelStats.runs);
 
     std::string mergedString = "";
     for (int i = 0; i < m_DeathsInfo.size(); i++)
@@ -752,16 +788,25 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateRunsString(Runs 
     std::vector<std::tuple<std::string, int>> sortedRuns{};
 
     for (const auto [runKey, count] : runs){
-        for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-        {
-            if (m_MyLevelStats.RunsToSave[i] == StatsManager::splitRunKey(runKey).start){
+        if (m_MyLevelStats.RunsToSave.size())
+            if (m_MyLevelStats.RunsToSave[0] == -1){
                 sortedRuns.push_back(std::make_tuple(runKey, count));
-                
+                        
                 totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
-                
-                break;
             }
-        }
+            else{
+                for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
+                {
+                    if (m_MyLevelStats.RunsToSave[i] == StatsManager::splitRunKey(runKey).start){
+                        sortedRuns.push_back(std::make_tuple(runKey, count));
+                        
+                        totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
+                        
+                        break;
+                    }
+                }
+            }
+        
     }
 
     // sort the runs
@@ -884,7 +929,8 @@ void DTLayer::refreshRunAllowedListView(){
 
     for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
     {
-        runsAllowed->addObject(RunAllowedCell::create(m_MyLevelStats.RunsToSave[i], this));
+        if (m_MyLevelStats.RunsToSave[i] != -1)
+            runsAllowed->addObject(RunAllowedCell::create(m_MyLevelStats.RunsToSave[i], this));
     }
     
     auto runsAllowedView = ListView::create(runsAllowed, 20, 75, 70);
@@ -892,6 +938,11 @@ void DTLayer::refreshRunAllowedListView(){
     m_RunsList = GJListLayer::create(runsAllowedView, "Runs", {0,0,0,75}, 75, 70, 1);
     m_RunsList->setPosition({41, 142});
     m_mainLayer->addChild(m_RunsList);
+
+    m_ScrollLayer->retain();
+    m_ScrollLayer->removeFromParent();
+    m_mainLayer->addChild(m_ScrollLayer);
+    m_ScrollLayer->release();
 
     CCObject* child;
 
@@ -990,4 +1041,102 @@ void DTLayer::openGraphMenu(CCObject*){
     auto graph = DTGraphLayer::create(this);
     graph->setZOrder(100);
     this->addChild(graph);
+}
+
+void DTLayer::OnToggleAllRuns(CCObject*){
+    if (allRunsToggle->isOn()){
+        
+        if (m_MyLevelStats.RunsToSave.size()){
+            if (m_MyLevelStats.RunsToSave[0] == -1){
+                m_MyLevelStats.RunsToSave.erase(m_MyLevelStats.RunsToSave.begin());
+
+                updateRunsAllowed();
+            }
+        }
+    }
+    else{
+        m_MyLevelStats.RunsToSave.insert(m_MyLevelStats.RunsToSave.begin(), -1);
+        updateRunsAllowed();
+    }
+}
+
+void DTLayer::OnLinkButtonClicked(CCObject*){
+    auto lLayer = DTLinkLayer::create(this);
+    lLayer->setZOrder(100);
+    m_mainLayer->addChild(lLayer);
+}
+
+void DTLayer::UpdateSharedStats(){
+    m_SharedLevelStats = m_MyLevelStats;
+
+    for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
+    {
+        auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+
+        m_SharedLevelStats.attempts += currStats.attempts;
+
+        m_SharedLevelStats.sessions.reserve(m_SharedLevelStats.sessions.size() + distance(currStats.sessions.begin(),currStats.sessions.end()));
+        m_SharedLevelStats.sessions.insert(m_SharedLevelStats.sessions.end(),currStats.sessions.begin(),currStats.sessions.end());
+
+        for (int r = 0; r < m_MyLevelStats.RunsToSave.size(); r++)
+        {
+            bool addMeRun = true;
+            for (int r2 = 0; r2 < currStats.RunsToSave.size(); r2++)
+            {
+                if (currStats.RunsToSave[r2] == m_MyLevelStats.RunsToSave[r])
+                    addMeRun = false;
+            }
+            
+            if (addMeRun)
+                currStats.RunsToSave.push_back(m_MyLevelStats.RunsToSave[r]);
+        }
+        for (int r = 0; r < currStats.RunsToSave.size(); r++)
+        {
+            bool addMeRun = true;
+            for (int r2 = 0; r2 < m_MyLevelStats.RunsToSave.size(); r2++)
+            {
+                if (m_MyLevelStats.RunsToSave[r2] == currStats.RunsToSave[r])
+                    addMeRun = false;
+            }
+            
+            if (addMeRun)
+                m_MyLevelStats.RunsToSave.push_back(currStats.RunsToSave[r]);
+        }
+
+        std::ranges::sort(m_MyLevelStats.RunsToSave, [](const int a, const int b) {
+            return a < b;
+        });
+
+        std::ranges::sort(currStats.RunsToSave, [](const int a, const int b) {
+            return a < b;
+        });
+
+        StatsManager::saveData(m_MyLevelStats, m_Level);
+        StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
+        
+        for (const auto& [death, count] : currStats.deaths)
+        {
+            m_SharedLevelStats.deaths[death] += count;
+        }
+        
+        for (const auto& [run, count] : currStats.runs)
+        {
+            m_SharedLevelStats.runs[run] += count;
+        }
+
+        if (m_SharedLevelStats.currentBest < currStats.currentBest)
+            m_SharedLevelStats.currentBest = currStats.currentBest;
+
+        m_SharedLevelStats.newBests.insert(currStats.newBests.begin(), currStats.newBests.end());
+    }
+
+    std::ranges::sort(m_SharedLevelStats.sessions, [](const Session a, const Session b) {
+        return a.lastPlayed > b.lastPlayed;
+    });
+
+    m_SessionsAmount = m_SharedLevelStats.sessions.size();
+
+    if (m_SessionSelectionInput)
+        m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
+    
 }
