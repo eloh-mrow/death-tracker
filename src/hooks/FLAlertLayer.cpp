@@ -12,6 +12,7 @@ class $modify(MyFLAlertLayer, FLAlertLayer) {
             return false;
 
         if (!DTPopupManager::isInfoAlertOpen()) return true;
+        if (GJBaseGameLayer::get()) return true; // avoid applying death tracker button on layers when leveleditorlayer or playlayer is active
 
         auto alertBgSize = getChildOfType<CCScale9Sprite>(m_mainLayer, 0)->getContentSize();
         auto winSize = CCDirector::sharedDirector()->getWinSize();

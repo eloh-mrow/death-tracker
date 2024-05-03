@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 class $modify(myLevelInfoLayer, LevelInfoLayer) {
     static void onModify(auto& self) {
-        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
+        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", INT64_MIN + 1);
     }
 
     void onLevelInfo(CCObject* sender) {
@@ -18,19 +18,23 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
 
     bool init(GJGameLevel* p0, bool p1){
         if (!LevelInfoLayer::init(p0, p1)) return false;
+        
+        auto otherMenu = getChildByID("other-menu");
 
         auto s = CCSprite::create("dt_skullBtn.png"_spr);
-        s->setScale(0.3f);
+        s->setScale(.2f);
         auto btn = CCMenuItemSpriteExtra::create(
             s,
-            nullptr,
             this,
             menu_selector(myLevelInfoLayer::openDTLayer)
         );
-        btn->setPosition({-175, 0});
         btn->setZOrder(1);
+        btn->setID("death-tracker-menu"_spr);
 
-        this->m_playBtnMenu->addChild(btn);
+        otherMenu->addChild(btn);
+        btn->setPositionY(12.5f);
+        otherMenu->getChildByID("info-button")->setPositionY(-12.5f);
+        otherMenu->updateLayout();
 
         if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(p0))){
             auto stats = StatsManager::getLevelStats(p0);

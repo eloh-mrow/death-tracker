@@ -22,6 +22,12 @@
 - <co>import/export save data</c>
 
 # Changelog
+## v2.0.0-beta.4
+- fix crash with sai's brightness mod
+
+## v2.0.0-beta.3
+- fixed an issue where recently downloaded levels would not display deaths correctly
+
 ## v2.0.0-beta.2
 - fixed a crash on android
 

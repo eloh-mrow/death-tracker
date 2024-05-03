@@ -84,17 +84,17 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setOpacity(150);
     m_mainLayer->addChild(m_BlackSquare);
 
-    auto editLayoutCancleBtnS = ButtonSprite::create("Cancle");
-    editLayoutCancleBtnS->setColor({ 255, 0, 0 });
-    editLayoutCancleBtnS->setScale(0.375f);
-    auto editLayoutCancleBtn = CCMenuItemSpriteExtra::create(
-        editLayoutCancleBtnS,
+    auto editLayoutCancelBtnS = ButtonSprite::create("Cancel");
+    editLayoutCancelBtnS->setColor({ 255, 0, 0 });
+    editLayoutCancelBtnS->setScale(0.375f);
+    auto editLayoutCancelBtn = CCMenuItemSpriteExtra::create(
+        editLayoutCancelBtnS,
         nullptr,
         this,
-        menu_selector(DTLayer::onEditLayoutCancle)
+        menu_selector(DTLayer::onEditLayoutCancel)
     );
-    editLayoutCancleBtn->setPosition({226, 114});
-    m_EditLayoutMenu->addChild(editLayoutCancleBtn);
+    editLayoutCancelBtn->setPosition({226, 114});
+    m_EditLayoutMenu->addChild(editLayoutCancelBtn);
 
     auto editLayoutApplyBtnS = ButtonSprite::create("Apply");
     editLayoutApplyBtnS->setScale(0.375f);
@@ -272,7 +272,7 @@ void DTLayer::onEditLayout(CCObject* sender){
     EditLayoutEnabled(true);
 }
 
-void DTLayer::onEditLayoutCancle(CCObject*){
+void DTLayer::onEditLayoutCancel(CCObject*){
     EditLayoutEnabled(false);
     m_LayoutStuffCont->removeMeAndCleanup();
     createLayoutBlocks();
@@ -974,7 +974,7 @@ void DTLayer::refreshRunAllowedListView(){
 }
 
 void DTLayer::deleteUnused(CCObject*){
-    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Delete", "Cancle");
+    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Delete", "Cancel");
     m_RunDeleteAlert->setZOrder(101);
     this->addChild(m_RunDeleteAlert);
 }

@@ -79,7 +79,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void onEditLayout(CCObject*);
         CCMenu* m_EditLayoutMenu;
         CCSprite* m_BlackSquare;
-        void onEditLayoutCancle(CCObject*);
+        void onEditLayoutCancel(CCObject*);
         void onEditLayoutApply(CCObject*);
         void EditLayoutEnabled(bool b);
         std::vector<CCNode*> m_LayoutLines;
