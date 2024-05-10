@@ -36,7 +36,12 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     */
 
     this->setZOrder(100);
-    m_buttonMenu->setZOrder(1);
+    this->m_buttonMenu->setZOrder(1);
+
+    alighmentNode = CCNode::create();
+    alighmentNode->setPosition(m_buttonMenu->getPosition());
+    alighmentNode->setZOrder(2);
+    m_mainLayer->addChild(alighmentNode);
 
     //texts bg
     m_TextBG = CCScale9Sprite::create("GJ_square05.png", {0,0, 80, 80});
@@ -55,8 +60,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_ScrollBar = Scrollbar::create(m_ScrollLayer);
     m_ScrollBar->setScale(0.95f);
     m_ScrollBar->setZOrder(11);
-    m_ScrollBar->setPosition({439, 160});
-    m_mainLayer->addChild(m_ScrollBar);
+    m_ScrollBar->setPosition({154, 0});
+    alighmentNode->addChild(m_ScrollBar);
 
     auto editLayoutBtnS = ButtonSprite::create("Edit Layout");
     editLayoutBtnS->setScale(0.475f);
@@ -76,7 +81,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_EditLayoutMenu = CCMenu::create();
     m_EditLayoutMenu->setVisible(false);
     m_EditLayoutMenu->setZOrder(10);
-    m_mainLayer->addChild(m_EditLayoutMenu);
+    alighmentNode->addChild(m_EditLayoutMenu);
 
     m_BlackSquare = CCSprite::create("square02_001.png");
     m_BlackSquare->setZOrder(9);
@@ -84,7 +89,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setPosition(winSize / 2);
     m_BlackSquare->setScale(100);
     m_BlackSquare->setOpacity(150);
-    m_mainLayer->addChild(m_BlackSquare);
+    alighmentNode->addChild(m_BlackSquare);
 
     auto editLayoutCancelBtnS = ButtonSprite::create("Cancel");
     editLayoutCancelBtnS->setColor({ 255, 0, 0 });
@@ -123,8 +128,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
-    SessionSelectCont->setPosition({77, 253});
-    m_mainLayer->addChild(SessionSelectCont);
+    SessionSelectCont->setPosition({-207, 99});
+    alighmentNode->addChild(SessionSelectCont);
 
     m_SessionSelectMenu = CCMenu::create();
     m_SessionSelectMenu->setPosition({0, 0});
@@ -179,9 +184,9 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_AddRunAllowedInput->getInput()->setMaxLabelLength(3);
     m_AddRunAllowedInput->getInput()->setAllowedChars("1234567890");
     m_AddRunAllowedInput->getInput()->setDelegate(this);
-    m_AddRunAllowedInput->setPosition({67, 221});
+    m_AddRunAllowedInput->setPosition({-218, 61});
     m_AddRunAllowedInput->setScale(0.5f);
-    m_mainLayer->addChild(m_AddRunAllowedInput);
+    alighmentNode->addChild(m_AddRunAllowedInput);
 
     m_RunStuffMenu = CCMenu::create();
     m_mainLayer->addChild(m_RunStuffMenu);
@@ -283,8 +288,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     //modify runs
 
     CCNode* mRunsCont = CCNode::create();
-    mRunsCont->setPosition({490, 256});
-    m_mainLayer->addChild(mRunsCont);
+    mRunsCont->setPosition({208, 96});
+    alighmentNode->addChild(mRunsCont);
 
     modifyRunsMenu = CCMenu::create();
     modifyRunsMenu->setPosition({0, 0});
@@ -483,6 +488,11 @@ void DTLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != "")
             res = std::stoi(input->getString());
+
+        if (res == 0){
+            res = 1;
+            input->setString("1");
+        }
 
         if (res > 10){
             res = 10;
@@ -1135,8 +1145,8 @@ void DTLayer::refreshRunAllowedListView(){
     auto runsAllowedView = ListView::create(runsAllowed, 20, 75, 70);
 
     m_RunsList = GJListLayer::create(runsAllowedView, "Runs", {0,0,0,75}, 75, 70, 1);
-    m_RunsList->setPosition({41, 142});
-    m_mainLayer->addChild(m_RunsList);
+    m_RunsList->setPosition({-245, -19});
+    alighmentNode->addChild(m_RunsList);
 
     m_ScrollLayer->retain();
     m_ScrollLayer->removeFromParent();

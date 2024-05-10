@@ -15,6 +15,8 @@ class DTManageLevelsLayer : public Popup<DTLayer* const&>, public TextInputDeleg
 
         DTLayer* m_DTLayer;
 
+        CCNode* alighmentNode;
+
         std::vector<std::pair<std::string, LevelStats>> m_AllLevels;
 
         float CellsWidth = 300;

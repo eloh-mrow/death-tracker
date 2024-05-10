@@ -15,6 +15,8 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
     public:
         static DTLinkLayer* create(DTLayer* const& layer);
 
+        CCNode* alighmentNode;
+
         DTLayer* m_DTLayer;
 
         void SpacialEditList(GJListLayer* list, CCPoint titlePos, float titleSize);

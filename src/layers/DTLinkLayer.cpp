@@ -17,6 +17,10 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     this->setOpacity(0);
 
+    alighmentNode = CCNode::create();
+    alighmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alighmentNode);
+
     m_DTLayer = layer;
 
     m_AllLevels = StatsManager::getAllLevels();
@@ -25,9 +29,9 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     seartchInput = InputNode::create(225, "Search");
     seartchInput->getInput()->setDelegate(this);
-    seartchInput->setPosition({winSize.width / 2, 277});
+    seartchInput->setPosition({0, 116});
     seartchInput->setScale(0.6f);
-    this->addChild(seartchInput);
+    alighmentNode->addChild(seartchInput);
 
     auto downloadBS = cocos2d::CCSprite::createWithSpriteFrameName("GJ_downloadBtn_001.png");
     downloadBS->setScale(.8f);
@@ -120,16 +124,16 @@ void DTLinkLayer::refreshLists(){
     auto levelsListView = ListView::create(levelsListItems, 40, CellsWidth, 220);
 
     m_LevelsList = GJListLayer::create(levelsListView, "Levels", {0,0,0,75}, CellsWidth, 220, 1);
-    m_LevelsList->setPosition({52, 45});
-    this->addChild(m_LevelsList);
+    m_LevelsList->setPosition({-233, -116});
+    alighmentNode->addChild(m_LevelsList);
 
     SpacialEditList(m_LevelsList, {m_LevelsList->getContentSize().width / 2, 234}, 0.7f);
 
     auto linkedLevelsListView = ListView::create(linkedLevelsListItems, 40, CellsWidth, 220);
 
     m_LinkedLevelsList = GJListLayer::create(linkedLevelsListView, "Linked", {0,0,0,75}, CellsWidth, 220, 1);
-    m_LinkedLevelsList->setPosition({286, 45});
-    this->addChild(m_LinkedLevelsList);
+    m_LinkedLevelsList->setPosition({2, -116});
+    alighmentNode->addChild(m_LinkedLevelsList);
 
     SpacialEditList(m_LinkedLevelsList, {m_LinkedLevelsList->getContentSize().width / 2, 234}, 0.7f);
 }
@@ -165,13 +169,13 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
     if (!erase){
         m_LevelsList->retain();
         m_LevelsList->removeFromParent();
-        this->addChild(m_LevelsList);
+        alighmentNode->addChild(m_LevelsList);
         m_LevelsList->release();
     }
     else{
         m_LinkedLevelsList->retain();
         m_LinkedLevelsList->removeFromParent();
-        this->addChild(m_LinkedLevelsList);
+        alighmentNode->addChild(m_LinkedLevelsList);
         m_LinkedLevelsList->release();
     }
 
@@ -191,7 +195,7 @@ void DTLinkLayer::update(float delta){
 
         m_LevelsList->retain();
         m_LevelsList->removeFromParent();
-        this->addChild(m_LevelsList);
+        alighmentNode->addChild(m_LevelsList);
         m_LevelsList->release();
     }
 
@@ -200,7 +204,7 @@ void DTLinkLayer::update(float delta){
 
         m_LinkedLevelsList->retain();
         m_LinkedLevelsList->removeFromParent();
-        this->addChild(m_LinkedLevelsList);
+        alighmentNode->addChild(m_LinkedLevelsList);
         m_LinkedLevelsList->release();
     }
     if (downloadingInfo){

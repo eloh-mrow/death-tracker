@@ -16,6 +16,8 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextI
     LabelLayoutWindow* m_LabelWin;
     void deleteLabel(CCObject*);
 
+    CCNode* alighmentNode;
+
     //label name
     InputNode* m_LabelNameInput;
 

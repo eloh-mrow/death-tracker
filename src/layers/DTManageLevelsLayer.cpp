@@ -17,13 +17,17 @@ bool DTManageLevelsLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
+    alighmentNode = CCNode::create();
+    alighmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alighmentNode);
+
     m_AllLevels = StatsManager::getAllLevels();
 
     seartchInput = InputNode::create(225, "Search");
     seartchInput->getInput()->setDelegate(this);
-    seartchInput->setPosition({winSize.width / 2, 277});
+    seartchInput->setPosition({0, 115});
     seartchInput->setScale(0.6f);
-    this->addChild(seartchInput);
+    alighmentNode->addChild(seartchInput);
 
     refreshLists(false);
 
@@ -75,11 +79,11 @@ void DTManageLevelsLayer::refreshLists(bool SavePos){
     auto levelsListView = ListView::create(levelsListItems, 40, CellsWidth, 220);
 
     m_LevelsList = GJListLayer::create(levelsListView, "", {0,0,0,75}, CellsWidth, 220, 1);
-    m_LevelsList->setPosition({130, 42});
+    m_LevelsList->setPosition({-155, -118});
     if (prevY != 1 && SavePos){
         m_LevelsList->m_listView->m_tableView->m_contentLayer->setPositionY(prevY);
     }
-    this->addChild(m_LevelsList);
+    alighmentNode->addChild(m_LevelsList);
 
     SpacialEditList(m_LevelsList, {m_LevelsList->getContentSize().width / 2, 234}, 0.7f);
 }

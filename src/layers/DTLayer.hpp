@@ -26,6 +26,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCScale9Sprite* m_TextBG;
         ScrollLayer* m_ScrollLayer;
         Scrollbar* m_ScrollBar;
+        CCNode* alighmentNode;
 
         //text
         void RefreshText(bool moveToTop = false);

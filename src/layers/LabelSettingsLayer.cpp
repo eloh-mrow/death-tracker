@@ -21,6 +21,14 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
 
     this->setTitle("Label Settings");
 
+    alighmentNode = CCNode::create();
+    alighmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alighmentNode);
+
+    auto allCont = CCNode::create();
+    allCont->setPosition({-286, -157});
+    alighmentNode->addChild(allCont);
+
     /*
     -- settings that need changing -- 
 
@@ -52,7 +60,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     CCNode* LabelNameCont = CCNode::create();
     LabelNameCont->setID("Label-Name-Container");
     LabelNameCont->setPosition({228, 228});
-    this->addChild(LabelNameCont);
+    allCont->addChild(LabelNameCont);
 
     auto LabelNameInputLabel = CCLabelBMFont::create("Label Name", "bigFont.fnt");
     LabelNameInputLabel->setPosition({0, 23});
@@ -73,7 +81,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     AlighmentCont->setID("Alighment-Container");
     AlighmentCont->setPosition({351, 231});
     AlighmentCont->setScale(1.3f);
-    this->addChild(AlighmentCont);
+    allCont->addChild(AlighmentCont);
 
     auto AlighmentMenu = CCMenu::create();
     AlighmentMenu->setPosition({-5,-1});
@@ -129,7 +137,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     CCNode* ColorCont = CCNode::create();
     ColorCont->setID("Color-Container");
     ColorCont->setPosition({229, 134});
-    this->addChild(ColorCont);
+    allCont->addChild(ColorCont);
 
     ccColor3B currentColor = {m_LabelWin->m_MyLayout.color.r, m_LabelWin->m_MyLayout.color.g, m_LabelWin->m_MyLayout.color.b};
 
@@ -205,7 +213,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     CCNode* TextCont = CCNode::create();
     TextCont->setID("Text-Container");
     TextCont->setPosition({284, 182});
-    this->addChild(TextCont);
+    allCont->addChild(TextCont);
 
     auto TextInputLabel = CCLabelBMFont::create("Text", "bigFont.fnt");
     TextInputLabel->setPosition({0, 23});
@@ -225,7 +233,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     m_FontCont = CCNode::create();
     m_FontCont->setID("Font-Container");
     m_FontCont->setPosition({318, 88});
-    this->addChild(m_FontCont);
+    allCont->addChild(m_FontCont);
 
     m_FontOuterCont = CCNode::create();
     m_FontOuterCont->setID("Font-Outer-Container");
@@ -271,7 +279,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     CCNode* FontSizeCont = CCNode::create();
     FontSizeCont->setID("Font-Size-Container");
     FontSizeCont->setPosition({229, 134});
-    this->addChild(FontSizeCont);
+    allCont->addChild(FontSizeCont);
 
     m_FontSizeInput = InputNode::create(95, "Alpha");
     m_FontSizeInput->setPosition({138, -60});

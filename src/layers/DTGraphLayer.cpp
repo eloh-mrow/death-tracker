@@ -17,41 +17,45 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     this->setOpacity(0);
 
+    alighmentNode = CCNode::create();
+    alighmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alighmentNode);
+
     noGraphLabel = CCLabelBMFont::create("No Progress\nFor Graph", "bigFont.fnt");
     noGraphLabel->setZOrder(1);
     noGraphLabel->setVisible(false);
-    noGraphLabel->setPosition({318, 161});
-    this->addChild(noGraphLabel);
+    noGraphLabel->setPosition({46, 3});
+    alighmentNode->addChild(noGraphLabel);
 
     refreshGraph();
 
     CCScale9Sprite* FontTextDisplayBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
-    FontTextDisplayBG->setPosition({318, 161});
+    FontTextDisplayBG->setPosition({35, 0});
     FontTextDisplayBG->setContentSize({430, 256});
     FontTextDisplayBG->setColor({0,0,0});
     FontTextDisplayBG->setOpacity(125);
-    this->addChild(FontTextDisplayBG);
+    alighmentNode->addChild(FontTextDisplayBG);
 
     CCScale9Sprite* InfoBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
-    InfoBG->setPosition({69, 75});
+    InfoBG->setPosition({-215, -85});
     InfoBG->setContentSize({65, 83});
     InfoBG->setColor({ 113, 167, 255 });
     InfoBG->setOpacity(78);
-    this->addChild(InfoBG);
+    alighmentNode->addChild(InfoBG);
 
     auto InfoLabel = CCLabelBMFont::create("Point Info", "bigFont.fnt");
-    InfoLabel->setPosition({69, 124});
+    InfoLabel->setPosition({-215, -36});
     InfoLabel->setScale(0.35f);
-    this->addChild(InfoLabel);
+    alighmentNode->addChild(InfoLabel);
 
     npsLabel = CCLabelBMFont::create("No\nPoint\nSelected", "bigFont.fnt");
     npsLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     npsLabel->setScale(0.35f);
-    npsLabel->setPosition({69, 75});
+    npsLabel->setPosition({-215, -83});
     npsLabel->setZOrder(1);
     npsLabel->setVisible(false);
     npsLabel->setPositionY(npsLabel->getPositionY());
-    this->addChild(npsLabel);
+    alighmentNode->addChild(npsLabel);
 
     PointInfoLabel = SimpleTextArea::create("Precent\n \nPassrate:\npassrate", "bigFont.fnt");
     PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -59,13 +63,13 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     PointInfoLabel->setZOrder(1);
     PointInfoLabel->setVisible(false);
     PointInfoLabel->setScale(0.35f);
-    this->addChild(PointInfoLabel);
+    alighmentNode->addChild(PointInfoLabel);
 
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
-    SessionSelectCont->setPosition({69, 210});
+    SessionSelectCont->setPosition({-215, 50});
     SessionSelectCont->setScale(0.85f);
-    m_mainLayer->addChild(SessionSelectCont);
+    alighmentNode->addChild(SessionSelectCont);
 
     auto m_SessionSelectMenu = CCMenu::create();
     m_SessionSelectMenu->setPosition({0, 0});
@@ -118,8 +122,8 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     auto viewModeLabel = CCLabelBMFont::create("View Mode", "bigFont.fnt");
     viewModeLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     viewModeLabel->setScale(0.35f);
-    viewModeLabel->setPosition({69, 275});
-    this->addChild(viewModeLabel);
+    viewModeLabel->setPosition({-215, 115});
+    alighmentNode->addChild(viewModeLabel);
 
     viewModeButtonS = ButtonSprite::create("Normal");
     viewModeButtonS->setScale(0.475f);
@@ -147,8 +151,8 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     m_RunSelectInput->getInput()->setDelegate(this);
     m_RunSelectInput->getInput()->setAllowedChars("1234567890");
     m_RunSelectInput->setScale(0.45f);
-    m_RunSelectInput->setPosition({69, 195});
-    this->addChild(m_RunSelectInput);
+    m_RunSelectInput->setPosition({-215, 34});
+    alighmentNode->addChild(m_RunSelectInput);
 
     CCArray* runsAllowed = CCArray::create();
 
@@ -161,8 +165,8 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     auto runsAllowedView = ListView::create(runsAllowed, 20, 65, 55);
 
     m_RunsList = GJListLayer::create(runsAllowedView, "", {0,0,0,75}, 65, 55, 1);
-    m_RunsList->setPosition({36, 130});
-    m_mainLayer->addChild(m_RunsList);
+    m_RunsList->setPosition({-247, -30});
+    alighmentNode->addChild(m_RunsList);
 
     CCObject* child;
 
@@ -842,9 +846,9 @@ void DTGraphLayer::refreshGraph(){
         }
         
         if (m_graph){
-            m_graph->setPosition({129, 52});
+            m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
-            this->addChild(m_graph);
+            alighmentNode->addChild(m_graph);
             noGraphLabel->setVisible(false);
         }
         else{
@@ -874,9 +878,9 @@ void DTGraphLayer::refreshGraph(){
         }
 
         if (m_graph){
-            m_graph->setPosition({129, 52});
+            m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
-            this->addChild(m_graph);
+            alighmentNode->addChild(m_graph);
             noGraphLabel->setVisible(false);
         }
         else{
