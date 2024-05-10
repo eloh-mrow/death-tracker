@@ -81,7 +81,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_EditLayoutMenu = CCMenu::create();
     m_EditLayoutMenu->setVisible(false);
     m_EditLayoutMenu->setZOrder(10);
-    alighmentNode->addChild(m_EditLayoutMenu);
+    m_mainLayer->addChild(m_EditLayoutMenu);
 
     m_BlackSquare = CCSprite::create("square02_001.png");
     m_BlackSquare->setZOrder(9);
