@@ -154,7 +154,8 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     for (int i = 0; i < m_DTLayer->m_MyLevelStats.RunsToSave.size(); i++)
     {
-        runsAllowed->addObject(ChooseRunCell::create(m_DTLayer->m_MyLevelStats.RunsToSave[i], this));
+        if (m_DTLayer->m_MyLevelStats.RunsToSave[i] != -1)
+            runsAllowed->addObject(ChooseRunCell::create(m_DTLayer->m_MyLevelStats.RunsToSave[i], this));
     }
     
     auto runsAllowedView = ListView::create(runsAllowed, 20, 65, 55);
@@ -710,9 +711,33 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
 int DTGraphLayer::GetBestRun(NewBests bests){
     int bestRun = 0;
 
-    for (auto const& best : bests)
+    for (auto best : bests)
     {
         if (best > bestRun) bestRun = best;
+    }
+
+    return bestRun;
+}
+
+int DTGraphLayer::GetBestRunDeathS(std::vector<std::tuple<std::string, int, float>> selectedPrecentDeathsInfo){
+    if (std::get<0>(selectedPrecentDeathsInfo[0]) == "-1" || std::get<0>(selectedPrecentDeathsInfo[0]) == "No Saved Progress") return -1;
+
+    int bestRun = 0;
+
+    for (auto best : selectedPrecentDeathsInfo)
+    {
+        std::string bestString = std::get<0>(best);
+        if (bestString.length() != 0)
+            if (bestString[0] == '<'){
+                if (StatsManager::ContainsAtIndex(1, "nbc>", bestString)){
+                    bestString.erase(0, 5);
+                }
+                if (StatsManager::ContainsAtIndex(1, "sbc>", bestString)){
+                    bestString.erase(0, 5);
+                }
+            }
+        
+        if (std::stoi(bestString) > bestRun) bestRun = std::stoi(bestString);
     }
 
     return bestRun;
@@ -723,7 +748,7 @@ int DTGraphLayer::GetBestRun(std::vector<std::tuple<std::string, int, float>> se
 
     int bestRun = 0;
 
-    for (auto const& best : selectedPrecentRunInfo)
+    for (auto best : selectedPrecentRunInfo)
     {
         if (StatsManager::splitRunKey(std::get<0>(best)).end > bestRun) bestRun = StatsManager::splitRunKey(std::get<0>(best)).end;
     }
@@ -795,7 +820,7 @@ void DTGraphLayer::refreshGraph(){
 
     if (ViewModeNormal){
         if (RunViewModeFromZero){
-            m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRun(m_DTLayer->m_SharedLevelStats.newBests), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+            m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRunDeathS(m_DTLayer->m_DeathsInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
         }
         else{
             std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;

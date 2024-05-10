@@ -5,6 +5,8 @@
 #include "../layers/RunAllowedCell.hpp"
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/DTLinkLayer.hpp"
+#include "../layers/DTManageLevelsLayer.hpp"
+#include <Geode/ui/GeodeUI.hpp>
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -84,7 +86,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setOpacity(150);
     m_mainLayer->addChild(m_BlackSquare);
 
-    auto editLayoutCancleBtnS = ButtonSprite::create("Cancle");
+    auto editLayoutCancleBtnS = ButtonSprite::create("Cancel");
     editLayoutCancleBtnS->setColor({ 255, 0, 0 });
     editLayoutCancleBtnS->setScale(0.375f);
     auto editLayoutCancleBtn = CCMenuItemSpriteExtra::create(
@@ -254,6 +256,132 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     LinkLevelsButton->setPosition({-208, -108});
     m_buttonMenu->addChild(LinkLevelsButton);
 
+    //manage levels
+    auto manageLevelsBS = ButtonSprite::create("Manage\nLevels");
+    manageLevelsBS->setScale(0.6f);
+    auto manageLevelsButton = CCMenuItemSpriteExtra::create(
+        manageLevelsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::OnManage)
+    );
+    manageLevelsButton->setPosition({207, -60});
+    this->m_buttonMenu->addChild(manageLevelsButton);
+
+    //settings
+    auto settingsBS = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+    settingsBS->setScale(0.75f);
+    auto settingsButton = CCMenuItemSpriteExtra::create(
+        settingsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onSettings)
+    );
+    settingsButton->setPosition({207, -106});
+    this->m_buttonMenu->addChild(settingsButton);
+
+    //modify runs
+
+    CCNode* mRunsCont = CCNode::create();
+    mRunsCont->setPosition({490, 256});
+    m_mainLayer->addChild(mRunsCont);
+
+    modifyRunsMenu = CCMenu::create();
+    modifyRunsMenu->setPosition({0, 0});
+    mRunsCont->addChild(modifyRunsMenu);
+
+    auto modifyRunsTitle = CCLabelBMFont::create("Modify\nRuns", "bigFont.fnt");
+    modifyRunsTitle->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    modifyRunsTitle->setPosition({0, -11});
+    modifyRunsTitle->setScale(0.55f);
+    mRunsCont->addChild(modifyRunsTitle);
+
+    addFZRunInput = InputNode::create(90, "Run%");
+    addFZRunInput->setPosition({-14, -44});
+    addFZRunInput->setScale(0.55f);
+    addFZRunInput->getInput()->setDelegate(this);
+    addFZRunInput->getInput()->setAllowedChars("1234567890");
+    mRunsCont->addChild(addFZRunInput);
+
+    auto addFZRunsBS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
+    addFZRunsBS->setScale(0.8f);
+    auto addFZRunsButton = CCMenuItemSpriteExtra::create(
+        addFZRunsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onAddedFZRun)
+    );
+    addFZRunsButton->setPosition({26, -38});
+    modifyRunsMenu->addChild(addFZRunsButton);
+
+    auto removeFZRunsBS = CCSprite::create("minus_button.png"_spr);
+    removeFZRunsBS->setScale(0.8f);
+    auto removeFZRunsButton = CCMenuItemSpriteExtra::create(
+        removeFZRunsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onRemovedFZRun)
+    );
+    removeFZRunsButton->setPosition({26.5f, -54});
+    modifyRunsMenu->addChild(removeFZRunsButton);
+
+
+    addRunStartInput = InputNode::create(90, "RunS");
+    addRunStartInput->setPosition({-16, -74});
+    addRunStartInput->setScale(0.5f);
+    addRunStartInput->getInput()->setDelegate(this);
+    addRunStartInput->getInput()->setAllowedChars("1234567890");
+    mRunsCont->addChild(addRunStartInput);
+
+    auto runSeparator = CCLabelBMFont::create("-", "bigFont.fnt");
+    runSeparator->setPosition({-16, -84});
+    runSeparator->setScale(0.8f);
+    runSeparator->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    mRunsCont->addChild(runSeparator);
+
+    addRunEndInput = InputNode::create(90, "RunE");
+    addRunEndInput->setPosition({-16, -99});
+    addRunEndInput->setScale(0.5f);
+    addRunEndInput->getInput()->setDelegate(this);
+    addRunEndInput->getInput()->setAllowedChars("1234567890");
+    mRunsCont->addChild(addRunEndInput);
+
+    auto addRunsBS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
+    addRunsBS->setScale(0.8f);
+    auto addRunsButton = CCMenuItemSpriteExtra::create(
+        addRunsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onAddedRun)
+    );
+    addRunsButton->setPosition({26, -75});
+    modifyRunsMenu->addChild(addRunsButton);
+
+    auto removeRunsBS = CCSprite::create("minus_button.png"_spr);
+    removeRunsBS->setScale(0.8f);
+    auto removeRunsButton = CCMenuItemSpriteExtra::create(
+        removeRunsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onRemovedRun)
+    );
+    removeRunsButton->setPosition({26.5f, -95});
+    modifyRunsMenu->addChild(removeRunsButton);
+
+    auto runsAmountlabel = CCLabelBMFont::create("Amount", "bigFont.fnt");
+    runsAmountlabel->setPosition({1, -113});
+    runsAmountlabel->setScale(0.35f);
+    runsAmountlabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    mRunsCont->addChild(runsAmountlabel);
+
+    runsAmountInput = InputNode::create(90, "Amount");
+    runsAmountInput->setPosition({0, -128});
+    runsAmountInput->setScale(0.5f);
+    runsAmountInput->getInput()->setDelegate(this);
+    runsAmountInput->getInput()->setAllowedChars("1234567890");
+    runsAmountInput->setString("1");
+    mRunsCont->addChild(runsAmountInput);
+
     createLayoutBlocks();
     refreshStrings();
     RefreshText(true);
@@ -311,6 +439,55 @@ void DTLayer::textChanged(CCTextInputNode* input){
             input->setString("100");
         }
 
+    }
+
+    if (input == addFZRunInput->getInput()){
+
+        int res = 0;
+        if (input->getString() != "")
+            res = std::stoi(input->getString());
+
+        if (res > 100){
+            res = 100;
+            input->setString("100");
+        }
+
+    }
+
+    if (input == addRunStartInput->getInput()){
+
+        int res = 0;
+        if (input->getString() != "")
+            res = std::stoi(input->getString());
+        
+        if (res > 100){
+            res = 100;
+            input->setString("100");
+        }
+    }
+
+    if (input == addRunEndInput->getInput()){
+
+        int res = 0;
+        if (input->getString() != "")
+            res = std::stoi(input->getString());
+        
+        if (res > 100){
+            res = 100;
+            input->setString("100");
+        }
+    }
+
+    if (input == runsAmountInput->getInput()){
+
+        int res = 0;
+        if (input->getString() != "")
+            res = std::stoi(input->getString());
+
+        if (res > 10){
+            res = 10;
+            input->setString("10");
+        }
     }
 }
 
@@ -399,6 +576,7 @@ void DTLayer::EditLayoutEnabled(bool b){
     this->m_buttonMenu->setEnabled(!b);
     m_SessionSelectMenu->setEnabled(!b);
     m_RunStuffMenu->setEnabled(!b);
+    modifyRunsMenu->setEnabled(!b);
     m_EditLayoutMenu->setVisible(b);
     m_EditLayoutBtn->setVisible(!b);
     m_BlackSquare->setVisible(b);
@@ -653,7 +831,7 @@ std::string DTLayer::modifyString(std::string ToModify){
                 }
                 if (isKeyInIndex(ToModify, i + 1, "lvln}")){
                     ToModify.erase(i, 6);
-                    ToModify.insert(i, m_Level->m_levelName);
+                    ToModify.insert(i, m_SharedLevelStats.levelName);
                 }
                 if (isKeyInIndex(ToModify, i + 1, "att}")){
                     ToModify.erase(i, 5);
@@ -912,6 +1090,27 @@ void DTLayer::addRunAllowed(CCObject*){
             return a < b; // true --> A before B
         });
 
+        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
+        {
+            auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+
+            bool doesExist2 = false;
+            for (int r = 0; r < currStats.RunsToSave.size(); r++)
+            {
+                if (currStats.RunsToSave[r] == startPrecent)
+                    doesExist2 = true;
+            }
+
+            if (!doesExist2){
+                currStats.RunsToSave.push_back(startPrecent);
+
+                std::ranges::sort(currStats.RunsToSave, [](const int a, const int b) {
+                    return a < b; // true --> A before B
+                });
+
+                StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
+            }
+        }
         refreshRunAllowedListView();
         updateRunsAllowed();
     }
@@ -1050,13 +1249,27 @@ void DTLayer::OnToggleAllRuns(CCObject*){
             if (m_MyLevelStats.RunsToSave[0] == -1){
                 m_MyLevelStats.RunsToSave.erase(m_MyLevelStats.RunsToSave.begin());
 
+                for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
+                {
+                    auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+
+                    if (currStats.RunsToSave.size() != 0){
+                        if (currStats.RunsToSave[0] == -1){
+                            currStats.RunsToSave.erase(std::next(currStats.RunsToSave.begin(), 0));
+                        }
+                        StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
+                    }
+                }
+
                 updateRunsAllowed();
+                m_ScrollLayer->moveToTop();
             }
         }
     }
     else{
         m_MyLevelStats.RunsToSave.insert(m_MyLevelStats.RunsToSave.begin(), -1);
         updateRunsAllowed();
+        m_ScrollLayer->moveToTop();
     }
 }
 
@@ -1139,4 +1352,111 @@ void DTLayer::UpdateSharedStats(){
     if (m_SessionSelectionInput)
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
     
+}
+
+void DTLayer::OnManage(CCObject*){
+    auto manageL = DTManageLevelsLayer::create(this);
+    manageL->setZOrder(100);
+    this->addChild(manageL);
+}
+
+void DTLayer::onSettings(CCObject*){
+    geode::openSettingsPopup(Mod::get());
+    this->onClose(nullptr);
+}
+
+void DTLayer::onAddedFZRun(CCObject*){
+    int amount = 1;
+    if (runsAmountInput->getString() != "")
+        amount = std::stoi(runsAmountInput->getString());
+
+    int precent = 0;
+    if (addFZRunInput->getString() != "")
+        precent = std::stoi(addFZRunInput->getString());
+    
+    m_MyLevelStats.deaths[std::to_string(precent)] += amount;
+
+    StatsManager::saveData(m_MyLevelStats, m_Level);
+    UpdateSharedStats();
+    refreshStrings();
+    RefreshText();
+}
+
+void DTLayer::onRemovedFZRun(CCObject*){
+    int amount = 1;
+    if (runsAmountInput->getString() != "")
+        amount = std::stoi(runsAmountInput->getString());
+    
+    int precent = 0;
+    if (addFZRunInput->getString() != "")
+        precent = std::stoi(addFZRunInput->getString());
+    
+    m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
+    if (m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
+        m_MyLevelStats.deaths.erase(std::to_string(precent));
+    }
+
+    StatsManager::saveData(m_MyLevelStats, m_Level);
+    UpdateSharedStats();
+    refreshStrings();
+    RefreshText();
+}
+
+void DTLayer::onAddedRun(CCObject*){
+    int amount = 1;
+    if (runsAmountInput->getString() != "")
+        amount = std::stoi(runsAmountInput->getString());
+    
+    Run r{
+        0,
+        0
+    };
+
+    if (addRunStartInput->getString() != "")
+        r.start = std::stoi(addRunStartInput->getString());
+
+    if (addRunEndInput->getString() != "")
+        r.end = std::stoi(addRunEndInput->getString());
+    
+    if (r.start > r.end) return;
+
+    std::string runKey = fmt::format("{}-{}", r.start, r.end);
+    
+    m_MyLevelStats.runs[runKey] += amount;
+
+    StatsManager::saveData(m_MyLevelStats, m_Level);
+    UpdateSharedStats();
+    refreshStrings();
+    RefreshText();
+}
+
+void DTLayer::onRemovedRun(CCObject*){
+    int amount = 1;
+    if (runsAmountInput->getString() != "")
+        amount = std::stoi(runsAmountInput->getString());
+    
+    Run r{
+        0,
+        0
+    };
+
+    if (addRunStartInput->getString() != "")
+        r.start = std::stoi(addRunStartInput->getString());
+
+    if (addRunEndInput->getString() != "")
+        r.end = std::stoi(addRunEndInput->getString());
+
+    if (r.start > r.end) return;
+
+    std::string runKey = fmt::format("{}-{}", r.start, r.end);
+    
+    m_MyLevelStats.runs[runKey] -= amount;
+    if (m_MyLevelStats.runs[runKey] <= 0){
+        m_MyLevelStats.runs.erase(runKey);
+    }
+
+    StatsManager::saveData(m_MyLevelStats, m_Level);
+    UpdateSharedStats();
+    refreshStrings();
+    RefreshText();
 }

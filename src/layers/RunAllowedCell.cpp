@@ -42,17 +42,37 @@ bool RunAllowedCell::init(int Precent, CCNode* DTLayer){
 }
 
 void RunAllowedCell::DeleteMe(CCObject*){
-    for (int i = 0; i < static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave.size(); i++)
+
+    LevelStats myStats = static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats;
+
+    for (int i = 0; i < myStats.RunsToSave.size(); i++)
     {
-        if (static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave[i] == m_Precent){
-            static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave.erase(std::next(static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave.begin(), i));
+        if (myStats.RunsToSave[i] == m_Precent){
+            myStats.RunsToSave.erase(std::next(myStats.RunsToSave.begin(), i));
             break;
         }
     }
 
-    std::ranges::sort(static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats.RunsToSave, [](const int a, const int b) {
+    std::ranges::sort(myStats.RunsToSave, [](const int a, const int b) {
         return a < b; // true --> A before B
     });
+
+    for (int i = 0; i < myStats.LinkedLevels.size(); i++)
+        {
+        auto currStats = StatsManager::getLevelStats(myStats.LinkedLevels[i]);
+
+        bool doesExist2 = false;
+        for (int r = 0; r < currStats.RunsToSave.size(); r++)
+        {
+            if (currStats.RunsToSave[r] == m_Precent){
+                currStats.RunsToSave.erase(std::next(currStats.RunsToSave.begin(), r));
+                break;
+            }
+        }
+        StatsManager::saveData(currStats, myStats.LinkedLevels[i]);
+    }
+
+    static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats = myStats;
 
     static_cast<DTLayer*>(m_DTLayer)->refreshRunAllowedListView();
     static_cast<DTLayer*>(m_DTLayer)->updateRunsAllowed();

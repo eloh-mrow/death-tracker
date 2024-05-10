@@ -23,11 +23,22 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     refreshLists();
 
-    seartchInput = InputNode::create(225, "Filter");
+    seartchInput = InputNode::create(225, "Search");
     seartchInput->getInput()->setDelegate(this);
     seartchInput->setPosition({winSize.width / 2, 277});
     seartchInput->setScale(0.6f);
     this->addChild(seartchInput);
+
+    auto downloadBS = cocos2d::CCSprite::createWithSpriteFrameName("GJ_downloadBtn_001.png");
+    downloadBS->setScale(.8f);
+    auto downloadButton = CCMenuItemSpriteExtra::create(
+        downloadBS,
+        nullptr,
+        this,
+        menu_selector(DTLinkLayer::onDownload)
+    );
+    downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 - 3.f);
+    m_buttonMenu->addChild(downloadButton);
 
     scheduleUpdate();
 
@@ -87,7 +98,7 @@ void DTLinkLayer::refreshLists(){
             levelNameLower += std::tolower(ch); 
         }
         if (m_AllLevels[i].second.levelName == "-1")
-            levelNameLower = "unknow name";
+            levelNameLower = "unknown name";
 
         if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower)){
             bool isValidForList = true;
@@ -192,6 +203,35 @@ void DTLinkLayer::update(float delta){
         this->addChild(m_LinkedLevelsList);
         m_LinkedLevelsList->release();
     }
+    if (downloadingInfo){
+        if (loadingProgress == 0 && m_LoadLevelsCircle->isVisible()){
+            loadingProgress = 1;
+        }
+        if (loadingProgress == 1 && !m_LoadLevelsCircle->isVisible()){
+            loadingProgress = 2;
+        }
+        else if (loadingProgress == 2){
+            loadingProgress = 0;
+            CCObject* child;
+
+            CCARRAY_FOREACH(m_LoadLevelsBypass->m_list->m_listView->m_tableView->m_cellArray, child){
+                auto level = static_cast<LevelCell*>(child)->m_level;
+                if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(level))){
+                    auto stats = StatsManager::getLevelStats(level);
+
+                    stats.attempts = level->m_attempts;
+                    stats.levelName = level->m_levelName;
+                    stats.difficulty = StatsManager::getDifficulty(level);
+
+                    StatsManager::saveData(stats, level);
+                }
+            }
+
+            refreshIfDownloadDone();
+            m_LoadLevelsBypass->removeMeAndCleanup();
+            m_LoadLevelsBypass = nullptr;
+        }
+    }
 }
 
 void DTLinkLayer::textChanged(CCTextInputNode* input){
@@ -213,4 +253,48 @@ void DTLinkLayer::onClose(CCObject*) {
     this->setKeypadEnabled(false);
     this->setTouchEnabled(false);
     this->removeFromParentAndCleanup(true);
+}
+
+void DTLinkLayer::onDownload(CCObject*){
+    if (downloadingInfo) return;
+
+    std::vector<int> levelIDs;
+
+    for (int i = 0; i < m_AllLevels.size(); i++)
+    {
+        auto splittedLevelKey = StatsManager::splitLevelKey(m_AllLevels[i].first);
+        if (splittedLevelKey.second == "online"){
+            int id = std::stoi(splittedLevelKey.first);
+
+            levelIDs.push_back(id);
+        }
+    }
+
+    auto list = GJLevelList::create();
+	list->m_listName = "t";
+	list->m_levels = levelIDs;
+
+    m_LoadLevelsBypass = LevelListLayer::create(list);
+    this->addChild(m_LoadLevelsBypass);
+
+    CCObject* child;
+
+    CCARRAY_FOREACH(m_LoadLevelsBypass->getChildren(), child){
+        auto loadingC = dynamic_cast<LoadingCircle*>(child);
+        if (!loadingC)
+            static_cast<CCNode*>(child)->setVisible(false);
+        else
+            m_LoadLevelsCircle = loadingC;
+    }
+
+    downloadingInfo = true;
+}
+
+void DTLinkLayer::refreshIfDownloadDone(){
+    if (downloadingInfo){
+        downloadingInfo = false;
+
+        m_AllLevels = StatsManager::getAllLevels();
+        refreshLists();
+    }
 }

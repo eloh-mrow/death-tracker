@@ -74,6 +74,9 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void OnLinkButtonClicked(CCObject*);
         void UpdateSharedStats();
 
+        //manage
+        void OnManage(CCObject*);
+
         //edit layout mode
         CCMenuItemSpriteExtra* m_EditLayoutBtn;
         void onEditLayout(CCObject*);
@@ -107,4 +110,20 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
 
         //graph
         void openGraphMenu(CCObject*);
+
+        //settings
+        void onSettings(CCObject*);
+
+        //modify runs
+        InputNode* addFZRunInput;
+        InputNode* addRunStartInput;
+        InputNode* addRunEndInput;
+        InputNode* runsAmountInput;
+        CCMenu* modifyRunsMenu;
+
+        void onAddedFZRun(CCObject*);
+        void onRemovedFZRun(CCObject*);
+
+        void onAddedRun(CCObject*);
+        void onRemovedRun(CCObject*);
 };
