@@ -6,8 +6,10 @@
 using namespace geode::prelude;
 
 class $modify(myLevelInfoLayer, LevelInfoLayer) {
+    CCMenuItemSpriteExtra* btn = nullptr;
+
     static void onModify(auto& self) {
-        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
+        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", INT64_MIN + 1);
     }
 
     void onLevelInfo(CCObject* sender) {
@@ -19,30 +21,48 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel* p0, bool p1){
         if (!LevelInfoLayer::init(p0, p1)) return false;
 
+        auto otherMenu = getChildByID("other-menu");
+        auto settingsMenu = getChildByID("settings-menu");
+
         auto s = CCSprite::create("dt_skullBtn.png"_spr);
-        s->setScale(0.3f);
-        auto btn = CCMenuItemSpriteExtra::create(
+        s->setScale(0.25f);
+        m_fields->btn = CCMenuItemSpriteExtra::create(
             s,
             nullptr,
             this,
             menu_selector(myLevelInfoLayer::openDTLayer)
         );
-        btn->setPosition({-175, 0});
-        btn->setZOrder(1);
+        m_fields->btn->setZOrder(1);
+        m_fields->btn->setVisible(false);
+        m_fields->btn->setID("death-tracker-menu"_spr);
 
-        this->m_playBtnMenu->addChild(btn);
+        otherMenu->addChild(m_fields->btn);
+        if (otherMenu->getChildByID("favorite-button")->isVisible())
+            m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPositionX(), settingsMenu->getChildByID("settings-button")->getPositionY()});
+        else
+            m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPosition()});
+        otherMenu->updateLayout();
 
-        if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(p0))){
-            auto stats = StatsManager::getLevelStats(p0);
-
-            stats.attempts = p0->m_attempts;
-            stats.levelName = p0->m_levelName;
-            stats.difficulty = StatsManager::getDifficulty(p0);
-
-            StatsManager::saveData(stats, p0);
-        }
+        schedule(schedule_selector(myLevelInfoLayer::checkIfPlayVisible));
 
         return true;
+    }
+
+    void checkIfPlayVisible(float delta){
+        if (this->m_playBtnMenu->isVisible()){
+            m_fields->btn->setVisible(true);
+
+            if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(this->m_level))){
+                auto stats = StatsManager::getLevelStats(this->m_level);
+
+                stats.attempts = this->m_level->m_attempts;
+                stats.levelName = this->m_level->m_levelName;
+                stats.difficulty = StatsManager::getDifficulty(this->m_level);
+
+                StatsManager::saveData(stats, this->m_level);
+            }
+            unschedule(schedule_selector(myLevelInfoLayer::checkIfPlayVisible));
+        }
     }
 
     void openDTLayer(CCObject*){
