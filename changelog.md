@@ -31,7 +31,7 @@
 - added manual run management
 - added layout customization
 - a lot of fixes
-- completions  are now tracked as 100% instead of 0-100 runs
+- completions are now tracked as 100% instead of 0-100 runs
 
 This update has been in the works for the last 1.5 months so I really hope you enjoy it :D
 
