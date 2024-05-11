@@ -58,4 +58,5 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextI
 
     //info
     void onOverallInfo(CCObject*);
+    void onSpecialInfo(CCObject*);
 };

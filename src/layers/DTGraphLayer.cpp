@@ -907,7 +907,7 @@ void DTGraphLayer::RunChosen(int run){
 }
 
 void DTGraphLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "G overall H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "You can change what the graph represents using the buttons under the <cy>\"View Mode\"</c>\nwhen in run mode you choose what run you see using the input field below\n \nYou can click any point on the graph to see its info! the info is displayed on the bottom left.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

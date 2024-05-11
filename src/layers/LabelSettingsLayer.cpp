@@ -32,6 +32,17 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     overallInfoButton->setPosition({111, 118});
     this->m_buttonMenu->addChild(overallInfoButton);
 
+    auto specialInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    specialInfoBS->setScale(0.55f);
+    auto specialInfoButton = CCMenuItemSpriteExtra::create(
+        specialInfoBS,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::onSpecialInfo)
+    );
+    specialInfoButton->setPosition({29, 46});
+    this->m_buttonMenu->addChild(specialInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     m_mainLayer->addChild(alighmentNode);
@@ -292,8 +303,13 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     FontSizeCont->setPosition({229, 134});
     allCont->addChild(FontSizeCont);
 
+    auto FontSLabel = CCLabelBMFont::create("Font Size", "bigFont.fnt");
+    FontSLabel->setPosition({139, -59});
+    FontSLabel->setScale(.45f);
+    FontSizeCont->addChild(FontSLabel);
+
     m_FontSizeInput = InputNode::create(95, "Alpha");
-    m_FontSizeInput->setPosition({138, -60});
+    m_FontSizeInput->setPosition({138, -78});
     m_FontSizeInput->setScale(0.6f);
     m_FontSizeInput->getInput()->setAllowedChars("1234567890.");
     m_FontSizeInput->getInput()->setMaxLabelLength(5);
@@ -303,7 +319,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
     FontSizeCont->addChild(m_FontSizeInput);
 
     m_FontSizeSlider = Slider::create(this, menu_selector(LabelSettingsLayer::OnFontSizeSliderChanged));
-    m_FontSizeSlider->setPosition({-32, -173});
+    m_FontSizeSlider->setPosition({-33, -190});
     m_FontSizeSlider->setScale(0.4f);
     float valFloatFontSize = (static_cast<float>(m_LabelWin->m_MyLayout.fontSize)) / 2;
     m_FontSizeSlider->setValue(valFloatFontSize);
@@ -663,7 +679,30 @@ void LabelSettingsLayer::deleteLabel(CCObject*){
 }
 
 void LabelSettingsLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "LSettings overall H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "<cg>Label Name</c> - change this labels name\n<cy>Text Alighnment</c> - change the alighnment of this label\n<cj>Text</c> - the text displayed by this label\n<cr>Color picker</c> - chnage the texts color\n<cb>Font</c> - change the font of the text\n<ca>Font Size</c> - change the texts size", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
+}
+
+/*
+    keys to check for
+
+    {f0} - runs from 0
+
+    {runs} - runs
+
+    {lvln} - levels name
+    
+    {att} - level attempts (with linked levels attempts)
+
+    {s0} - selected session runs from 0
+    
+    {sruns} - selected session runs
+
+    {nl} - new line
+    */
+void LabelSettingsLayer::onSpecialInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Special Text Keys:", "{f0} - runs from 0\n{runs} - runs\n{lvln} - the levels name\n{att} - level attempts (with linked levels attempts)\n{s0} - selected session runs from 0\n{sruns} - selected session runs\n{nl} - new line", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

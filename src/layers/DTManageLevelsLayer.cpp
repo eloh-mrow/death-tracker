@@ -216,7 +216,7 @@ void DTManageLevelsLayer::SpacialEditList(GJListLayer* list, CCPoint titlePos, f
 }
 
 void DTManageLevelsLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "ManageL overall H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "Click the <cr>trash</c> button to <ca>COMPLETELY</c> delete your progress on any level.\n \nClick the <cg>view</c> button to be sent to that level page.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

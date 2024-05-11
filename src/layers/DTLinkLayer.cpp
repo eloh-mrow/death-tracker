@@ -315,7 +315,7 @@ void DTLinkLayer::refreshIfDownloadDone(){
 }
 
 void DTLinkLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "Link overall H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "On the left you have a list of all levels you have <cy>saved progress</c> on, on the right is the list of levels that are <cg>linked</c> to this one :)\nClick the arrows to move them around and use the search bar if you want.\n \nLinked levels will share stats.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

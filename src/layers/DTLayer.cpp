@@ -1515,25 +1515,25 @@ void DTLayer::onRemovedRun(CCObject*){
 }
 
 void DTLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "overall H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "The window in the middle of the screen will have your <cy>selected layout</c> displayed\n \nYou can change the <co>selected session</c> using the session selector on the top left (the latest session is always the first session)", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }
 
 void DTLayer::onRunsAInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "ra H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "Select which runs to keep track of.\n \nType the start % of the run you wish to track on the input field below and then click the <cg>green button</c> to add it to the list.\nYou can remove any run from this list with the <cr>trash</c> button\n \nYou can also check <cy>\"track any run\"</c> for the mod to track runs from any precentage!", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }
 
 void DTLayer::onModRunsInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "mod run H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "Here you can manually add and remove runs from the save file :D\n \nInput the run you wish to add or remove into the text fields and click the <cg>plus</c> button to add and the <cr>minus</c> button to remove a run\n \nThe <cy>amount</c> below changes how much is added or removed when editing the runs.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }
 
 void DTLayer::onLayoutInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "layout H", "Ok");
+    auto alert = FLAlertLayer::create("Help", "The boxes (labels) here represent the text displayed.\n \nYou drag them around to change their order and <cy>double click</c> any of them for more options.\nClick the <cg>plus</c> button to add a new label.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }
