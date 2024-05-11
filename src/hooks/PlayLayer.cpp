@@ -159,12 +159,12 @@ class $modify(DTPlayLayer, PlayLayer) {
             
     }
 
-    void checkpointActivated(CheckpointGameObject* checkpt) {
-        PlayLayer::checkpointActivated(checkpt);
-        if (m_isPracticeMode) return;
+    CheckpointObject* createCheckpoint() {
+        if (!m_isPracticeMode){
+            m_fields->currentRun.end++;
+        }
 
-        m_fields->currentRun.end++;
-        // log::info("PlayLayer::checkpointActivated() -- {}", m_fields->currentRun.end);
+        return PlayLayer::createCheckpoint();
     }
 
     void resetLevelFromStart() {
