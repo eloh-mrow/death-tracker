@@ -80,7 +80,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     m_EditLayoutMenu = CCMenu::create();
     m_EditLayoutMenu->setVisible(false);
-    m_EditLayoutMenu->setZOrder(10);
+    m_EditLayoutMenu->setZOrder(12);
     m_mainLayer->addChild(m_EditLayoutMenu);
 
     m_BlackSquare = CCSprite::create("square02_001.png");
@@ -114,14 +114,15 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     editLayoutApplyBtn->setPosition({186, 114});
     m_EditLayoutMenu->addChild(editLayoutApplyBtn);
 
-    auto addWindowButtonS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
+    auto addWindowButtonS = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
+    addWindowButtonS->setScale(0.6f);
     auto addWindowButton = CCMenuItemSpriteExtra::create(
         addWindowButtonS,
         nullptr,
         this,
         menu_selector(DTLayer::addBox)
     );
-    addWindowButton->setPosition({205, 96});
+    addWindowButton->setPosition({-157, 114});
     m_EditLayoutMenu->addChild(addWindowButton);
 
     //session selection
@@ -386,8 +387,6 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     runsAmountInput->getInput()->setAllowedChars("1234567890");
     runsAmountInput->setString("1");
     mRunsCont->addChild(runsAmountInput);
-
-    log::info("{}", winSize);
 
     createLayoutBlocks();
     refreshStrings();
@@ -918,12 +917,14 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Dea
     if (deaths.size() == 0) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("No Saved Progress", 0, 0)};
 
     int totalDeaths = 0;
+    int bestRun = 0;
     std::vector<std::tuple<std::string, int>> sortedDeaths{};
 
     // sort the deaths
     for (const auto [percentKey, count] : deaths) {
         sortedDeaths.push_back(std::make_tuple(percentKey, count));
         totalDeaths += count;
+        if (std::stoi(percentKey) > bestRun) bestRun = std::stoi(percentKey);
     }
 
     std::ranges::sort(sortedDeaths, [](const std::tuple<std::string, int> a, const std::tuple<std::string, int> b) {
@@ -938,13 +939,6 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Dea
 		: 0;
 
     std::vector<std::tuple<std::string, int, float>> output{};
-
-    int bestRun = 0;
-
-    for (const auto& best : newBests)
-    {
-        if (best > bestRun) bestRun = best;
-    }
 
     for (const auto [percentKey, count] : sortedDeaths) {
         // calculate pass rate

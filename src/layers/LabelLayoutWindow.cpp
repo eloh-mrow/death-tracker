@@ -191,25 +191,20 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
 
     int lineChosen = 0;
 
-    log::info("pre M Pos{}", pos);
-
     pos.y = abs(pos.y);
 
     for (int i = 0; i < linesAmount; i++)
     {
         if (pos.y >= this->getScaledContentSize().height * i && pos.y < this->getScaledContentSize().height * (i + 1)){
             lineChosen = i;
-            log::info("nFind");
         }
         if (i == linesAmount - 1)
             if (pos.y >= this->getScaledContentSize().height * i){
                 lineChosen = i;
-                log::info("wFind1");
             }
         if (i == 0)
             if (pos.y < this->getScaledContentSize().height * i){
                 lineChosen = i;
-                log::info("wFind2");
             }
     }
 
@@ -230,8 +225,6 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
             }
         }
     }
-
-    log::info("point - {}, ch{}, lA{}, l{} p{}", pos, this->getScaledContentSize().height, linesAmount, lineChosen, positionChosen);
     
     return std::pair<int, int>{lineChosen, positionChosen};
 }

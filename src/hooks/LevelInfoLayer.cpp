@@ -43,6 +43,16 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
             m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPosition()});
         otherMenu->updateLayout();
 
+        if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(p0))){
+                auto stats = StatsManager::getLevelStats(p0);
+
+                stats.attempts = p0->m_attempts;
+                stats.levelName = p0->m_levelName;
+                stats.difficulty = StatsManager::getDifficulty(p0);
+
+                StatsManager::saveData(stats, p0);
+            }
+
         schedule(schedule_selector(myLevelInfoLayer::checkIfPlayVisible));
 
         return true;
@@ -55,8 +65,6 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
             if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(this->m_level))){
                 auto stats = StatsManager::getLevelStats(this->m_level);
 
-                stats.attempts = this->m_level->m_attempts;
-                stats.levelName = this->m_level->m_levelName;
                 stats.difficulty = StatsManager::getDifficulty(this->m_level);
 
                 StatsManager::saveData(stats, this->m_level);

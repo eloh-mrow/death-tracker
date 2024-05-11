@@ -857,7 +857,7 @@ void DTGraphLayer::refreshGraph(){
     }
     else{
         if (RunViewModeFromZero){
-            m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRun(m_DTLayer->m_SharedLevelStats.sessions[m_DTLayer->m_SessionSelected - 1].newBests), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
+            m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRunDeathS(m_DTLayer->selectedSessionInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5);
         }
         else{
             std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
