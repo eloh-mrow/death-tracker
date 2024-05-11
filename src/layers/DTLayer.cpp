@@ -1291,9 +1291,13 @@ void DTLayer::onClose(cocos2d::CCObject*) {
 }
 
 void DTLayer::openGraphMenu(CCObject*){
+    #ifdef GEODE_IS_MACOS
+        geode::Notification::create("Graphs are not yet supported on MacOS.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"));
+    #else
     auto graph = DTGraphLayer::create(this);
     graph->setZOrder(100);
     this->addChild(graph);
+    #endif
 }
 
 void DTLayer::OnToggleAllRuns(CCObject*){
