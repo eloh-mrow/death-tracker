@@ -17,6 +17,17 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     this->setOpacity(0);
 
+    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    overallInfoBS->setScale(0.8f);
+    auto overallInfoButton = CCMenuItemSpriteExtra::create(
+        overallInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTLinkLayer::onOverallInfo)
+    );
+    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    this->m_buttonMenu->addChild(overallInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     m_mainLayer->addChild(alighmentNode);
@@ -41,7 +52,7 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTLinkLayer::onDownload)
     );
-    downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 - 3.f);
+    downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 + 3.f);
     m_buttonMenu->addChild(downloadButton);
 
     scheduleUpdate();
@@ -301,4 +312,10 @@ void DTLinkLayer::refreshIfDownloadDone(){
         m_AllLevels = StatsManager::getAllLevels();
         refreshLists();
     }
+}
+
+void DTLinkLayer::onOverallInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "Link overall H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
 }

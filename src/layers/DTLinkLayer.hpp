@@ -48,4 +48,7 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         LevelListLayer* m_LoadLevelsBypass = nullptr;
         LoadingCircle* m_LoadLevelsCircle = nullptr;
         int loadingProgress;
+
+        //info
+        void onOverallInfo(CCObject*);
 };

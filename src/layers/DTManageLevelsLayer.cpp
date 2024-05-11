@@ -17,6 +17,17 @@ bool DTManageLevelsLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
+    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    overallInfoBS->setScale(0.8f);
+    auto overallInfoButton = CCMenuItemSpriteExtra::create(
+        overallInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTManageLevelsLayer::onOverallInfo)
+    );
+    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    this->m_buttonMenu->addChild(overallInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     m_mainLayer->addChild(alighmentNode);
@@ -29,9 +40,94 @@ bool DTManageLevelsLayer::setup(DTLayer* const& layer) {
     seartchInput->setScale(0.6f);
     alighmentNode->addChild(seartchInput);
 
+    auto downloadBS = cocos2d::CCSprite::createWithSpriteFrameName("GJ_downloadBtn_001.png");
+    downloadBS->setScale(.8f);
+    auto downloadButton = CCMenuItemSpriteExtra::create(
+        downloadBS,
+        nullptr,
+        this,
+        menu_selector(DTManageLevelsLayer::onDownload)
+    );
+    downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 + 3.f);
+    m_buttonMenu->addChild(downloadButton);
+
     refreshLists(false);
 
+    scheduleUpdate();
+
     return true;
+}
+
+void DTManageLevelsLayer::onDownload(CCObject*){
+    if (dInfo) return;
+    dInfo = true;
+
+    std::vector<int> levelIDs;
+
+    for (int i = 0; i < m_AllLevels.size(); i++)
+    {
+        auto splittedLevelKey = StatsManager::splitLevelKey(m_AllLevels[i].first);
+        if (splittedLevelKey.second == "online"){
+            int id = std::stoi(splittedLevelKey.first);
+
+            levelIDs.push_back(id);
+        }
+    }
+
+    auto list = GJLevelList::create();
+	list->m_listName = "";
+	list->m_levels = levelIDs;
+
+    m_LoadLevels = LevelListLayer::create(list);
+    this->addChild(m_LoadLevels);
+
+    CCObject* child;
+
+    CCARRAY_FOREACH(m_LoadLevels->getChildren(), child){
+        auto loadingC = dynamic_cast<LoadingCircle*>(child);
+        if (!loadingC)
+            static_cast<CCNode*>(child)->setVisible(false);
+        else
+            m_LoadLevelsCircle2 = loadingC;
+    }
+}
+
+void DTManageLevelsLayer::update(float delta){
+
+    if (dInfo && m_LoadLevelsCircle2){
+        if (dProg == 0 && m_LoadLevelsCircle2->isVisible()){
+            dProg = 1;
+        }
+        if (dProg == 1 && !m_LoadLevelsCircle2->isVisible()){
+            dProg = 2;
+        }
+        else if (dProg == 2){
+            dProg = 0;
+            CCObject* child;
+
+            CCARRAY_FOREACH(m_LoadLevels->m_list->m_listView->m_tableView->m_cellArray, child){
+                auto level = static_cast<LevelCell*>(child)->m_level;
+                if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(level))){
+                    auto stats = StatsManager::getLevelStats(level);
+
+                    stats.attempts = level->m_attempts;
+                    stats.levelName = level->m_levelName;
+                    stats.difficulty = StatsManager::getDifficulty(level);
+
+                    StatsManager::saveData(stats, level);
+                }
+            }
+
+            dInfo = false;
+
+            m_AllLevels = StatsManager::getAllLevels();
+            refreshLists(true);
+
+            m_LoadLevels->removeMeAndCleanup();
+            m_LoadLevels = nullptr;
+            m_LoadLevelsCircle2 = nullptr;
+        }
+    }
 }
 
 void DTManageLevelsLayer::textChanged(CCTextInputNode* input){
@@ -117,4 +213,10 @@ void DTManageLevelsLayer::SpacialEditList(GJListLayer* list, CCPoint titlePos, f
     title->setScale(titleSize);
     if (titlePos.x != -2000)
         title->setPosition({titlePos.x, titlePos.y});
+}
+
+void DTManageLevelsLayer::onOverallInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "ManageL overall H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
 }

@@ -58,4 +58,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         int m_SelectedRunPrecent;
         GJListLayer* m_RunsList;
         void RunChosen(int run);
+
+        //info
+        void onOverallInfo(CCObject*);
 };

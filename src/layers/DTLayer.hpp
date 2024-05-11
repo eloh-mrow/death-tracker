@@ -127,4 +127,10 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
 
         void onAddedRun(CCObject*);
         void onRemovedRun(CCObject*);
+
+        //info
+        void onOverallInfo(CCObject*);
+        void onRunsAInfo(CCObject*);
+        void onModRunsInfo(CCObject*);
+        void onLayoutInfo(CCObject*);
 };

@@ -55,4 +55,7 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextI
     InputNode* m_FontSizeInput;
     Slider* m_FontSizeSlider;
     void OnFontSizeSliderChanged(CCObject* object);
+
+    //info
+    void onOverallInfo(CCObject*);
 };

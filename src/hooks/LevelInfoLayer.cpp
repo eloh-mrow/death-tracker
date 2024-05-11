@@ -9,7 +9,7 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
     CCMenuItemSpriteExtra* btn = nullptr;
 
     static void onModify(auto& self) {
-        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", INT64_MIN + 1);
+        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
     }
 
     void onLevelInfo(CCObject* sender) {

@@ -38,6 +38,17 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     this->setZOrder(100);
     this->m_buttonMenu->setZOrder(1);
 
+    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    overallInfoBS->setScale(0.8f);
+    auto overallInfoButton = CCMenuItemSpriteExtra::create(
+        overallInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onOverallInfo)
+    );
+    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    this->m_buttonMenu->addChild(overallInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     alighmentNode->setZOrder(2);
@@ -125,6 +136,18 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     addWindowButton->setPosition({-157, 114});
     m_EditLayoutMenu->addChild(addWindowButton);
 
+    auto layoutInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    layoutInfoBS->setScale(0.8f);
+    auto layoutInfoButton = CCMenuItemSpriteExtra::create(
+        layoutInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onLayoutInfo)
+    );
+    layoutInfoButton->setPosition({159, 118});
+    m_EditLayoutMenu->addChild(layoutInfoButton);
+
+
     //session selection
 
     auto SessionSelectCont = CCNode::create();
@@ -203,6 +226,17 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     AddRunAllowedButton->setPosition({-180, 61});
     m_RunStuffMenu->addChild(AddRunAllowedButton);
 
+    auto RunAllowedInfoButtonS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    RunAllowedInfoButtonS->setScale(0.5f);
+    auto RunAllowedInfoButton = CCMenuItemSpriteExtra::create(
+        RunAllowedInfoButtonS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onRunsAInfo)
+    );
+    RunAllowedInfoButton->setPosition({-180, 76});
+    m_RunStuffMenu->addChild(RunAllowedInfoButton);
+
     auto checkOn = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
     auto checkOff = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
     allRunsToggle = CCMenuItemToggler::create(
@@ -239,15 +273,15 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     //graph
 
-    auto GraphButtonS = ButtonSprite::create("Graph", "bigFont.fnt", "GJ_button_01.png");
-    GraphButtonS->setScale(0.3f);
+    auto GraphButtonS = CCSprite::create("graph_button.png"_spr);
+    GraphButtonS->setScale(0.75f);
     auto GraphButton = CCMenuItemSpriteExtra::create(
         GraphButtonS,
         nullptr,
         this,
         menu_selector(DTLayer::openGraphMenu)
     );
-    GraphButton->setPosition({-207, -60});
+    GraphButton->setPosition({-207, -69});
     m_buttonMenu->addChild(GraphButton);
 
     //linking
@@ -295,6 +329,17 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     modifyRunsMenu = CCMenu::create();
     modifyRunsMenu->setPosition({0, 0});
     mRunsCont->addChild(modifyRunsMenu);
+
+    auto addRunsInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    addRunsInfoBS->setScale(0.65f);
+    auto addRunsInfoButton = CCMenuItemSpriteExtra::create(
+        addRunsInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onModRunsInfo)
+    );
+    addRunsInfoButton->setPosition({32, -21});
+    modifyRunsMenu->addChild(addRunsInfoButton);
 
     auto modifyRunsTitle = CCLabelBMFont::create("Modify\nRuns", "bigFont.fnt");
     modifyRunsTitle->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -600,6 +645,7 @@ void DTLayer::EditLayoutEnabled(bool b){
         m_TextBG->setOpacity(200);
     }
     else{
+        RefreshText(true);
         m_TextBG->setOpacity(100);
     }
 }
@@ -1181,13 +1227,13 @@ void DTLayer::refreshRunAllowedListView(){
 }
 
 void DTLayer::deleteUnused(CCObject*){
-    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Delete", "Cancle");
+    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Cancel", "Delete");
     m_RunDeleteAlert->setZOrder(101);
     this->addChild(m_RunDeleteAlert);
 }
 
 void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
-    if (m_RunDeleteAlert == layer && !selected){
+    if (m_RunDeleteAlert == layer && selected){
         for (auto it = m_MyLevelStats.runs.cbegin(); it != m_MyLevelStats.runs.cend();)
         {
             bool erase = true;
@@ -1370,7 +1416,6 @@ void DTLayer::OnManage(CCObject*){
 
 void DTLayer::onSettings(CCObject*){
     geode::openSettingsPopup(Mod::get());
-    this->onClose(nullptr);
 }
 
 void DTLayer::onAddedFZRun(CCObject*){
@@ -1467,4 +1512,28 @@ void DTLayer::onRemovedRun(CCObject*){
     UpdateSharedStats();
     refreshStrings();
     RefreshText();
+}
+
+void DTLayer::onOverallInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "overall H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
+}
+
+void DTLayer::onRunsAInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "ra H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
+}
+
+void DTLayer::onModRunsInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "mod run H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
+}
+
+void DTLayer::onLayoutInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "layout H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
 }

@@ -17,6 +17,17 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     this->setOpacity(0);
 
+    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    overallInfoBS->setScale(0.8f);
+    auto overallInfoButton = CCMenuItemSpriteExtra::create(
+        overallInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTGraphLayer::onOverallInfo)
+    );
+    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    this->m_buttonMenu->addChild(overallInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     m_mainLayer->addChild(alighmentNode);
@@ -309,6 +320,8 @@ void DTGraphLayer::textInputClosed(CCTextInputNode* input){
 CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery){
     if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
 
+    std::vector<std::tuple<std::string, int, float>> origiDS = deathsString;
+
     auto toReturnNode = CCNode::create();
 
     auto LabelsNode = CCNode::create();
@@ -425,7 +438,9 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     for (int i = 0; i < lines.size(); i++)
     {
         if (i != 0){
-            line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+            if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
+                return CreateGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
+            }
         }
     }
     clippingNode->addChild(line);
@@ -495,8 +510,12 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
         //add grid
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
-            gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+            if (
+                !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
+                !gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor))
+            ){
+                return CreateGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
+            }
         }
     }
     
@@ -508,6 +527,8 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
 
     auto toReturnNode = CCNode::create();
+
+    std::vector<std::tuple<std::string, int, float>> origiDS = deathsString;
 
     auto LabelsNode = CCNode::create();
     toReturnNode->addChild(LabelsNode);
@@ -616,7 +637,9 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     for (int i = 0; i < lines.size(); i++)
     {
         if (i != 0){
-            line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+            if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
+                return CreateRunGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
+            }
         }
     }
     clippingNode->addChild(line);
@@ -685,8 +708,12 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
         //grid
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
-            gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+            if (
+                !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
+                !gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor))
+            ){
+                return CreateRunGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
+            }
         }
     }
     
@@ -877,4 +904,10 @@ void DTGraphLayer::RunChosen(int run){
     m_SelectedRunPrecent = run;
     if (!RunViewModeFromZero)
         refreshGraph();
+}
+
+void DTGraphLayer::onOverallInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "G overall H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
 }

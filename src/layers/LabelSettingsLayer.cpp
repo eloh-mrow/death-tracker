@@ -21,6 +21,17 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
 
     this->setTitle("Label Settings");
 
+    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    overallInfoBS->setScale(0.8f);
+    auto overallInfoButton = CCMenuItemSpriteExtra::create(
+        overallInfoBS,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::onOverallInfo)
+    );
+    overallInfoButton->setPosition({111, 118});
+    this->m_buttonMenu->addChild(overallInfoButton);
+
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     m_mainLayer->addChild(alighmentNode);
@@ -649,4 +660,10 @@ void LabelSettingsLayer::deleteLabel(CCObject*){
     m_LabelWin->m_DTLayer->changeScrollSizeByBoxes();
 
     keyBackClicked();
+}
+
+void LabelSettingsLayer::onOverallInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "LSettings overall H", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
 }
