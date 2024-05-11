@@ -5,7 +5,6 @@
 - <cg>added Android support</c>
 - <cg>code refactor</c>
 - <cg>added scrolling</c>
-- <cg>added macOS support</c>
 - <cg>added run tracking</c>
 - <cg>added multi-session tracking</c>
 - <cg>complete UI overhaul</c>
@@ -14,6 +13,7 @@
 
 <---------- IN PROGRESS ---------->
 
+- <cy>added macOS support</c>
 - <cy>per-level and global customization settings</c>
 
 <---------- TO-DO ---------->
