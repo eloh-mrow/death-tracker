@@ -238,7 +238,11 @@ Run StatsManager::splitRunKey(std::string runKey) {
     auto start = std::stof(runKeySplit[0]);
     auto end = std::stof(runKeySplit[1]);
 
-    return Run(start, end);
+    Run r;
+    r.start = start;
+    r.end = end;
+
+    return r;
 }
 
 Session* StatsManager::getSession() {
