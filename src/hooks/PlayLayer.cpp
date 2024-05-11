@@ -113,7 +113,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.end = this->getCurrentPercentInt();
+            m_fields->currentRun.end = this->getCurrentPercent();
 
         // log::info("PlayLayer::destroyPlayer()\ncurrentRun.start = {}\ncurrentRun.end = {}\nplatformer = {}",
         //     m_fields->currentRun.start,
