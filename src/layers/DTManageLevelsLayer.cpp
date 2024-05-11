@@ -80,7 +80,10 @@ void DTManageLevelsLayer::onDownload(CCObject*){
 	list->m_listName = "";
 	list->m_levels = levelIDs;
 
-    m_LoadLevels = LevelListLayer::create(list);
+    #ifdef GEODE_IS_MACOS
+    #else
+        m_LoadLevels = LevelListLayer::create(list);
+    #endif
     this->addChild(m_LoadLevels);
 
     CCObject* child;
