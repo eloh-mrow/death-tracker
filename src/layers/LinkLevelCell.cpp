@@ -204,21 +204,9 @@ void LinkLevelCell::MoveMe(CCObject*){
 }
 
 void LinkLevelCell::DeleteMe(CCObject*){
-    if (m_DTManageLevelsLayer->dInfo) return;
-
-    for (int i = 0; i < m_DTManageLevelsLayer->m_AllLevels.size(); i++)
-    {
-        if (m_DTManageLevelsLayer->m_AllLevels[i].first == m_LevelKey){
-            m_DTManageLevelsLayer->m_AllLevels.erase(std::next(m_DTManageLevelsLayer->m_AllLevels.begin(), i));
-            break;
-        }
-    }
-    
-    ghc::filesystem::path filep = Mod::get()->getSaveDir() / "levels" / (m_LevelKey + ".json");
-
-    ghc::filesystem::remove(filep);
-
-    m_DTManageLevelsLayer->refreshLists(true);
+    DeleteWarningAlert = FLAlertLayer::create(this, "Warning!", fmt::format("Doing this will delete all progress saved on <cy>{}</c>\n \nAre you sure you want to delete it?", m_Stats.levelName), "No", "Yes");
+    DeleteWarningAlert->setZOrder(105);
+    m_DTManageLevelsLayer->addChild(DeleteWarningAlert);
 }
 
 void LinkLevelCell::ViewMe(CCObject*){
@@ -247,4 +235,25 @@ void LinkLevelCell::ViewMe(CCObject*){
 
     downloadingInfo = true;
     m_DTManageLevelsLayer->dInfo = true;
+}
+
+void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){
+    if (DeleteWarningAlert == alert && selected){
+        if (m_DTManageLevelsLayer->dInfo) return;
+
+        for (int i = 0; i < m_DTManageLevelsLayer->m_AllLevels.size(); i++)
+        {
+            if (m_DTManageLevelsLayer->m_AllLevels[i].first == m_LevelKey){
+                m_DTManageLevelsLayer->m_AllLevels.erase(std::next(m_DTManageLevelsLayer->m_AllLevels.begin(), i));
+                break;
+            }
+        }
+        
+        ghc::filesystem::path filep = Mod::get()->getSaveDir() / "levels" / (m_LevelKey + ".json");
+
+        ghc::filesystem::remove(filep);
+
+        m_DTManageLevelsLayer->refreshLists(true);
+    }
+    
 }

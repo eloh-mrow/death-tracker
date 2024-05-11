@@ -8,7 +8,7 @@
 using namespace cocos2d;
 using namespace geode;
 
-class LinkLevelCell : public CCNode {
+class LinkLevelCell : public CCNode, public FLAlertLayerProtocol {
 protected:
     bool init(CCNode* l, std::string levelKey, LevelStats stats, bool linked);
 
@@ -31,4 +31,7 @@ public:
     LevelListLayer* m_LoadLevelsBypass = nullptr;
     LoadingCircle* m_LoadLevelsCircle = nullptr;
     int loadingProgress;
+
+    void FLAlert_Clicked(FLAlertLayer* alert, bool selected);
+    FLAlertLayer* DeleteWarningAlert;
 };
