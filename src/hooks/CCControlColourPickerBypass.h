@@ -4,5 +4,5 @@
 
 class CCControlColourPickerBypass : public CCControlColourPicker {
     public:
-        ccColor3B getPickedColor() { return m_rgb;} 
+        ccColor3B getPickedColor() { return m_rgb;}
 };

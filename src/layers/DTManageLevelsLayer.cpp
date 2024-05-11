@@ -1,5 +1,6 @@
 #include "../layers/DTManageLevelsLayer.hpp"
 #include "../layers/LinkLevelCell.hpp"
+#include "../hooks/dfdsgfsd.h"
 
 DTManageLevelsLayer* DTManageLevelsLayer::create(DTLayer* const& layer) {
     auto ret = new DTManageLevelsLayer();
@@ -78,7 +79,7 @@ void DTManageLevelsLayer::onDownload(CCObject*){
 	list->m_listName = "";
 	list->m_levels = levelIDs;
 
-    m_LoadLevels = LevelListLayer::create(list);
+    m_LoadLevels = dfdsgfsd::create(list);
     this->addChild(m_LoadLevels);
 
     CCObject* child;

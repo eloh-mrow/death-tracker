@@ -1,5 +1,6 @@
 #include "../layers/DTLinkLayer.hpp"
 #include "../layers/LinkLevelCell.hpp"
+#include "../hooks/dfdsgfsd.h"
 
 DTLinkLayer* DTLinkLayer::create(DTLayer* const& layer) {
     auto ret = new DTLinkLayer();
@@ -289,7 +290,7 @@ void DTLinkLayer::onDownload(CCObject*){
 	list->m_listName = "t";
 	list->m_levels = levelIDs;
 
-    //m_LoadLevelsBypass = LevelListLayer::create(list);
+    m_LoadLevelsBypass = dfdsgfsd::create(list);
     this->addChild(m_LoadLevelsBypass);
 
     CCObject* child;

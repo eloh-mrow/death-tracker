@@ -1,4 +1,5 @@
 #include "../layers/LinkLevelCell.hpp"
+#include "../hooks/dfdsgfsd.h"
 
 LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked) {
     auto ret = new LinkLevelCell();
@@ -220,7 +221,7 @@ void LinkLevelCell::ViewMe(CCObject*){
 	list->m_listName = "";
 	list->m_levels = ids;
 
-    m_LoadLevelsBypass = LevelListLayer::create(list);
+    m_LoadLevelsBypass = dfdsgfsd::create(list);
     m_DTManageLevelsLayer->addChild(m_LoadLevelsBypass);
 
     CCObject* child;
