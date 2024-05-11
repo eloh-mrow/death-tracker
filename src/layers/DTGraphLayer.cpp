@@ -59,7 +59,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     PointInfoLabel = SimpleTextArea::create("Precent\n \nPassrate:\npassrate", "bigFont.fnt");
     PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    PointInfoLabel->setPosition({69, 75});
+    PointInfoLabel->setPosition({-215, -83});
     PointInfoLabel->setZOrder(1);
     PointInfoLabel->setVisible(false);
     PointInfoLabel->setScale(0.35f);

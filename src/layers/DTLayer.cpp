@@ -387,6 +387,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     runsAmountInput->setString("1");
     mRunsCont->addChild(runsAmountInput);
 
+    log::info("{}", winSize);
+
     createLayoutBlocks();
     refreshStrings();
     RefreshText(true);
@@ -563,23 +565,25 @@ void DTLayer::onEditLayoutApply(CCObject*){
 
 bool DTLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = true;
-    ClickPos = pTouch;
+    if (pTouch->getLocation() != ccp(0, CCDirector::sharedDirector()->getWinSize().height))
+        ClickPos = pTouch;
     return true;
 }
 
 void DTLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent){
     //m_IsClicking = false;
-    ClickPos = pTouch;
+    if (pTouch->getLocation() != ccp(0, CCDirector::sharedDirector()->getWinSize().height))
+        ClickPos = pTouch;
 }
 
 void DTLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = false;
-    ClickPos = pTouch;
+    //ClickPos = pTouch;
 }
 
 void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     m_IsClicking = false;
-    ClickPos = pTouch;
+    //ClickPos = pTouch;
 }
 
 void DTLayer::EditLayoutEnabled(bool b){

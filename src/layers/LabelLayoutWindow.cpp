@@ -38,8 +38,14 @@ bool LabelLayoutWindow::init(LabelLayout MyLayout, DTLayer* DTLayer){
 
 CCPoint LabelLayoutWindow::mousePosToNode(CCNode* node){
     if (!m_DTLayer->ClickPos) return {0, 0};
-    CCPoint mousePos = node->getParent()->convertTouchToNodeSpace(m_DTLayer->ClickPos);
 
+    CCPoint mousePos;
+
+    if (m_DTLayer->ClickPos->getLocation() != ccp(0, CCDirector::sharedDirector()->getWinSize().height))
+        mousePos = node->getParent()->convertTouchToNodeSpace(m_DTLayer->ClickPos);
+    else
+        mousePos = node->getPosition();
+    
     // bool HasreachedEndOfParentCheck = false;
 
     // CCNode* LastParent = node->getParent();
@@ -105,7 +111,7 @@ void LabelLayoutWindow::myUpdate(float delta){
             if (m_FollowMouse){
                 m_DTLayer->m_IsMovingAWindow = false;
                 m_FollowMouse = false;
-                auto positioning = getLineByPos(this->getPosition() + s->getScaledContentSize() / 2);
+                auto positioning = getLineByPos(mousePosToNode(this));
                 this->setZOrder(0);
                 if (positioning.first != -1){
                     m_MyLayout.line = positioning.first;
@@ -185,20 +191,25 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
 
     int lineChosen = 0;
 
+    log::info("pre M Pos{}", pos);
+
     pos.y = abs(pos.y);
 
     for (int i = 0; i < linesAmount; i++)
     {
         if (pos.y >= this->getScaledContentSize().height * i && pos.y < this->getScaledContentSize().height * (i + 1)){
             lineChosen = i;
+            log::info("nFind");
         }
         if (i == linesAmount - 1)
             if (pos.y >= this->getScaledContentSize().height * i){
                 lineChosen = i;
+                log::info("wFind1");
             }
         if (i == 0)
             if (pos.y < this->getScaledContentSize().height * i){
                 lineChosen = i;
+                log::info("wFind2");
             }
     }
 
@@ -219,6 +230,8 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
             }
         }
     }
+
+    log::info("point - {}, ch{}, lA{}, l{} p{}", pos, this->getScaledContentSize().height, linesAmount, lineChosen, positionChosen);
     
     return std::pair<int, int>{lineChosen, positionChosen};
 }
