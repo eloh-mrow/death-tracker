@@ -410,7 +410,7 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
         auto GP = GraphPoint::create(fmt::format("{}%", lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
         GP->setDelegate(this);
         GP->setPosition(lines[i]);
-        GP->setScale(0.05f);
+        GP->setScale(0.06f);
         MenuForGP->addChild(GP);
     }
 
@@ -422,7 +422,12 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
     //create graph
     auto line = CCDrawNode::create();
-    line->drawPolygon(&lines[0], lines.size(), ccc4FFromccc4B({ 0, 0, 0, 0}), 1, ccc4FFromccc3B(color));
+    for (int i = 0; i < lines.size(); i++)
+    {
+        if (i != 0){
+            line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+        }
+    }
     clippingNode->addChild(line);
 
     //create measuring labels
@@ -622,7 +627,12 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     lines.push_back(ccp(lines[0].x, -100));
 
     auto line = CCDrawNode::create();
-    line->drawPolygon(&lines[0], lines.size(), ccc4FFromccc4B({ 0, 0, 0, 0}), 1, ccc4FFromccc3B(color));
+    for (int i = 0; i < lines.size(); i++)
+    {
+        if (i != 0){
+            line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+        }
+    }
     clippingNode->addChild(line);
 
     auto tempT = CCLabelBMFont::create("100", "chatFont.fnt");
