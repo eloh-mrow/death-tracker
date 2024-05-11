@@ -1,5 +1,4 @@
 #include "../layers/LinkLevelCell.hpp"
-#include "../hooks/dfdsgfsd.h"
 
 LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked) {
     auto ret = new LinkLevelCell();
@@ -213,6 +212,21 @@ void LinkLevelCell::DeleteMe(CCObject*){
 void LinkLevelCell::ViewMe(CCObject*){
     if (m_DTManageLevelsLayer->dInfo) return;
 
+    #ifdef GEODE_IS_MACOS
+        GJGameLevel* levelInfo = GJGameLevel::create();
+
+        levelInfo->m_levelID = std::stoi(StatsManager::splitLevelKey(m_LevelKey).first);
+        levelInfo->m_levelName = m_Stats.levelName;
+
+        auto layer = LevelInfoLayer::create(levelInfo, false);
+        auto scene = CCScene::create();
+
+        scene->addChild(layer);
+        auto transition = CCTransitionFade::create(0.5f, scene);
+
+        CCDirector::sharedDirector()->pushScene(transition);
+    #else
+
     std::vector<int> ids{
         std::stoi(StatsManager::splitLevelKey(m_LevelKey).first)
     };
@@ -221,7 +235,7 @@ void LinkLevelCell::ViewMe(CCObject*){
 	list->m_listName = "";
 	list->m_levels = ids;
 
-    m_LoadLevelsBypass = dfdsgfsd::create(list);
+    m_LoadLevelsBypass = LevelListLayer::create(list);
     m_DTManageLevelsLayer->addChild(m_LoadLevelsBypass);
 
     CCObject* child;
@@ -236,6 +250,8 @@ void LinkLevelCell::ViewMe(CCObject*){
 
     downloadingInfo = true;
     m_DTManageLevelsLayer->dInfo = true;
+
+    #endif
 }
 
 void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){

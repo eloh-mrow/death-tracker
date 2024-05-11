@@ -1,6 +1,5 @@
 #include "../layers/DTManageLevelsLayer.hpp"
 #include "../layers/LinkLevelCell.hpp"
-#include "../hooks/dfdsgfsd.h"
 
 DTManageLevelsLayer* DTManageLevelsLayer::create(DTLayer* const& layer) {
     auto ret = new DTManageLevelsLayer();
@@ -41,17 +40,19 @@ bool DTManageLevelsLayer::setup(DTLayer* const& layer) {
     seartchInput->setScale(0.6f);
     alighmentNode->addChild(seartchInput);
 
-    auto downloadBS = cocos2d::CCSprite::createWithSpriteFrameName("GJ_downloadBtn_001.png");
-    downloadBS->setScale(.8f);
-    auto downloadButton = CCMenuItemSpriteExtra::create(
-        downloadBS,
-        nullptr,
-        this,
-        menu_selector(DTManageLevelsLayer::onDownload)
-    );
-    downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 + 3.f);
-    m_buttonMenu->addChild(downloadButton);
-
+    #ifdef GEODE_IS_MACOS
+    #else
+        auto downloadBS = cocos2d::CCSprite::createWithSpriteFrameName("GJ_downloadBtn_001.png");
+        downloadBS->setScale(.8f);
+        auto downloadButton = CCMenuItemSpriteExtra::create(
+            downloadBS,
+            nullptr,
+            this,
+            menu_selector(DTManageLevelsLayer::onDownload)
+        );
+        downloadButton->setPosition(-m_size.width / 2 + 3.f, -m_size.height / 2 + 3.f);
+        m_buttonMenu->addChild(downloadButton);
+    #endif
     refreshLists(false);
 
     scheduleUpdate();
@@ -79,7 +80,7 @@ void DTManageLevelsLayer::onDownload(CCObject*){
 	list->m_listName = "";
 	list->m_levels = levelIDs;
 
-    m_LoadLevels = dfdsgfsd::create(list);
+    m_LoadLevels = LevelListLayer::create(list);
     this->addChild(m_LoadLevels);
 
     CCObject* child;
