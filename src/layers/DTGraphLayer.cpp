@@ -439,7 +439,7 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     {
         if (i != 0){
             #ifdef GEODE_IS_MACOS
-                line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+                //line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
             #else
                 if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
                     return CreateGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
@@ -515,8 +515,8 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
             #ifdef GEODE_IS_MACOS
-                gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
-                gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+                //gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+                //gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
             #else
             if (
                 !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
@@ -647,7 +647,7 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     {
         if (i != 0){
             #ifdef GEODE_IS_MACOS
-                line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
+                //line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color));
             #else
                 if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
                     return CreateRunGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery);
@@ -722,8 +722,8 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
             #ifdef GEODE_IS_MACOS
-                gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
-                gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+                //gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+                //gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
             #else
                 if (
                     !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
