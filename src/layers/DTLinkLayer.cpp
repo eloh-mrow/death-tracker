@@ -289,7 +289,7 @@ void DTLinkLayer::onDownload(CCObject*){
 	list->m_listName = "t";
 	list->m_levels = levelIDs;
 
-    m_LoadLevelsBypass = LevelListLayer::create(list);
+    //m_LoadLevelsBypass = LevelListLayer::create(list);
     this->addChild(m_LoadLevelsBypass);
 
     CCObject* child;
