@@ -31,7 +31,7 @@ class $modify(DTPlayLayer, PlayLayer) {
     /* hooks
     ========== */
     static void onModify(auto& self) {
-        auto _ = self.setHookPriority("PlayLayer::levelComplete", -9999);
+        auto _ = self.setHookPriority("PlayLayer::levelComplete", INT64_MIN + 1);
     }
 
     bool init(GJGameLevel* level, bool p1, bool p2) {

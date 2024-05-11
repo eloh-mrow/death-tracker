@@ -495,22 +495,8 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
         //add grid
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            CCPoint gridLineH[4]{
-                ccp(0, i * Scaling.y),
-                ccp(0, i * Scaling.y),
-                ccp(100 * Scaling.x, i * Scaling.y),
-                ccp(100 * Scaling.x, i * Scaling.y)
-            };
-
-            CCPoint gridLineS[4]{
-                ccp(i * Scaling.x, 0),
-                ccp(i * Scaling.x, 0),
-                ccp(i * Scaling.x, 100 * Scaling.y),
-                ccp(i * Scaling.x, 100 * Scaling.y)
-            };
-
-            gridNode->drawPolygon(gridLineH, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
-            gridNode->drawPolygon(gridLineS, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
+            gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+            gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
         }
     }
     
@@ -699,22 +685,8 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
         //grid
 
         if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            CCPoint gridLineH[4]{
-                ccp(0, i * Scaling.y),
-                ccp(0, i * Scaling.y),
-                ccp(100 * Scaling.x, i * Scaling.y),
-                ccp(100 * Scaling.x, i * Scaling.y)
-            };
-
-            CCPoint gridLineS[4]{
-                ccp(i * Scaling.x, 0),
-                ccp(i * Scaling.x, 0),
-                ccp(i * Scaling.x, 100 * Scaling.y),
-                ccp(i * Scaling.x, 100 * Scaling.y)
-            };
-
-            gridNode->drawPolygon(gridLineH, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
-            gridNode->drawPolygon(gridLineS, 4, ccc4FFromccc4B(gridColor), 0.2f, ccc4FFromccc4B(gridColor));
+            gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
+            gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor));
         }
     }
     
