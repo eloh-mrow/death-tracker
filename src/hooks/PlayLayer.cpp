@@ -96,7 +96,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         m_fields->hasRespawned = true;
 
         if (!m_level->isPlatformer())
-            m_fields->currentRun.start = this->getCurrentPercentInt();
+            m_fields->currentRun.start = static_cast<int>(this->getCurrentPercent());
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* p1) {
