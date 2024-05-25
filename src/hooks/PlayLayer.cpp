@@ -24,6 +24,8 @@ class $modify(DTPlayLayer, PlayLayer) {
         //     m_fields->isSessionExpired
         // );
 
+        if (!session) return;
+
         if (session == m_fields->prevSession && m_fields->isSessionExpired) return;
         StatsManager::updateSessionLastPlayed(true);
     }
@@ -40,11 +42,12 @@ class $modify(DTPlayLayer, PlayLayer) {
         // log::info("PlayLayer::init()");
 
         StatsManager::loadLevelStats(level);
+
         auto session = StatsManager::getSession();
         auto levelKey = StatsManager::getLevelKey(level);
         auto sessionLength = Settings::getMaxSessionLength();
 
-        m_fields->prevSession = session;
+        if (!session) return true;
 
         // schedule create a new session
         // based on the session length setting
@@ -89,6 +92,13 @@ class $modify(DTPlayLayer, PlayLayer) {
         return true;
     }
 
+    void checkpointActivated(CheckpointGameObject* checkpt) {
+        PlayLayer::checkpointActivated(checkpt);
+        if (checkpt->getSaveString(this) == "") return;
+
+        m_fields->currentRun.end++;
+    }
+
     void resetLevel() {
         PlayLayer::resetLevel();
         // log::info("PlayLayer::resetLevel()");
@@ -97,6 +107,8 @@ class $modify(DTPlayLayer, PlayLayer) {
 
         if (!m_level->isPlatformer())
             m_fields->currentRun.start = static_cast<int>(this->getCurrentPercent());
+        else
+            m_fields->currentRun.start = m_fields->currentRun.end;
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* p1) {
@@ -121,13 +133,21 @@ class $modify(DTPlayLayer, PlayLayer) {
         //     m_level->isPlatformer()
         // );
 
+        if (m_fields->currentRun.start < 0)
+            return;
+
         // log deaths from 0 in normal mode
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
             StatsManager::logDeath(m_fields->currentRun.end);
+        else if (!m_isPracticeMode && m_level->isPlatformer())
+            StatsManager::logDeath(m_fields->currentRun.end);
+
 
         // anything else is a run
         // platformer runs only from 0
-        else if (!m_level->isPlatformer() || m_fields->currentRun.start == 0)
+        else if (m_level->isPlatformer() && m_isPracticeMode)
+            StatsManager::logRun(m_fields->currentRun);
+        else if (m_fields->currentRun.start == 0)
             StatsManager::logRun(m_fields->currentRun);
     }
 
@@ -150,12 +170,16 @@ class $modify(DTPlayLayer, PlayLayer) {
         //     m_level->isPlatformer()
         // );
 
-        if (!m_level->isPlatformer()){
-            if (m_fields->currentRun.start == 0)
-                StatsManager::logDeath(m_fields->currentRun.end);
-            else
-                StatsManager::logRun(m_fields->currentRun);
-        }
+        if (m_fields->currentRun.start < 0)
+            return;
+
+        if (m_level->isPlatformer())
+            m_fields->currentRun.end++;
+        
+        if (m_fields->currentRun.start == 0)
+            StatsManager::logDeath(m_fields->currentRun.end);
+        else
+            StatsManager::logRun(m_fields->currentRun);
             
     }
 

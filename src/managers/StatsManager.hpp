@@ -157,6 +157,8 @@ public:
     static void saveData(LevelStats stats, std::string levelKey);
     static std::vector<std::pair<std::string, LevelStats>> getAllLevels();
     static std::pair<std::string, std::string> splitLevelKey(std::string levelKey);
+    static void saveBackup(LevelStats stats, GJGameLevel* level);
+    static LevelStats getBackupStats(GJGameLevel* level);
     /*
     -1 = auto, 0 = NA, 1 = Easy, 2 = Normal
     3 = Hard, 4 = Harder, 5 = Insane, 6 = Hard Demon

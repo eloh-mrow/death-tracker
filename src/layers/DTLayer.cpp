@@ -281,7 +281,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         this,
         menu_selector(DTLayer::openGraphMenu)
     );
-    GraphButton->setPosition({-207, -69});
+    GraphButton->setPosition({-224, -66});
     m_buttonMenu->addChild(GraphButton);
 
     //linking
@@ -293,7 +293,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         this,
         menu_selector(DTLayer::OnLinkButtonClicked)
     );
-    LinkLevelsButton->setPosition({-208, -108});
+    LinkLevelsButton->setPosition({-182, -65});
     m_buttonMenu->addChild(LinkLevelsButton);
 
     //manage levels
@@ -433,6 +433,29 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     runsAmountInput->setString("1");
     mRunsCont->addChild(runsAmountInput);
 
+    //current level managment
+    auto deleteCurrentSaveBS = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
+    deleteCurrentSaveBS->setScale(0.75f);
+    auto deleteCurrentSaveButton = CCMenuItemSpriteExtra::create(
+        deleteCurrentSaveBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onCurrentDeleteClicked)
+    );
+    deleteCurrentSaveButton->setPosition({-226, -106});
+    m_buttonMenu->addChild(deleteCurrentSaveButton);
+
+    auto revertBackupBS = CCSprite::createWithSpriteFrameName("GJ_replayBtn_001.png");
+    revertBackupBS->setScale(0.525f);
+    auto revertBackupButton = CCMenuItemSpriteExtra::create(
+        revertBackupBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onRevertClicked)
+    );
+    revertBackupButton->setPosition({-187, -106});
+    m_buttonMenu->addChild(revertBackupButton);
+
     createLayoutBlocks();
     refreshStrings();
     RefreshText(true);
@@ -493,7 +516,6 @@ void DTLayer::textChanged(CCTextInputNode* input){
     }
 
     if (input == addFZRunInput->getInput()){
-
         int res = 0;
         if (input->getString() != "")
             res = std::stoi(input->getString());
@@ -801,12 +823,8 @@ void DTLayer::RefreshText(bool moveToTop){
                 break;
             }
         }
-        
-    }
 
-    for (const auto& labelWExtra : lables)
-    {
-        auto label = std::get<0>(labelWExtra);
+        auto label = std::get<0>(lables[i]);
         for (const auto& line : label->getLines())
         {
             std::string s = line->getString();
@@ -824,9 +842,32 @@ void DTLayer::RefreshText(bool moveToTop){
                     line->setColor(Save::getSessionBestColor()); 
                 }
             }
+
+            s = line->getString();
+
+            if (m_Level->isPlatformer()){
+                for (int i = 0; i < s.length(); i++)
+                {
+                    if (s[i] == '%'){
+                        auto PS = dynamic_cast<CCNode*>(line->getChildren()->objectAtIndex(i));
+                        if (!PS) break;
+                        PS->setVisible(false);
+                        auto PSCont = CCNode::create();
+                        PSCont->setPosition(line->getPosition());
+                        PSCont->setScale(line->getScale());
+                        PSCont->setAnchorPoint(line->getAnchorPoint());
+                        PSCont->setContentSize(line->getContentSize());
+                        line->getParent()->addChild(PSCont);
+
+                        auto cpS = CCSprite::createWithSpriteFrameName("checkpoint_01_001.png");
+                        cpS->setPosition(PS->getPosition());
+                        PSCont->addChild(cpS);
+                    }
+                }
+                
+            }
         }
     }
-    
 
     for (int i = 0; i < positioning.size(); i++)
     {
@@ -1155,7 +1196,7 @@ void DTLayer::addRunAllowed(CCObject*){
                     doesExist2 = true;
             }
 
-            if (!doesExist2){
+            if (!doesExist2 && currStats.currentBest != -1){
                 currStats.RunsToSave.push_back(startPrecent);
 
                 std::ranges::sort(currStats.RunsToSave, [](const int a, const int b) {
@@ -1171,7 +1212,8 @@ void DTLayer::addRunAllowed(CCObject*){
 }
 
 void DTLayer::updateRunsAllowed(){
-    StatsManager::saveData(m_MyLevelStats, m_Level);
+    if (m_MyLevelStats.currentBest != -1)
+        StatsManager::saveData(m_MyLevelStats, m_Level);
     refreshStrings();
     RefreshText();
 }
@@ -1234,6 +1276,8 @@ void DTLayer::deleteUnused(CCObject*){
 
 void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
     if (m_RunDeleteAlert == layer && selected){
+        if (m_MyLevelStats.currentBest == -1) return;
+
         for (auto it = m_MyLevelStats.runs.cbegin(); it != m_MyLevelStats.runs.cend();)
         {
             bool erase = true;
@@ -1275,8 +1319,54 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
         
 
         StatsManager::saveData(m_MyLevelStats, m_Level);
+        UpdateSharedStats();
+        refreshStrings();
+        RefreshText();
     }
 
+    if (currDeleteAlert == layer && selected){
+        ghc::filesystem::remove(StatsManager::getLevelSaveFilePath(m_Level));
+
+        LevelStats stats;
+
+        stats.attempts = m_Level->m_attempts;
+        stats.levelName = m_Level->m_levelName;
+        stats.currentBest = 0;
+        stats.difficulty = StatsManager::getDifficulty(m_Level);
+
+        Session startingSession;
+        startingSession.lastPlayed = -2;
+        startingSession.currentBest = -1;
+
+        stats.sessions.push_back(startingSession);
+
+        StatsManager::saveData(stats, m_Level);
+
+        auto alert = FLAlertLayer::create("Success!", "All progress has been deleted.", "Ok");
+        alert->setZOrder(150);
+        this->getParent()->addChild(alert);
+
+        onClose(nullptr);
+    }
+
+    if (revertAlert == layer && selected){
+        auto stats = StatsManager::getBackupStats(m_Level);
+
+        if (stats.currentBest == -1){
+            auto alert = FLAlertLayer::create("Failed", "No valid backup found :(\n\nIf your data doesn't load then it is probably corrupt, and in that case it is best to <cr>delete the current level using the delete button.</c>", "Ok");
+            alert->setZOrder(150);
+            this->addChild(alert);
+            return;
+        }
+        
+        StatsManager::saveData(stats, m_Level);
+
+        auto alert = FLAlertLayer::create("Success!", "Progress reverted to the latest backup.", "Ok");
+        alert->setZOrder(150);
+        this->getParent()->addChild(alert);
+
+        onClose(nullptr);
+    }
 }
 
 void DTLayer::onClose(cocos2d::CCObject*) {
@@ -1292,7 +1382,7 @@ void DTLayer::onClose(cocos2d::CCObject*) {
 
 void DTLayer::openGraphMenu(CCObject*){
     #ifdef GEODE_IS_MACOS
-        geode::Notification::create("Graphs are not yet supported on MacOS.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"));
+        geode::Notification::create("Graphs are not yet supported on MacOS.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
     #else
     auto graph = DTGraphLayer::create(this);
     graph->setZOrder(100);
@@ -1311,7 +1401,7 @@ void DTLayer::OnToggleAllRuns(CCObject*){
                 {
                     auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
 
-                    if (currStats.RunsToSave.size() != 0){
+                    if (currStats.RunsToSave.size() != 0 && currStats.currentBest != -1){
                         if (currStats.RunsToSave[0] == -1){
                             currStats.RunsToSave.erase(std::next(currStats.RunsToSave.begin(), 0));
                         }
@@ -1382,8 +1472,10 @@ void DTLayer::UpdateSharedStats(){
             return a < b;
         });
 
-        StatsManager::saveData(m_MyLevelStats, m_Level);
-        StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
+        if (m_MyLevelStats.currentBest != -1)
+            StatsManager::saveData(m_MyLevelStats, m_Level);
+        if (currStats.currentBest != -1)
+            StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
         
         for (const auto& [death, count] : currStats.deaths)
         {
@@ -1423,6 +1515,8 @@ void DTLayer::onSettings(CCObject*){
 }
 
 void DTLayer::onAddedFZRun(CCObject*){
+    if (m_MyLevelStats.currentBest == -1) return;
+
     int amount = 1;
     if (runsAmountInput->getString() != "")
         amount = std::stoi(runsAmountInput->getString());
@@ -1440,6 +1534,8 @@ void DTLayer::onAddedFZRun(CCObject*){
 }
 
 void DTLayer::onRemovedFZRun(CCObject*){
+    if (m_MyLevelStats.currentBest == -1) return;
+
     int amount = 1;
     if (runsAmountInput->getString() != "")
         amount = std::stoi(runsAmountInput->getString());
@@ -1460,6 +1556,8 @@ void DTLayer::onRemovedFZRun(CCObject*){
 }
 
 void DTLayer::onAddedRun(CCObject*){
+    if (m_MyLevelStats.currentBest == -1) return;
+
     int amount = 1;
     if (runsAmountInput->getString() != "")
         amount = std::stoi(runsAmountInput->getString());
@@ -1488,6 +1586,8 @@ void DTLayer::onAddedRun(CCObject*){
 }
 
 void DTLayer::onRemovedRun(CCObject*){
+    if (m_MyLevelStats.currentBest == -1) return;
+
     int amount = 1;
     if (runsAmountInput->getString() != "")
         amount = std::stoi(runsAmountInput->getString());
@@ -1540,4 +1640,16 @@ void DTLayer::onLayoutInfo(CCObject*){
     auto alert = FLAlertLayer::create("Help", "The boxes (labels) here represent the text displayed.\n \nYou drag them around to change their order and <cy>double click</c> any of them for more options.\nClick the <cg>plus</c> button to add a new label.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
+}
+
+void DTLayer::onCurrentDeleteClicked(CCObject*){
+    currDeleteAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will delete <cr>ALL</c> of your saved progress on this level.", "Cancel", "Delete");
+    currDeleteAlert->setZOrder(150);
+    this->addChild(currDeleteAlert);
+}
+
+void DTLayer::onRevertClicked(CCObject*){
+    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to do this if your json Doesn't load or is corrupted.", "Cancel", "Revert");
+    revertAlert->setZOrder(150);
+    this->addChild(revertAlert);
 }

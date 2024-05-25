@@ -2,24 +2,19 @@
 #include "../managers/DTPopupManager.hpp"
 #include "../layers/DTLayer.hpp"
 #include "../managers/StatsManager.hpp"
+#include <Geode/ui/GeodeUI.hpp>
 
 using namespace geode::prelude;
 
 class $modify(myLevelInfoLayer, LevelInfoLayer) {
     CCMenuItemSpriteExtra* btn = nullptr;
 
-    static void onModify(auto& self) {
-        auto _ = self.setHookPriority("LevelInfoLayer::onLevelInfo", -9999);
-    }
-
-    void onLevelInfo(CCObject* sender) {
-        DTPopupManager::setInfoAlertOpen(true);
-        DTPopupManager::setCurrentLevel(m_level);
-        LevelInfoLayer::onLevelInfo(sender);
-    }
-
     bool init(GJGameLevel* p0, bool p1){
         if (!LevelInfoLayer::init(p0, p1)) return false;
+
+        p0->m_levelType = GJLevelType::Saved;
+
+        StatsManager::loadLevelStats(p0);
 
         auto otherMenu = getChildByID("other-menu");
         auto settingsMenu = getChildByID("settings-menu");
@@ -43,15 +38,18 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
             m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPosition()});
         otherMenu->updateLayout();
 
-        if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(p0))){
-                auto stats = StatsManager::getLevelStats(p0);
+        auto stats = StatsManager::getLevelStats(p0);
+        if (stats.currentBest != -1){
+            stats.attempts = p0->m_attempts;
+            stats.levelName = p0->m_levelName;
+            stats.difficulty = StatsManager::getDifficulty(p0);
 
-                stats.attempts = p0->m_attempts;
-                stats.levelName = p0->m_levelName;
-                stats.difficulty = StatsManager::getDifficulty(p0);
-
-                StatsManager::saveData(stats, p0);
-            }
+            StatsManager::saveData(stats, p0);
+            StatsManager::saveBackup(stats, p0);
+        }
+        else{
+            Notification::create("Failed to load Deaths json.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+        }
 
         schedule(schedule_selector(myLevelInfoLayer::checkIfPlayVisible));
 
@@ -62,9 +60,8 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
         if (this->m_playBtnMenu->isVisible()){
             m_fields->btn->setVisible(true);
 
-            if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(this->m_level))){
-                auto stats = StatsManager::getLevelStats(this->m_level);
-
+            auto stats = StatsManager::getLevelStats(this->m_level);
+            if (stats.currentBest != -1){
                 stats.difficulty = StatsManager::getDifficulty(this->m_level);
 
                 StatsManager::saveData(stats, this->m_level);

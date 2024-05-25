@@ -69,7 +69,8 @@ void RunAllowedCell::DeleteMe(CCObject*){
                 break;
             }
         }
-        StatsManager::saveData(currStats, myStats.LinkedLevels[i]);
+        if (currStats.currentBest != -1)
+            StatsManager::saveData(currStats, myStats.LinkedLevels[i]);
     }
 
     static_cast<DTLayer*>(m_DTLayer)->m_MyLevelStats = myStats;

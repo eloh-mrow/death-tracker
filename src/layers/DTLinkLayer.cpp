@@ -192,9 +192,10 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
         m_LinkedLevelsList->release();
     }
 
-    StatsManager::saveData(m_DTLayer->m_MyLevelStats, m_DTLayer->m_Level);
-
-    StatsManager::saveData(stats, levelKey);
+    if (m_DTLayer->m_MyLevelStats.currentBest != -1)
+        StatsManager::saveData(m_DTLayer->m_MyLevelStats, m_DTLayer->m_Level);
+    if (stats.currentBest != -1)
+        StatsManager::saveData(stats, levelKey);
 }
 
 void DTLinkLayer::update(float delta){
@@ -236,11 +237,14 @@ void DTLinkLayer::update(float delta){
                 if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(level))){
                     auto stats = StatsManager::getLevelStats(level);
 
-                    stats.attempts = level->m_attempts;
-                    stats.levelName = level->m_levelName;
-                    stats.difficulty = StatsManager::getDifficulty(level);
+                    if (stats.currentBest != -1){
+                        stats.attempts = level->m_attempts;
+                        stats.levelName = level->m_levelName;
+                        stats.difficulty = StatsManager::getDifficulty(level);
 
-                    StatsManager::saveData(stats, level);
+                        StatsManager::saveData(stats, level);
+                    }
+                    
                 }
             }
 

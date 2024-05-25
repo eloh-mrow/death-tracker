@@ -115,11 +115,13 @@ void DTManageLevelsLayer::update(float delta){
                 if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(level))){
                     auto stats = StatsManager::getLevelStats(level);
 
-                    stats.attempts = level->m_attempts;
-                    stats.levelName = level->m_levelName;
-                    stats.difficulty = StatsManager::getDifficulty(level);
+                    if (stats.currentBest != -1){
+                        stats.attempts = level->m_attempts;
+                        stats.levelName = level->m_levelName;
+                        stats.difficulty = StatsManager::getDifficulty(level);
 
-                    StatsManager::saveData(stats, level);
+                        StatsManager::saveData(stats, level);
+                    }
                 }
             }
 

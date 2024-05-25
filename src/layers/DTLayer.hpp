@@ -133,4 +133,10 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void onRunsAInfo(CCObject*);
         void onModRunsInfo(CCObject*);
         void onLayoutInfo(CCObject*);
+
+        //current level managment
+        void onCurrentDeleteClicked(CCObject*);
+        void onRevertClicked(CCObject*);
+        FLAlertLayer* currDeleteAlert;
+        FLAlertLayer* revertAlert;
 };

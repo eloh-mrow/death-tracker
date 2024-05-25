@@ -15,7 +15,8 @@ std::vector<std::string> splitStr(std::string str, std::string delim) {
     while ((posEnd = str.find(delim, posStart)) != std::string::npos) {
         std::string token = str.substr(posStart, posEnd - posStart);
         posStart = posEnd + delimLen;
-        res.push_back(token);
+        if (token != "")
+            res.push_back(token);
     }
 
     res.push_back(str.substr(posStart));
@@ -111,7 +112,6 @@ void StatsManager::loadLevelStats(GJGameLevel* level) {
     //     levelStats.currentBest,
     //     levelStats.sessions.size()
     // );
-
     m_levelStats = levelStats;
     m_level = level;
 }
@@ -125,8 +125,20 @@ LevelStats StatsManager::getLevelStats(ghc::filesystem::path level){
     auto levelSaveFilePath = level;
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath))
-        return file::readJson(levelSaveFilePath).value().as<LevelStats>();
+    if (ghc::filesystem::exists(levelSaveFilePath)){
+        auto res = file::readJson(levelSaveFilePath);
+        if (res.isErr()){
+            LevelStats errStats;
+
+            errStats.levelName = "Unknow Name";
+            errStats.attempts = 0;
+            errStats.currentBest = -1;
+
+            return errStats;
+        }
+        else
+            return res.value().as<LevelStats>();
+    }
 
     LevelStats none;
 
@@ -137,14 +149,70 @@ LevelStats StatsManager::getLevelStats(std::string levelKey){
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");;
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath))
-        return file::readJson(levelSaveFilePath).value().as<LevelStats>();
+    if (ghc::filesystem::exists(levelSaveFilePath)){
+        auto res = file::readJson(levelSaveFilePath);
+        if (res.isErr()){
+            LevelStats errStats;
+
+            errStats.levelName = "Unknow Name";
+            errStats.attempts = 0;
+            errStats.currentBest = -1;
+
+            return errStats;
+        }
+        else
+            return res.value().as<LevelStats>();
+    }
 
     LevelStats none;
 
     return none;
 }
 
+LevelStats StatsManager::getBackupStats(GJGameLevel* level){
+
+    std::string levelKey = "";
+
+    if (level)
+        levelKey = getLevelKey(level);
+    else{
+        LevelStats errStats;
+
+        errStats.levelName = "Unknow Name";
+        errStats.attempts = 0;
+        errStats.currentBest = -1;
+
+        return errStats;
+    }
+
+    auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
+    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
+
+    if (ghc::filesystem::exists(levelSaveFilePath)){
+        auto res = file::readJson(levelSaveFilePath);
+        if (res.isErr()){
+            LevelStats errStats;
+
+            errStats.levelName = "Unknow Name";
+            errStats.attempts = 0;
+            errStats.currentBest = -1;
+
+            return errStats;
+        }
+        else
+            return res.value().as<LevelStats>();
+    }
+
+    LevelStats errStats;
+
+    errStats.levelName = "Unknow Name";
+    errStats.attempts = 0;
+    errStats.currentBest = -1;
+
+    return errStats;
+
+    return errStats;
+}
 
 void StatsManager::logDeath(int percent) {
     auto session = StatsManager::getSession();
@@ -233,6 +301,7 @@ std::string StatsManager::getLevelKey(GJGameLevel* level) {
 }
 
 Run StatsManager::splitRunKey(std::string runKey) {
+    log::info("{}", runKey);
     auto runKeySplit = splitStr(runKey, "-");
 
     auto start = std::stof(runKeySplit[0]);
@@ -247,6 +316,8 @@ Run StatsManager::splitRunKey(std::string runKey) {
 
 Session* StatsManager::getSession() {
     // log::info("StatsManager::getSession()");
+
+    if (m_levelStats.currentBest == -1) return nullptr;
 
     auto currentSession = &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
 
@@ -293,7 +364,8 @@ void StatsManager::updateSessionLastPlayed(bool save) {
 
 void StatsManager::scheduleCreateNewSession(bool scheduled) {
     // log::info("StatsManager::scheduleCreateNewSession() -- {}", scheduled);
-    m_scheduleCreateNewSession = scheduled;
+    if (m_levelStats.currentBest != -1)
+        m_scheduleCreateNewSession = scheduled;
 }
 
 bool StatsManager::hasPlayedLevel() {
@@ -310,6 +382,8 @@ std::string StatsManager::toPercentKey(int percent) {
 ======================= */
 void StatsManager::saveData() {
     // log::info("StatsManager::saveData()");
+
+    if (m_levelStats.currentBest == -1) return;
 
     std::string levelKey = StatsManager::getLevelKey();
     if (levelKey == "-1") return;
@@ -387,6 +461,29 @@ void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
+void StatsManager::saveBackup(LevelStats stats, GJGameLevel* level) {
+    // log::info("StatsManager::saveData()");
+
+    std::string levelKey = StatsManager::getLevelKey(level);
+    if (levelKey == "-1") return;
+
+    ghc::filesystem::path levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
+
+    // create the json file if it doesnt exist
+    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+        std::ofstream levelSaveFile(levelSaveFilePath);
+        levelSaveFile.close();
+    }
+
+    // save the data
+    auto indentation = Dev::MINIFY_SAVE_FILE
+        ? matjson::NO_INDENTATION
+        : 4;
+
+    auto jsonStr = matjson::Value(stats).dump(indentation);
+    auto _ = file::writeString(levelSaveFilePath, jsonStr);
+}
+
 void StatsManager::saveData(LevelStats stats, std::string levelKey) {
     // log::info("StatsManager::saveData()");
     
@@ -414,9 +511,21 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath))
-        return file::readJson(levelSaveFilePath).value().as<LevelStats>();
+    if (ghc::filesystem::exists(levelSaveFilePath)){
+        auto res = file::readJson(levelSaveFilePath);
+        if (res.isErr()){
+            LevelStats errStats;
 
+            errStats.levelName = "Unknow Name";
+            errStats.attempts = 0;
+            errStats.currentBest = -1;
+
+            return errStats;
+        }
+        else
+            return res.value().as<LevelStats>();
+    }
+        
     // get defaults for level stats
     // includes backwards compatibility for v1.x.x
     LevelStats levelStats{};
