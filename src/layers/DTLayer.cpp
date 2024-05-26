@@ -1649,7 +1649,7 @@ void DTLayer::onCurrentDeleteClicked(CCObject*){
 }
 
 void DTLayer::onRevertClicked(CCObject*){
-    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to do this if your json Doesn't load or is corrupted.", "Cancel", "Revert");
+    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to Do this if your json doesn't load or is corrupted.", "Cancel", "Revert");
     revertAlert->setZOrder(150);
     this->addChild(revertAlert);
 }

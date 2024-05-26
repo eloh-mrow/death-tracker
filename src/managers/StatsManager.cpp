@@ -301,7 +301,6 @@ std::string StatsManager::getLevelKey(GJGameLevel* level) {
 }
 
 Run StatsManager::splitRunKey(std::string runKey) {
-    log::info("{}", runKey);
     auto runKeySplit = splitStr(runKey, "-");
 
     auto start = std::stof(runKeySplit[0]);
@@ -690,7 +689,8 @@ std::vector<std::pair<std::string, LevelStats>> StatsManager::getAllLevels(){
 
     for (int i = 0; i < allLevels.size(); i++)
     {
-        toReturn.push_back(std::pair<std::string, LevelStats>{allLevels[i].stem().string(), getLevelStats(allLevels[i])});
+        if (allLevels[i].extension().string() == ".json")
+            toReturn.push_back(std::pair<std::string, LevelStats>{allLevels[i].stem().string(), getLevelStats(allLevels[i])});
     }
     
     return toReturn;

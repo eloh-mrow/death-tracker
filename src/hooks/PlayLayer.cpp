@@ -142,12 +142,11 @@ class $modify(DTPlayLayer, PlayLayer) {
         else if (!m_isPracticeMode && m_level->isPlatformer())
             StatsManager::logDeath(m_fields->currentRun.end);
 
-
         // anything else is a run
         // platformer runs only from 0
         else if (m_level->isPlatformer() && m_isPracticeMode)
             StatsManager::logRun(m_fields->currentRun);
-        else if (m_fields->currentRun.start == 0)
+        else
             StatsManager::logRun(m_fields->currentRun);
     }
 
