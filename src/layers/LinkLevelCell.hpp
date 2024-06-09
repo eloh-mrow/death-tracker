@@ -8,11 +8,9 @@
 using namespace cocos2d;
 using namespace geode;
 
-class LinkLevelCell : public CCNode, public FLAlertLayerProtocol {
+class LinkLevelCell : public CCNode, public FLAlertLayerProtocol, public LevelManagerDelegate {
 protected:
     bool init(CCNode* l, std::string levelKey, LevelStats stats, bool linked);
-
-    void update(float delta);
 public:
     static LinkLevelCell* create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked);
     static LinkLevelCell* create(DTManageLevelsLayer* DTMLL, std::string levelKey, LevelStats stats, bool linked);
@@ -27,10 +25,13 @@ public:
     void DeleteMe(CCObject*);
     void ViewMe(CCObject*);
 
+    void loadLevelsFinished(cocos2d::CCArray* p0, char const* p1);
+    void loadLevelsFinished(cocos2d::CCArray* p0, char const* p1, int p2);
+
+    void loadLevelsFailed(char const* p0);
+    void loadLevelsFailed(char const* p0, int p1);
+
     bool downloadingInfo;
-    LevelListLayer* m_LoadLevelsBypass = nullptr;
-    LoadingCircle* m_LoadLevelsCircle = nullptr;
-    int loadingProgress;
 
     void FLAlert_Clicked(FLAlertLayer* alert, bool selected);
     FLAlertLayer* DeleteWarningAlert;

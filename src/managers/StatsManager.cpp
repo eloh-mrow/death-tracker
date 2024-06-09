@@ -31,7 +31,7 @@ bool StatsManager::m_scheduleCreateNewSession = false;
 
 LevelStats StatsManager::m_levelStats{};
 
-ghc::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
+std::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
 
 std::vector<std::string> StatsManager::m_AllFontsMap{
     "bigFont.fnt",
@@ -121,11 +121,11 @@ LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
     return m_levelStats;
 }
 
-LevelStats StatsManager::getLevelStats(ghc::filesystem::path level){
+LevelStats StatsManager::getLevelStats(std::filesystem::path level){
     auto levelSaveFilePath = level;
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath)){
+    if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
             LevelStats errStats;
@@ -149,7 +149,7 @@ LevelStats StatsManager::getLevelStats(std::string levelKey){
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");;
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath)){
+    if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
             LevelStats errStats;
@@ -188,7 +188,7 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath)){
+    if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
             LevelStats errStats;
@@ -390,7 +390,7 @@ void StatsManager::saveData() {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath();
 
     // create the json file if it doesnt exist
-    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+    if (!std::filesystem::exists(levelSaveFilePath)) {
         std::ofstream levelSaveFile(levelSaveFilePath);
         levelSaveFile.close();
     }
@@ -446,7 +446,7 @@ void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
 
     // create the json file if it doesnt exist
-    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+    if (!std::filesystem::exists(levelSaveFilePath)) {
         std::ofstream levelSaveFile(levelSaveFilePath);
         levelSaveFile.close();
     }
@@ -466,10 +466,10 @@ void StatsManager::saveBackup(LevelStats stats, GJGameLevel* level) {
     std::string levelKey = StatsManager::getLevelKey(level);
     if (levelKey == "-1") return;
 
-    ghc::filesystem::path levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
+    std::filesystem::path levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
 
     // create the json file if it doesnt exist
-    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+    if (!std::filesystem::exists(levelSaveFilePath)) {
         std::ofstream levelSaveFile(levelSaveFilePath);
         levelSaveFile.close();
     }
@@ -492,7 +492,7 @@ void StatsManager::saveData(LevelStats stats, std::string levelKey) {
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");
 
     // create the json file if it doesnt exist
-    if (!ghc::filesystem::exists(levelSaveFilePath)) {
+    if (!std::filesystem::exists(levelSaveFilePath)) {
         std::ofstream levelSaveFile(levelSaveFilePath);
         levelSaveFile.close();
     }
@@ -510,7 +510,7 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
     // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
-    if (ghc::filesystem::exists(levelSaveFilePath)){
+    if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
             LevelStats errStats;
@@ -622,8 +622,8 @@ std::tuple<NewBests, int> StatsManager::calcNewBests(GJGameLevel* level) {
     return std::make_tuple(newBests, currentPercent);
 }
 
-ghc::filesystem::path StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
-    ghc::filesystem::path filePath{};
+std::filesystem::path StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
+    std::filesystem::path filePath{};
     auto levelKey = StatsManager::getLevelKey(level);
     if (levelKey == "-1") return filePath;
 

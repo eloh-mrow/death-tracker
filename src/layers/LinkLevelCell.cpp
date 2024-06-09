@@ -155,50 +155,6 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
     return true;
 }
 
-void LinkLevelCell::update(float delta){
-    if (downloadingInfo){
-        if (loadingProgress == 0 && m_LoadLevelsCircle->isVisible()){
-            loadingProgress = 1;
-        }
-        if (loadingProgress == 1 && !m_LoadLevelsCircle->isVisible()){
-            loadingProgress = 2;
-        }
-        else if (loadingProgress == 2){
-            loadingProgress = 0;
-            CCObject* child;
-
-            GJGameLevel* levelInfo = nullptr;
-
-            CCARRAY_FOREACH(m_LoadLevelsBypass->m_list->m_listView->m_tableView->m_cellArray, child){
-                auto level = static_cast<LevelCell*>(child)->m_level;
-                auto nameLabel = static_cast<CCLabelBMFont*>(static_cast<LevelCell*>(child)->m_mainLayer->getChildByID("level-name"));
-                if (ghc::filesystem::exists(StatsManager::getLevelSaveFilePath(level)) && nameLabel->getString() != StatsManager::splitLevelKey(m_LevelKey).first){
-                    levelInfo = level;
-                }
-            }
-
-            m_LoadLevelsBypass->removeMeAndCleanup();
-            m_LoadLevelsBypass = nullptr;
-
-            downloadingInfo = false;
-            m_DTManageLevelsLayer->dInfo = false;
-
-            if (levelInfo){
-                auto layer = LevelInfoLayer::create(levelInfo, false);
-                auto scene = CCScene::create();
-
-                scene->addChild(layer);
-                auto transition = CCTransitionFade::create(0.5f, scene);
-
-                CCDirector::sharedDirector()->pushScene(transition);
-            }
-            else{
-                log::info("failed to fetch level");
-            }
-        }
-    }
-}
-
 void LinkLevelCell::MoveMe(CCObject*){
     m_DTLinkLayer->ChangeLevelLinked(m_LevelKey, m_Stats, m_Linked);
 }
@@ -212,46 +168,51 @@ void LinkLevelCell::DeleteMe(CCObject*){
 void LinkLevelCell::ViewMe(CCObject*){
     if (m_DTManageLevelsLayer->dInfo) return;
 
-    #ifdef GEODE_IS_MACOS
-        GJGameLevel* levelInfo = GJGameLevel::create();
+    m_DTManageLevelsLayer->downloadCircle->setVisible(true);
 
-        levelInfo->m_levelID = std::stoi(StatsManager::splitLevelKey(m_LevelKey).first);
-        levelInfo->m_levelName = m_Stats.levelName;
-
-        auto layer = LevelInfoLayer::create(levelInfo, false);
-        auto scene = CCScene::create();
-
-        scene->addChild(layer);
-        auto transition = CCTransitionFade::create(0.5f, scene);
-
-        CCDirector::sharedDirector()->pushScene(transition);
-    #else
-
-    std::vector<int> ids{
-        std::stoi(StatsManager::splitLevelKey(m_LevelKey).first)
-    };
-
-    auto list = GJLevelList::create();
-	list->m_listName = "";
-	list->m_levels = ids;
-
-    m_LoadLevelsBypass = LevelListLayer::create(list);
-    m_DTManageLevelsLayer->addChild(m_LoadLevelsBypass);
-
-    CCObject* child;
-
-    CCARRAY_FOREACH(m_LoadLevelsBypass->getChildren(), child){
-        auto loadingC = dynamic_cast<LoadingCircle*>(child);
-        if (!loadingC)
-            static_cast<CCNode*>(child)->setVisible(false);
-        else
-            m_LoadLevelsCircle = loadingC;
-    }
-
+    GameLevelManager::get()->m_levelManagerDelegate = this;
+    GameLevelManager::get()->getOnlineLevels(GJSearchObject::create(SearchType::Search, StatsManager::splitLevelKey(m_LevelKey).first));
+    
     downloadingInfo = true;
     m_DTManageLevelsLayer->dInfo = true;
+}
 
-    #endif
+void LinkLevelCell::loadLevelsFinished(cocos2d::CCArray* levels, char const* hash){
+    downloadingInfo = false;
+    m_DTManageLevelsLayer->dInfo = false;
+
+    m_DTManageLevelsLayer->downloadCircle->setVisible(false);
+
+    if (levels->count() == 0) {
+        log::info("failed to fetch level");
+    }
+
+    auto* level = static_cast<GJGameLevel*>(
+        levels->objectAtIndex(0)
+    );
+
+    auto layer = LevelInfoLayer::create(level, false);
+    auto scene = CCScene::create();
+
+    scene->addChild(layer);
+    auto transition = CCTransitionFade::create(0.5f, scene);
+
+    CCDirector::sharedDirector()->pushScene(transition);
+}
+
+void LinkLevelCell::loadLevelsFinished(cocos2d::CCArray* p0, char const* p1, int p2){
+    loadLevelsFinished(p0, p1);
+}
+
+void LinkLevelCell::loadLevelsFailed(char const* p0){
+    downloadingInfo = false;
+    m_DTManageLevelsLayer->dInfo = false;
+    m_DTManageLevelsLayer->downloadCircle->setVisible(false);
+    log::info("failed to fetch level");
+}
+
+void LinkLevelCell::loadLevelsFailed(char const* p0, int p1){
+    loadLevelsFailed(p0);
 }
 
 void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){
@@ -266,9 +227,9 @@ void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){
             }
         }
         
-        ghc::filesystem::path filep = Mod::get()->getSaveDir() / "levels" / (m_LevelKey + ".json");
+        std::filesystem::path filep = Mod::get()->getSaveDir() / "levels" / (m_LevelKey + ".json");
 
-        ghc::filesystem::remove(filep);
+        std::filesystem::remove(filep);
 
         m_DTManageLevelsLayer->refreshLists(true);
     }

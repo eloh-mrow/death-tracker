@@ -39,16 +39,6 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         std::vector<std::pair<std::string, LevelStats>> m_AllLevels;
 
         void onClose(CCObject*);
-        void onDownload(CCObject*);
-
-        void levelDownloadFinished(GJGameLevel* level);
-        void levelDownloadFailed(int lol);
-        bool downloadingInfo;
-        void refreshIfDownloadDone();
-        LevelListLayer* m_LoadLevelsBypass = nullptr;
-        LoadingCircle* m_LoadLevelsCircle = nullptr;
-        int loadingProgress;
-
         //info
         void onOverallInfo(CCObject*);
 };

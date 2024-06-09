@@ -1325,7 +1325,7 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
     }
 
     if (currDeleteAlert == layer && selected){
-        ghc::filesystem::remove(StatsManager::getLevelSaveFilePath(m_Level));
+        std::filesystem::remove(StatsManager::getLevelSaveFilePath(m_Level));
 
         LevelStats stats;
 

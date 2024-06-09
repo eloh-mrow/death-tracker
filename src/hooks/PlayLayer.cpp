@@ -5,10 +5,12 @@
 using namespace geode::prelude;
 
 class $modify(DTPlayLayer, PlayLayer) {
-    Session* prevSession = nullptr;
-    bool isSessionExpired = false;
-    bool hasRespawned = false;
-    Run currentRun;
+    struct Fields {
+        Session* prevSession = nullptr;
+        bool isSessionExpired = false;
+        bool hasRespawned = false;
+        Run currentRun;
+    };
 
     bool disableCompletedLevelTracking() {
         return Settings::isCompletedLevelTrackingDisabled()
@@ -94,7 +96,6 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void checkpointActivated(CheckpointGameObject* checkpt) {
         PlayLayer::checkpointActivated(checkpt);
-        if (checkpt->getSaveString(this) == "") return;
 
         m_fields->currentRun.end++;
     }

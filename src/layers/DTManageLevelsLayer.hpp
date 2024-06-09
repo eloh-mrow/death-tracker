@@ -7,11 +7,10 @@
 
 using namespace geode::prelude;
 
-class DTManageLevelsLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
+class DTManageLevelsLayer : public Popup<DTLayer* const&>, public TextInputDelegate, public LevelManagerDelegate {
     protected:
         bool setup(DTLayer* const& layer) override;
 
-        void update(float delta);
     public:
         static DTManageLevelsLayer* create(DTLayer* const& layer);
 
@@ -34,10 +33,8 @@ class DTManageLevelsLayer : public Popup<DTLayer* const&>, public TextInputDeleg
         GJListLayer* m_LevelsList = nullptr;
 
         bool dInfo;
-        int dProg;
-        LevelListLayer* m_LoadLevels = nullptr;
-        LoadingCircle* m_LoadLevelsCircle2 = nullptr;
-        void onDownload(CCObject*);
+
+        LoadingCircle* downloadCircle;
 
         //info
         void onOverallInfo(CCObject*);

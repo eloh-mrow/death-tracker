@@ -119,7 +119,7 @@ private:
     static LevelStats m_levelStats;
     
     static bool m_scheduleCreateNewSession;
-    static ghc::filesystem::path m_savesFolderPath;
+    static std::filesystem::path m_savesFolderPath;
 
     // internal functions
     static void saveData();
@@ -133,7 +133,7 @@ public:
     // main functions
     static void loadLevelStats(GJGameLevel* level);
     static LevelStats getLevelStats(GJGameLevel* level);
-    static LevelStats getLevelStats(ghc::filesystem::path level);
+    static LevelStats getLevelStats(std::filesystem::path level);
     static LevelStats getLevelStats(std::string levelKey);
     static void logDeath(int percent);
     static void logRun(Run run);
@@ -147,7 +147,7 @@ public:
     static void scheduleCreateNewSession(bool scheduled);
     static bool hasPlayedLevel();
     static std::string toPercentKey(int percent);
-    static ghc::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
+    static std::filesystem::path getLevelSaveFilePath(GJGameLevel* level = m_level);
     static bool ContainsAtIndex(int startIndex, std::string check, std::string str);
     static ccColor3B inverseColor(ccColor3B color);
     static std::string getFont(int fontID);

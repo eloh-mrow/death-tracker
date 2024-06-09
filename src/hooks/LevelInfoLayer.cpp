@@ -7,8 +7,10 @@
 using namespace geode::prelude;
 
 class $modify(myLevelInfoLayer, LevelInfoLayer) {
-    CCMenuItemSpriteExtra* btn = nullptr;
-
+    struct Fields {
+        CCMenuItemSpriteExtra* btn = nullptr;
+    };
+    
     bool init(GJGameLevel* p0, bool p1){
         if (!LevelInfoLayer::init(p0, p1)) return false;
 

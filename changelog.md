@@ -22,6 +22,9 @@
 - <co>import/export save data</c>
 
 # Changelog
+## v2.0.0-beta.7
+- updated to 2.206 :D
+
 ## v2.0.0-beta.6
 - fixed run tracking being broken (oops)
 
