@@ -92,6 +92,10 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         bool m_IsMovingAWindow;
         void changeScrollSizeByBoxes(bool moveToTop = false);
         void addBox(CCObject*);
+        CCMenuItemSpriteExtra* editLayoutApplyBtn;
+        CCMenuItemSpriteExtra* addWindowButton;
+        CCMenuItemSpriteExtra* layoutInfoButton;
+        void clickedWindow(CCNode* window);
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
@@ -133,10 +137,16 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void onRunsAInfo(CCObject*);
         void onModRunsInfo(CCObject*);
         void onLayoutInfo(CCObject*);
+        void onCopyInfo(CCObject*);
 
         //current level managment
         void onCurrentDeleteClicked(CCObject*);
         void onRevertClicked(CCObject*);
         FLAlertLayer* currDeleteAlert;
         FLAlertLayer* revertAlert;
+
+        //copy
+        void copyText(CCObject*);
+        bool isInCopyMenu;
+        CCMenuItemSpriteExtra* copyInfoButton;
 };

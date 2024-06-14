@@ -4,7 +4,7 @@
         "android": "2.206",
         "win": "2.206"
     },
-	"version": "v2.0.0-beta.8",
+	"version": "v2.0.0-beta.9",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -15,7 +15,7 @@
 			"resources/*.png"
 		]
 	},
-	"tags": ["Utility", "Interface"],
+	"tags": ["utility", "interface"],
 	"settings": {
 		"session-length": {
 			"name": "Session Length",
@@ -24,6 +24,12 @@
 			"default": -2,
 			"min": -2,
 			"max": 86400
+		},
+		"pause-menu": {
+			"name": "Pause Menu Button",
+			"description": "Adds the tracker button to the pause menu.",
+			"type": "bool",
+			"default": true
 		},
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",

@@ -9,4 +9,5 @@ public:
     static int64_t getMaxSessionLength();
     static bool isCompletedLevelTrackingDisabled();
     static bool isPracticeZeroDeathsEnabled();
+    static bool getPauseMenuEnabled();
 };

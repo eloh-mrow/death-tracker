@@ -102,8 +102,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setOpacity(150);
     alighmentNode->addChild(m_BlackSquare);
 
-    auto editLayoutCancelBtnS = ButtonSprite::create("Cancel");
-    editLayoutCancelBtnS->setColor({ 255, 0, 0 });
+    auto editLayoutCancelBtnS = ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_06.png");
     editLayoutCancelBtnS->setScale(0.375f);
     auto editLayoutCancelBtn = CCMenuItemSpriteExtra::create(
         editLayoutCancelBtnS,
@@ -116,7 +115,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     auto editLayoutApplyBtnS = ButtonSprite::create("Apply");
     editLayoutApplyBtnS->setScale(0.375f);
-    auto editLayoutApplyBtn = CCMenuItemSpriteExtra::create(
+    editLayoutApplyBtn = CCMenuItemSpriteExtra::create(
         editLayoutApplyBtnS,
         nullptr,
         this,
@@ -127,7 +126,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     auto addWindowButtonS = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
     addWindowButtonS->setScale(0.6f);
-    auto addWindowButton = CCMenuItemSpriteExtra::create(
+    addWindowButton = CCMenuItemSpriteExtra::create(
         addWindowButtonS,
         nullptr,
         this,
@@ -138,7 +137,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     auto layoutInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     layoutInfoBS->setScale(0.8f);
-    auto layoutInfoButton = CCMenuItemSpriteExtra::create(
+    layoutInfoButton = CCMenuItemSpriteExtra::create(
         layoutInfoBS,
         nullptr,
         this,
@@ -297,7 +296,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_buttonMenu->addChild(LinkLevelsButton);
 
     //manage levels
-    auto manageLevelsBS = ButtonSprite::create("Manage\nLevels");
+    auto manageLevelsBS = ButtonSprite::create("Manage");
     manageLevelsBS->setScale(0.6f);
     auto manageLevelsButton = CCMenuItemSpriteExtra::create(
         manageLevelsBS,
@@ -305,7 +304,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         this,
         menu_selector(DTLayer::OnManage)
     );
-    manageLevelsButton->setPosition({207, -60});
+    manageLevelsButton->setPosition({207, -52});
     this->m_buttonMenu->addChild(manageLevelsButton);
 
     //settings
@@ -455,6 +454,30 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     );
     revertBackupButton->setPosition({-187, -106});
     m_buttonMenu->addChild(revertBackupButton);
+
+    //copy
+    auto copyTextBS = ButtonSprite::create("Copy Text");
+    copyTextBS->setScale(0.525f);
+    auto copyTextButton = CCMenuItemSpriteExtra::create(
+        copyTextBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::copyText)
+    );
+    copyTextButton->setPosition({207, -74});
+    this->m_buttonMenu->addChild(copyTextButton);
+
+    auto copyInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    copyInfoBS->setScale(0.8f);
+    copyInfoButton = CCMenuItemSpriteExtra::create(
+        copyInfoBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onCopyInfo)
+    );
+    copyInfoButton->setPosition({159, 118});
+    copyInfoButton->setVisible(false);
+    m_EditLayoutMenu->addChild(copyInfoButton);
 
     createLayoutBlocks();
     refreshStrings();
@@ -661,6 +684,23 @@ void DTLayer::EditLayoutEnabled(bool b){
     m_EditLayoutBtn->setVisible(!b);
     m_BlackSquare->setVisible(b);
     m_LayoutStuffCont->setVisible(b);
+    editLayoutApplyBtn->setEnabled(b);
+    addFZRunInput->setEnabled(!b);
+    addRunStartInput->setEnabled(!b);
+    addRunEndInput->setEnabled(!b);
+    runsAmountInput->setEnabled(!b);
+    layoutInfoButton->setVisible(b);
+    addWindowButton->setVisible(b);
+    if (m_SessionSelectionInput)
+        m_SessionSelectionInput->setEnabled(!b);
+    m_AddRunAllowedInput->setEnabled(!b);
+
+    for (int i = 0; i < m_LayoutLines.size(); i++)
+    {
+        auto IWindow = static_cast<LabelLayoutWindow*>(m_LayoutLines[i]);
+        IWindow->setMoveEnabled(b);
+    }
+
     if (b)
     {
         changeScrollSizeByBoxes(true);
@@ -669,6 +709,11 @@ void DTLayer::EditLayoutEnabled(bool b){
     else{
         RefreshText(true);
         m_TextBG->setOpacity(100);
+        auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
+        sprite->m_BGSprite->setOpacity(255);
+        sprite->m_label->setOpacity(255);
+        isInCopyMenu = false;
+        copyInfoButton->setVisible(false);
     }
 }
 
@@ -1652,4 +1697,56 @@ void DTLayer::onRevertClicked(CCObject*){
     revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to Do this if your json doesn't load or is corrupted.", "Cancel", "Revert");
     revertAlert->setZOrder(150);
     this->addChild(revertAlert);
+}
+
+void DTLayer::onCopyInfo(CCObject*){
+    auto alert = FLAlertLayer::create("Help", "Click a label to copy its text.", "Ok");
+    alert->setZOrder(150);
+    this->addChild(alert);
+}
+
+void DTLayer::copyText(CCObject*)
+{
+    EditLayoutEnabled(true);
+
+    isInCopyMenu = true;
+    editLayoutApplyBtn->setEnabled(false);
+    auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
+    sprite->m_BGSprite->setOpacity(100);
+    sprite->m_label->setOpacity(100);
+
+    for (int i = 0; i < m_LayoutLines.size(); i++)
+    {
+        auto IWindow = static_cast<LabelLayoutWindow*>(m_LayoutLines[i]);
+        IWindow->setMoveEnabled(false);
+    }
+
+    layoutInfoButton->setVisible(false);
+    addWindowButton->setVisible(false);
+    copyInfoButton->setVisible(true);
+}
+
+void DTLayer::clickedWindow(CCNode* nwindow){
+    auto window = static_cast<LabelLayoutWindow*>(nwindow);
+    if (isInCopyMenu){
+        EditLayoutEnabled(false);
+
+        std::string toCopy = modifyString(window->m_MyLayout.text);
+
+        for (int i = 0; i < toCopy.size(); i++)
+        {
+            if (toCopy[i] == '<' && toCopy.length() > i + 1){
+                if (isKeyInIndex(toCopy, i + 1, "nbc>")){
+                    toCopy.erase(i, 5);
+                }
+                if (isKeyInIndex(toCopy, i + 1, "sbc>")){
+                    toCopy.erase(i, 5);
+                }
+            }
+        }
+        
+        clipboard::write(toCopy);
+
+        geode::Notification::create("Copied text from " + window->m_MyLayout.labelName, CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"))->show();
+    }   
 }

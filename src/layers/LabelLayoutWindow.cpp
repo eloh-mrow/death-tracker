@@ -81,8 +81,21 @@ void LabelLayoutWindow::myUpdate(float delta){
     if (m_DoubleClickTimer > 0)
         m_DoubleClickTimer -= delta;
 
+    if (isMouseTouching(this) && !oneTimeClickDetect){
+        if (!oneTimeClickDetect){
+            oneTimeClickDetect = true;
+            m_DTLayer->clickedWindow(this);
+        }
+    }
+    else{
+        oneTimeClickDetect = false;
+    }
+
+    if (!MoveEnabled) return;
+
     if (this->getParent()->isVisible())
         if (isMouseTouching(this) && !m_Lock){
+            
             if (!m_DTLayer->m_IsMovingAWindow){
                 if (m_DoubleClickTimer <= 0){
                     m_DoubleClickTimer = 0.3f;
@@ -237,4 +250,8 @@ void LabelLayoutWindow::updateLine(int line){
             winToCheck->setPositionBasedOnLayout(winToCheck->m_MyLayout);
         }
     }
+}
+
+void LabelLayoutWindow::setMoveEnabled(bool b){
+    MoveEnabled = b;
 }

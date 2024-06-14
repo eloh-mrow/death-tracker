@@ -1,6 +1,7 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include "../managers/StatsManager.hpp"
 #include "../utils/Settings.hpp"
+#include "../managers/DTPopupManager.hpp"
 
 using namespace geode::prelude;
 
@@ -40,6 +41,8 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     bool init(GJGameLevel* level, bool p1, bool p2) {
         if (!PlayLayer::init(level, p1, p2)) return false;
+
+        DTPopupManager::setCurrentLevel(level);
 
         // log::info("PlayLayer::init()");
 

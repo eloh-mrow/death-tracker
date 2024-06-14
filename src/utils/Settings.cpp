@@ -11,3 +11,7 @@ bool Settings::isCompletedLevelTrackingDisabled() {
 bool Settings::isPracticeZeroDeathsEnabled() {
     return Mod::get()->getSettingValue<bool>("practice-zero-deaths");
 }
+
+bool Settings::getPauseMenuEnabled(){
+    return Mod::get()->getSettingValue<bool>("pause-menu");
+}

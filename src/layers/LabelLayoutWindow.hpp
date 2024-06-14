@@ -30,4 +30,9 @@ public:
     std::pair<int, int> getLineByPos(CCPoint pos);
     void updateLine(int line);
     float m_DoubleClickTimer;
+
+
+    bool MoveEnabled = true;
+    void setMoveEnabled(bool b);
+    bool oneTimeClickDetect;
 };
