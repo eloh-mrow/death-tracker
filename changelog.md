@@ -22,6 +22,9 @@
 - <co>import/export save data</c>
 
 # Changelog
+## v2.0.0-beta.10
+- updated for beta 1
+
 ## v2.0.0-beta.9
 - added the option to access the tracker menu though the pause menu
 - added the option to copy text from labels
