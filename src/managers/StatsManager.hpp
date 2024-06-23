@@ -130,6 +130,8 @@ private:
 public:
     StatsManager() = delete;
 
+    static int MainLevelIDs[26];
+
     // main functions
     static void loadLevelStats(GJGameLevel* level);
     static LevelStats getLevelStats(GJGameLevel* level);

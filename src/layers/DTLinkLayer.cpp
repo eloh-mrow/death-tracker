@@ -103,6 +103,8 @@ void DTLinkLayer::refreshLists(){
         }
         if (m_AllLevels[i].second.levelName == "-1")
             levelNameLower = "unknown name";
+        if (StatsManager::splitLevelKey(m_AllLevels[i].first).first == "0")
+            levelNameLower = "Shared Save";
 
         if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower)){
             bool isValidForList = true;

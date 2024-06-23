@@ -14,8 +14,6 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
     bool init(GJGameLevel* p0, bool p1){
         if (!LevelInfoLayer::init(p0, p1)) return false;
 
-        p0->m_levelType = GJLevelType::Saved;
-
         StatsManager::loadLevelStats(p0);
 
         auto otherMenu = getChildByID("other-menu");

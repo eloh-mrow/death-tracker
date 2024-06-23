@@ -1547,6 +1547,9 @@ void DTLayer::UpdateSharedStats(){
     if (m_SessionSelectionInput)
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
     
+    if (m_Level->m_levelID == 0){
+        m_SharedLevelStats.levelName = "Shared Save";
+    }
 }
 
 void DTLayer::OnManage(CCObject*){

@@ -10,18 +10,25 @@
 - <cg>complete UI overhaul</c>
 - <cg>added graphs</c>
 - <cg>linking between levels</c>
+- <cg>saved level support (kinda)</c>
 
 <---------- IN PROGRESS ---------->
-
-- <cy>added macOS support</c>
-- <cy>per-level and global customization settings</c>
-
-<---------- TO-DO ---------->
 
 - <co>custom save data folder path</c>
 - <co>import/export save data</c>
 
+<---------- TO-DO ---------->
+
+- <co>saved level support (real)</c>
+- <co>macOS support</c>
+
+
 # Changelog
+## v2.0.0-beta.11
+- updated for geode 3.0.0
+- the mod now lets you see your saved level stats but they are still not seperated
+- fixed some bugs
+
 ## v2.0.0-beta.10
 - updated for beta 1
 

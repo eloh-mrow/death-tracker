@@ -33,6 +33,10 @@ LevelStats StatsManager::m_levelStats{};
 
 std::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
 
+int StatsManager::MainLevelIDs[26]{
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 5001, 5002, 5003, 5004, 3001
+};
+
 std::vector<std::string> StatsManager::m_AllFontsMap{
     "bigFont.fnt",
     "chatFont.fnt",
@@ -522,7 +526,10 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
             return errStats;
         }
         else
+        {
             return res.value().as<LevelStats>();
+        }
+            
     }
         
     // get defaults for level stats

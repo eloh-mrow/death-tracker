@@ -41,6 +41,31 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     bool init(GJGameLevel* level, bool p1, bool p2) {
         if (!PlayLayer::init(level, p1, p2)) return false;
+        
+        bool isMainLevel = false;
+
+        for (int i = 0; i < 26; i++)
+        {
+            if (StatsManager::MainLevelIDs[i] == level->m_levelID.value())
+                isMainLevel = true;
+        }
+
+        if (isMainLevel){
+            auto stats = StatsManager::getLevelStats(level);
+            if (stats.currentBest != -1){
+                stats.attempts = level->m_attempts;
+                stats.levelName = level->m_levelName;
+                stats.difficulty = StatsManager::getDifficulty(level);
+
+                StatsManager::saveData(stats, level);
+                StatsManager::saveBackup(stats, level);
+            }
+            else{
+                Notification::create("Failed to load Deaths json.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+            }
+        }
+
+        
 
         DTPopupManager::setCurrentLevel(level);
 
