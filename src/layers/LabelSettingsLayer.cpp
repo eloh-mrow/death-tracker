@@ -679,7 +679,7 @@ void LabelSettingsLayer::deleteLabel(CCObject*){
 }
 
 void LabelSettingsLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "<cg>Label Name</c> - change this labels name\n<cy>Text Alighnment</c> - change the alighnment of this label\n<cj>Text</c> - the text displayed by this label\n<cr>Color picker</c> - chnage the texts color\n<cb>Font</c> - change the font of the text\n<ca>Font Size</c> - change the texts size", "Ok");
+    auto alert = FLAlertLayer::create("Help", "<cg>Label Name</c> - change this labels name\n<cy>Text Alighnment</c> - change the alighnment of this label\n<cj>Text</c> - the text displayed by this label\n<cr>Color picker</c> - change the texts color\n<cb>Font</c> - change the font of the text\n<ca>Font Size</c> - change the texts size", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

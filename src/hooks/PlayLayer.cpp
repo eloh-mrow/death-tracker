@@ -11,6 +11,9 @@ class $modify(DTPlayLayer, PlayLayer) {
         bool isSessionExpired = false;
         bool hasRespawned = false;
         Run currentRun;
+
+        std::vector<int> fzeroToSave{};
+        std::vector<Run> runsToSave{};
     };
 
     bool disableCompletedLevelTracking() {
@@ -165,18 +168,36 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (m_fields->currentRun.start < 0)
             return;
 
-        // log deaths from 0 in normal mode
-        if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
-            StatsManager::logDeath(m_fields->currentRun.end);
-        else if (!m_isPracticeMode && m_level->isPlatformer())
-            StatsManager::logDeath(m_fields->currentRun.end);
+        if (!Settings::getLateSaveEnabled()){
+            // log deaths from 0 in normal mode
+            if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
+                StatsManager::logDeath(m_fields->currentRun.end);
+            else if (!m_isPracticeMode && m_level->isPlatformer())
+                StatsManager::logDeath(m_fields->currentRun.end);
 
-        // anything else is a run
-        // platformer runs only from 0
-        else if (m_level->isPlatformer() && m_isPracticeMode)
-            StatsManager::logRun(m_fields->currentRun);
-        else
-            StatsManager::logRun(m_fields->currentRun);
+            // anything else is a run
+            // platformer runs only from 0
+            else if (m_level->isPlatformer() && m_isPracticeMode)
+                StatsManager::logRun(m_fields->currentRun);
+            else
+                StatsManager::logRun(m_fields->currentRun);
+        }
+        else{
+            // log deaths from 0 in normal mode
+            if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
+                m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
+            else if (!m_isPracticeMode && m_level->isPlatformer())
+                m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
+
+            // anything else is a run
+            // platformer runs only from 0
+            else if (m_level->isPlatformer() && m_isPracticeMode)
+                m_fields->runsToSave.push_back(m_fields->currentRun);
+            else
+                m_fields->runsToSave.push_back(m_fields->currentRun);
+        }
+
+        
     }
 
     void levelComplete() {
@@ -204,11 +225,18 @@ class $modify(DTPlayLayer, PlayLayer) {
         if (m_level->isPlatformer())
             m_fields->currentRun.end++;
         
-        if (m_fields->currentRun.start == 0)
-            StatsManager::logDeath(m_fields->currentRun.end);
-        else
-            StatsManager::logRun(m_fields->currentRun);
-            
+        if (!Settings::getLateSaveEnabled()){
+            if (m_fields->currentRun.start == 0)
+                StatsManager::logDeath(m_fields->currentRun.end);
+            else
+                StatsManager::logRun(m_fields->currentRun);
+        }
+        else{
+            if (m_fields->currentRun.start == 0)
+                m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
+            else
+                m_fields->runsToSave.push_back(m_fields->currentRun);
+        }            
     }
 
     void resetLevelFromStart() {
@@ -221,6 +249,14 @@ class $modify(DTPlayLayer, PlayLayer) {
     void onQuit() {
         PlayLayer::onQuit();
         // log::info("PlayLayer::onQuit()");
+
+        if (m_fields->fzeroToSave.size()){
+            StatsManager::logDeaths(m_fields->fzeroToSave);
+        }
+
+        if (m_fields->runsToSave.size()){
+            StatsManager::logRuns(m_fields->runsToSave);
+        }
 
         // schedule session gets reset
         // this cancels creating a new session

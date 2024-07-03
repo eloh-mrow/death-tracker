@@ -1,4 +1,5 @@
 #include "../layers/LinkLevelCell.hpp"
+#include "../utils/Settings.hpp"
 
 LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked) {
     auto ret = new LinkLevelCell();
@@ -168,6 +169,11 @@ void LinkLevelCell::DeleteMe(CCObject*){
 void LinkLevelCell::ViewMe(CCObject*){
     if (m_DTManageLevelsLayer->dInfo) return;
 
+    if (StatsManager::splitLevelKey(m_LevelKey).second != "online"){
+        geode::Notification::create(fmt::format("Cant view {} levels!", StatsManager::splitLevelKey(m_LevelKey).second), CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+        return;
+    }
+
     m_DTManageLevelsLayer->downloadCircle->setVisible(true);
 
     GameLevelManager::get()->m_levelManagerDelegate = this;
@@ -227,7 +233,7 @@ void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){
             }
         }
         
-        std::filesystem::path filep = Mod::get()->getSaveDir() / "levels" / (m_LevelKey + ".json");
+        std::filesystem::path filep = Settings::getSavePath() / (m_LevelKey + ".json");
 
         std::filesystem::remove(filep);
 

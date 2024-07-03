@@ -4,7 +4,7 @@
         "android": "2.206",
         "win": "2.206"
     },
-	"version": "v2.0.0-beta.11",
+	"version": "v2.0.0-beta.12",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -31,6 +31,12 @@
 			"type": "bool",
 			"default": true
 		},
+		"late-save": {
+			"name": "Late Save",
+			"description": "Will save your deaths when exiting the level instead of when you die, this may fix lag spikes that happen on death.",
+			"type": "bool",
+			"default": false
+		},
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",
 			"description": "Disables tracking on completed online levels.",
@@ -42,6 +48,10 @@
 			"description": "Deaths will be shown instead of runs from 0% in practice mode.",
 			"type": "bool",
 			"default": false
+		},
+		"save-path": {
+			"name": "Save Path",
+			"type": "custom"
 		}
 	},
 	"dependencies": [
@@ -49,6 +59,11 @@
 			"id": "geode.node-ids",
 			"version": ">=1.12.0-beta.1",
 			"importance": "required"
-		}
+		},
+		{
+            "id": "cvolton.level-id-api",
+            "version": "v1.0.0",
+            "importance": "required"
+        }
 	]
 }

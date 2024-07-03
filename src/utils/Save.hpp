@@ -55,4 +55,7 @@ class Save {
 
         static ccColor3B getSessionBestColor();
         static void setSessionBestColor(ccColor3B color);
+
+        static bool getExportWOutLabels();
+        static void setExportWOutLabels(bool b);
 };

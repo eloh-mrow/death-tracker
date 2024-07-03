@@ -24,3 +24,11 @@ ccColor3B Save::getSessionBestColor(){
 void Save::setSessionBestColor(ccColor3B color){
     Mod::get()->setSavedValue("SessionBestColor", color);
 }
+
+bool Save::getExportWOutLabels(){
+    return Mod::get()->getSavedValue<bool>("ExportWLabels");
+}
+
+void Save::setExportWOutLabels(bool b){
+    Mod::get()->setSavedValue("ExportWLabels", b);
+}

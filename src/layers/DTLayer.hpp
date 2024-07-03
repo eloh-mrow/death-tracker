@@ -149,4 +149,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void copyText(CCObject*);
         bool isInCopyMenu;
         CCMenuItemSpriteExtra* copyInfoButton;
+
+        //export/import
+        void onExportClicked(CCObject*);
 };

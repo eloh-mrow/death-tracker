@@ -138,7 +138,9 @@ public:
     static LevelStats getLevelStats(std::filesystem::path level);
     static LevelStats getLevelStats(std::string levelKey);
     static void logDeath(int percent);
+    static void logDeaths(std::vector<int> percents);
     static void logRun(Run run);
+    static void logRuns(std::vector<Run> runs);
 
     // utility functions
     static long long getNowSeconds();
@@ -167,4 +169,6 @@ public:
     7 = Easy Demon, 8 = Medium Demon, 9 = Insane Demon, 10 = Extreme Demon
     */
     static int getDifficulty(GJGameLevel* level);
+
+    static void setPath(std::filesystem::path path);
 };

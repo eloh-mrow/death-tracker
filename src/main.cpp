@@ -75,4 +75,4 @@ $execute {
         Save::setNewBestColor({255, 255, 0});
         Save::setSessionBestColor({ 255, 136, 0 });
     }
-}
+};

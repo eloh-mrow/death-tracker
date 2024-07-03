@@ -6,7 +6,9 @@
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/DTLinkLayer.hpp"
 #include "../layers/DTManageLevelsLayer.hpp"
+#include "../layers/DTExportImportLayer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
+#include <cvolton.level-id-api/include/EditorIDs.hpp>
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -318,6 +320,28 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     );
     settingsButton->setPosition({207, -106});
     this->m_buttonMenu->addChild(settingsButton);
+
+    /*
+    //227, -106
+
+    //export/import
+    auto exportBS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+    auto exportBS1 = CCSprite::createWithSpriteFrameName("geode.loader/install.png");
+    exportBS1->setPosition(exportBS->getContentSize() / 2);
+    exportBS1->setScale(1.2f);
+    exportBS->addChild(exportBS1);
+    exportBS->setScale(0.8f);
+    auto exportButton = CCMenuItemSpriteExtra::create(
+        exportBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onExportClicked)
+    );
+    exportButton->setAnchorPoint({0.5f, 0.5f});
+    exportButton->setPosition({185, -106});
+    this->m_buttonMenu->addChild(exportButton);
+    */
+
 
     //modify runs
 
@@ -1426,13 +1450,9 @@ void DTLayer::onClose(cocos2d::CCObject*) {
 }
 
 void DTLayer::openGraphMenu(CCObject*){
-    #ifdef GEODE_IS_MACOS
-        geode::Notification::create("Graphs are not yet supported on MacOS.", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
-    #else
     auto graph = DTGraphLayer::create(this);
     graph->setZOrder(100);
     this->addChild(graph);
-    #endif
 }
 
 void DTLayer::OnToggleAllRuns(CCObject*){
@@ -1546,10 +1566,6 @@ void DTLayer::UpdateSharedStats(){
 
     if (m_SessionSelectionInput)
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
-    
-    if (m_Level->m_levelID == 0){
-        m_SharedLevelStats.levelName = "Shared Save";
-    }
 }
 
 void DTLayer::OnManage(CCObject*){
@@ -1592,12 +1608,32 @@ void DTLayer::onRemovedFZRun(CCObject*){
     if (addFZRunInput->getString() != "")
         precent = std::stoi(addFZRunInput->getString());
     
-    m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
-    if (m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
-        m_MyLevelStats.deaths.erase(std::to_string(precent));
-    }
+    if (m_MyLevelStats.deaths.contains(std::to_string(precent))){
+        m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
+        if (m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
+            m_MyLevelStats.deaths.erase(std::to_string(precent));
+        }
 
-    StatsManager::saveData(m_MyLevelStats, m_Level);
+        StatsManager::saveData(m_MyLevelStats, m_Level);
+    }
+    else{
+        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
+        {
+            auto lStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+
+            if (lStats.deaths.contains(std::to_string(precent))){
+                lStats.deaths[std::to_string(precent)] -= amount;
+                if (lStats.deaths[std::to_string(precent)] <= 0){
+                    lStats.deaths.erase(std::to_string(precent));
+                }
+
+                StatsManager::saveData(lStats, m_MyLevelStats.LinkedLevels[i]);
+                break;
+            }
+        }
+        
+    }
+    
     UpdateSharedStats();
     refreshStrings();
     RefreshText();
@@ -1655,12 +1691,33 @@ void DTLayer::onRemovedRun(CCObject*){
 
     std::string runKey = fmt::format("{}-{}", r.start, r.end);
     
-    m_MyLevelStats.runs[runKey] -= amount;
-    if (m_MyLevelStats.runs[runKey] <= 0){
-        m_MyLevelStats.runs.erase(runKey);
+    if (m_MyLevelStats.runs.contains(runKey)){
+        m_MyLevelStats.runs[runKey] -= amount;
+        if (m_MyLevelStats.runs[runKey] <= 0){
+            m_MyLevelStats.runs.erase(runKey);
+        }
+
+        StatsManager::saveData(m_MyLevelStats, m_Level);
+    }
+    else{
+        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
+        {
+            auto lStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+
+            if (lStats.runs.contains(runKey)){
+                lStats.runs[runKey] -= amount;
+                if (lStats.runs[runKey] <= 0){
+                    lStats.runs.erase(runKey);
+                }
+
+                StatsManager::saveData(lStats, m_MyLevelStats.LinkedLevels[i]);
+                break;
+            }
+        }
+        
     }
 
-    StatsManager::saveData(m_MyLevelStats, m_Level);
+    
     UpdateSharedStats();
     refreshStrings();
     RefreshText();
@@ -1752,4 +1809,10 @@ void DTLayer::clickedWindow(CCNode* nwindow){
 
         geode::Notification::create("Copied text from " + window->m_MyLayout.labelName, CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"))->show();
     }   
+}
+
+void DTLayer::onExportClicked(CCObject*){
+    auto EILayer = DTExportImportLayer::create(this);
+    EILayer->setZOrder(100);
+    this->addChild(EILayer);
 }

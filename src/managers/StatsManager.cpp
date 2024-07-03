@@ -1,6 +1,7 @@
 #include "StatsManager.hpp"
 #include "../utils/Settings.hpp"
 #include "../utils/Dev.hpp"
+#include <cvolton.level-id-api/include/EditorIDs.hpp>
 
 using namespace geode::prelude;
 
@@ -31,7 +32,7 @@ bool StatsManager::m_scheduleCreateNewSession = false;
 
 LevelStats StatsManager::m_levelStats{};
 
-std::filesystem::path StatsManager::m_savesFolderPath = Mod::get()->getSaveDir() / "levels";
+std::filesystem::path StatsManager::m_savesFolderPath = "";
 
 int StatsManager::MainLevelIDs[26]{
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 5001, 5002, 5003, 5004, 3001
@@ -242,6 +243,33 @@ void StatsManager::logDeath(int percent) {
     StatsManager::saveData();
 }
 
+void StatsManager::logDeaths(std::vector<int> percents) {
+    auto session = StatsManager::getSession();
+    if (!session) return;
+    // log::info("StatsManager::logDeath() -- {}%", percent);
+
+    for (int i = 0; i < percents.size(); i++)
+    {
+        auto percentKey = StatsManager::toPercentKey(percents[i]);
+
+        m_levelStats.deaths[percentKey]++;
+        session->deaths[percentKey]++;
+
+        if (percents[i] > m_levelStats.currentBest) {
+            m_levelStats.currentBest = percents[i];
+            m_levelStats.newBests.insert(percents[i]);
+        }
+
+        if (percents[i] > session->currentBest) {
+            session->currentBest = percents[i];
+            session->newBests.insert(percents[i]);
+        }
+    }
+
+    StatsManager::updateSessionLastPlayed();
+    StatsManager::saveData();
+}
+
 void StatsManager::logRun(Run run) {
     bool TrackRun = false;
     if (m_levelStats.RunsToSave.size())
@@ -276,6 +304,43 @@ void StatsManager::logRun(Run run) {
     StatsManager::saveData();
 }
 
+void StatsManager::logRuns(std::vector<Run> runs) {
+    bool TrackRun = false;
+    for (int i = 0; i < runs.size(); i++)
+    {
+        if (m_levelStats.RunsToSave.size())
+            if (m_levelStats.RunsToSave[0] == -1){
+                TrackRun = true;
+            }
+            else{
+                for (int i = 0; i < m_levelStats.RunsToSave.size(); i++)
+                {
+                    if (m_levelStats.RunsToSave[i] == runs[i].start){
+                        TrackRun = true;
+                        break;
+                    }
+                }
+            }
+
+        if (!TrackRun) return;
+
+        auto session = StatsManager::getSession();
+        if (!session) return;
+        // log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
+
+        auto runKey = fmt::format("{}-{}",
+            StatsManager::toPercentKey(runs[i].start),
+            StatsManager::toPercentKey(runs[i].end)
+        );
+
+        m_levelStats.runs[runKey]++;
+        session->runs[runKey]++;
+    }
+
+    StatsManager::updateSessionLastPlayed();
+    StatsManager::saveData();
+}
+
 /* utility functions
 ===================== */
 long long StatsManager::getNowSeconds() {
@@ -287,11 +352,21 @@ long long StatsManager::getNowSeconds() {
 std::string StatsManager::getLevelKey(GJGameLevel* level) {
 	if (!level) return "-1";
 
-	auto levelId = std::to_string(level->m_levelID.value());
+	std::string levelId = "";
+
+    if (level->m_levelType == GJLevelType::Editor){
+        levelId += std::to_string(EditorIDs::getID(level));
+    }
+    else{
+        levelId += std::to_string(level->m_levelID.value());
+    }
 
 	// local level postfix
-	if (level->m_levelType != GJLevelType::Saved)
+	if (level->m_levelType == GJLevelType::Local)
 		levelId += "-local";
+
+    if (level->m_levelType == GJLevelType::Editor)
+		levelId += "-editor";
 
 	// daily/weekly postfix
 	if (level->m_dailyID > 0)
@@ -389,6 +464,7 @@ void StatsManager::saveData() {
     if (m_levelStats.currentBest == -1) return;
 
     std::string levelKey = StatsManager::getLevelKey();
+    
     if (levelKey == "-1") return;
 
     auto levelSaveFilePath = StatsManager::getLevelSaveFilePath();
@@ -690,7 +766,12 @@ std::vector<std::string> StatsManager::getAllFont(){
 }
 
 std::vector<std::pair<std::string, LevelStats>> StatsManager::getAllLevels(){
-    auto allLevels = file::readDirectory(m_savesFolderPath).value();
+    auto res = file::readDirectory(m_savesFolderPath);
+    if (!res.isOk()){
+        geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+        return std::vector<std::pair<std::string, LevelStats>>{};
+    }
+    auto allLevels = res.value();
 
     std::vector<std::pair<std::string, LevelStats>> toReturn;
 
@@ -738,4 +819,8 @@ int StatsManager::getDifficulty(GJGameLevel* level){
         }
     else 
         return 0;
+}
+
+void StatsManager::setPath(std::filesystem::path path){
+    m_savesFolderPath = path;
 }

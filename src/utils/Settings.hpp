@@ -10,4 +10,6 @@ public:
     static bool isCompletedLevelTrackingDisabled();
     static bool isPracticeZeroDeathsEnabled();
     static bool getPauseMenuEnabled();
+    static bool getLateSaveEnabled();
+    static std::filesystem::path getSavePath();
 };

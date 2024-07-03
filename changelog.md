@@ -11,19 +11,25 @@
 - <cg>added graphs</c>
 - <cg>linking between levels</c>
 - <cg>saved level support (kinda)</c>
+- <cg>saved level support (real)</c>
+- <cg>custom save data folder path</c>
 
 <---------- IN PROGRESS ---------->
 
-- <co>custom save data folder path</c>
-- <co>import/export save data</c>
+- <cy>import/export save data</c>
 
 <---------- TO-DO ---------->
 
-- <co>saved level support (real)</c>
 - <co>macOS support</c>
 
 
 # Changelog
+## v2.0.0-beta.12
+- added late save for people who get lag spikes on death
+- added the option for a custom save data folder
+- fixed bugs
+- added support for logging runs on editor levels, ty cvolton for making 'Editor Level ID API' :D
+
 ## v2.0.0-beta.11
 - updated for geode 3.0.0
 - the mod now lets you see your saved level stats but they are still not seperated
