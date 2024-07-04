@@ -2,7 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/loader/SettingNode.hpp>
-#include <Geode/UI/TextArea.hpp>
+#include "Geode/ui/TextArea.hpp"
 
 #include "SavePathSettingValue.hpp"
 #include "utils/Settings.hpp"
