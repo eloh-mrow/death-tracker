@@ -13,17 +13,25 @@
 - <cg>saved level support (kinda)</c>
 - <cg>saved level support (real)</c>
 - <cg>custom save data folder path</c>
+- <cg>import/export save data</c>
 
 <---------- IN PROGRESS ---------->
 
-- <cy>import/export save data</c>
+- <cy>macOS support</c>
+- <cy>some extra polish before v2.0.0 releases</c>
 
 <---------- TO-DO ---------->
 
-- <co>macOS support</c>
+
 
 
 # Changelog
+## v2.0.0-beta.13
+- 'Track any runs' is now on by default
+- added the option to export your saved runs into text files
+- added the option to import existing level progress files into death tracker
+- a few bug fixes
+
 ## v2.0.0-beta.12
 - added late save for people who get lag spikes on death
 - added the option for a custom save data folder

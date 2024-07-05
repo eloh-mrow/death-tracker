@@ -4,7 +4,7 @@
         "android": "2.206",
         "win": "2.206"
     },
-	"version": "v2.0.0-beta.12",
+	"version": "v2.0.0-beta.13",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -15,7 +15,7 @@
 			"resources/*.png"
 		]
 	},
-	"tags": ["utility", "interface"],
+	"tags": ["utility", "interface", "offline"],
 	"settings": {
 		"session-length": {
 			"name": "Session Length",

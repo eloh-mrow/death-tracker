@@ -5,7 +5,7 @@
 
 using namespace geode::prelude;
 
-class DTExportImportLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
+class DTExportImportLayer : public Popup<DTLayer* const&> {
     protected:
         bool setup(DTLayer* const& layer) override;
     public:
@@ -21,4 +21,14 @@ class DTExportImportLayer : public Popup<DTLayer* const&>, public TextInputDeleg
 
         CCMenuItemToggler* exportWithLabels;
         bool exportWithLabelsB;
+
+        //import
+
+        void onImportClicked(CCObject*);
+        LoadingCircle* loading;
+        bool importing;
+
+        //info
+        void onExportInfo(CCObject*);
+        void onImportInfo(CCObject*);
 };

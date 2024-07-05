@@ -22,18 +22,19 @@ typedef struct {
     int currentBest;
 } Session;
 
-typedef struct {
+struct LevelStats_s {
     Deaths deaths;
     Runs runs;
     NewBests newBests;
     int currentBest;
     std::vector<Session> sessions;
-    std::vector<int> RunsToSave;
+    std::vector<int> RunsToSave{-1};
     std::vector<std::string> LinkedLevels;
     std::string levelName;
     int attempts;
     int difficulty;
-} LevelStats;
+};
+typedef struct LevelStats_s LevelStats;
 
 // matjson fuckery
 template <>

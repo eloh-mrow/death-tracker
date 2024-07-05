@@ -493,20 +493,22 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
         while (hexValue.length() < 6){
             hexValue.push_back('0');
         }
-            
-        ccColor3B hexColor = cc3bFromHexString(hexValue).value();
+        try{
+            ccColor3B hexColor = cc3bFromHexString(hexValue).value();
 
-        m_BlockSelfCall += 1;
-        m_ColorPicker->setColorValue(hexColor);
+            m_BlockSelfCall += 1;
+            m_ColorPicker->setColorValue(hexColor);
 
-        m_BlockSelfCall += 2;
-        m_ColorInputR->setString(std::to_string(hexColor.r));
-        m_BlockSelfCall += 2;
-        m_ColorInputG->setString(std::to_string(hexColor.g));
-        m_BlockSelfCall += 2;
-        m_ColorInputB->setString(std::to_string(hexColor.b));
-                
-        m_LabelWin->m_MyLayout.color = {hexColor.r, hexColor.g, hexColor.b, m_LabelWin->m_MyLayout.color.a};
+            m_BlockSelfCall += 2;
+            m_ColorInputR->setString(std::to_string(hexColor.r));
+            m_BlockSelfCall += 2;
+            m_ColorInputG->setString(std::to_string(hexColor.g));
+            m_BlockSelfCall += 2;
+            m_ColorInputB->setString(std::to_string(hexColor.b));
+                    
+            m_LabelWin->m_MyLayout.color = {hexColor.r, hexColor.g, hexColor.b, m_LabelWin->m_MyLayout.color.a};
+        }
+        catch (...) {}
     }
 
     if (input == m_LabelNameInput->getInput()){

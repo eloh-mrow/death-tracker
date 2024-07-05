@@ -318,11 +318,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         this,
         menu_selector(DTLayer::onSettings)
     );
-    settingsButton->setPosition({207, -106});
+    settingsButton->setPosition({227, -106});
     this->m_buttonMenu->addChild(settingsButton);
-
-    /*
-    //227, -106
 
     //export/import
     auto exportBS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
@@ -340,8 +337,6 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     exportButton->setAnchorPoint({0.5f, 0.5f});
     exportButton->setPosition({185, -106});
     this->m_buttonMenu->addChild(exportButton);
-    */
-
 
     //modify runs
 
@@ -532,7 +527,10 @@ void DTLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInput() && m_SessionsAmount > 0){
         int selected = 1;
         if (input->getString() != "")
-            selected = std::stoi(input->getString());
+            try{
+                selected = std::stoi(input->getString());
+            }
+            catch (...){ }
         
         if (selected > m_SessionsAmount){
             selected = m_SessionsAmount;
@@ -553,7 +551,10 @@ void DTLayer::textChanged(CCTextInputNode* input){
 
         int res = 0;
         if (input->getString() != "")
-            res = std::stoi(input->getString());
+            try{
+                res = std::stoi(input->getString());
+            }
+            catch (...){ }
 
         if (res > 100){
             res = 100;
@@ -565,7 +566,10 @@ void DTLayer::textChanged(CCTextInputNode* input){
     if (input == addFZRunInput->getInput()){
         int res = 0;
         if (input->getString() != "")
-            res = std::stoi(input->getString());
+            try{
+                res = std::stoi(input->getString());
+            }
+            catch (...){ }
 
         if (res > 100){
             res = 100;
@@ -578,7 +582,11 @@ void DTLayer::textChanged(CCTextInputNode* input){
 
         int res = 0;
         if (input->getString() != "")
-            res = std::stoi(input->getString());
+            try{
+                res = std::stoi(input->getString());
+            }
+            catch (...){ }
+            
         
         if (res > 100){
             res = 100;
@@ -590,7 +598,10 @@ void DTLayer::textChanged(CCTextInputNode* input){
 
         int res = 0;
         if (input->getString() != "")
-            res = std::stoi(input->getString());
+            try{
+                res = std::stoi(input->getString());
+            }
+            catch (...){ }
         
         if (res > 100){
             res = 100;
@@ -602,7 +613,10 @@ void DTLayer::textChanged(CCTextInputNode* input){
 
         int res = 0;
         if (input->getString() != "")
-            res = std::stoi(input->getString());
+            try{
+                res = std::stoi(input->getString());
+            }
+            catch (...){ }
 
         if (res == 0){
             res = 1;
@@ -1237,7 +1251,10 @@ void DTLayer::addRunAllowed(CCObject*){
 
     int startPrecent = -1;
     if (m_AddRunAllowedInput->getString() != "")
-        startPrecent = std::stoi(m_AddRunAllowedInput->getString());
+        try{
+            startPrecent = std::stoi(m_AddRunAllowedInput->getString());
+        }
+        catch (...) {}
     if (startPrecent == -1) return;
 
     bool doesExist = false;
@@ -1583,11 +1600,17 @@ void DTLayer::onAddedFZRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != "")
-        amount = std::stoi(runsAmountInput->getString());
+        try{
+            amount = std::stoi(runsAmountInput->getString());
+        }
+        catch (...) {}
 
     int precent = 0;
     if (addFZRunInput->getString() != "")
-        precent = std::stoi(addFZRunInput->getString());
+        try{
+            precent = std::stoi(addFZRunInput->getString());
+        }
+        catch (...) {}
     
     m_MyLevelStats.deaths[std::to_string(precent)] += amount;
 
@@ -1602,12 +1625,18 @@ void DTLayer::onRemovedFZRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != "")
-        amount = std::stoi(runsAmountInput->getString());
-    
+        try{
+            amount = std::stoi(runsAmountInput->getString());
+        }
+        catch (...) {}
+        
     int precent = 0;
     if (addFZRunInput->getString() != "")
-        precent = std::stoi(addFZRunInput->getString());
-    
+        try{
+            precent = std::stoi(addFZRunInput->getString());
+        }
+        catch (...) {}
+        
     if (m_MyLevelStats.deaths.contains(std::to_string(precent))){
         m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
         if (m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
@@ -1644,7 +1673,11 @@ void DTLayer::onAddedRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != "")
-        amount = std::stoi(runsAmountInput->getString());
+        try{
+            amount = std::stoi(runsAmountInput->getString());
+        }
+        catch (...){ }
+        
     
     Run r{
         0,
@@ -1652,10 +1685,17 @@ void DTLayer::onAddedRun(CCObject*){
     };
 
     if (addRunStartInput->getString() != "")
-        r.start = std::stoi(addRunStartInput->getString());
+        try{
+            r.start = std::stoi(addRunStartInput->getString());
+        }
+        catch (...){ }
+        
 
     if (addRunEndInput->getString() != "")
-        r.end = std::stoi(addRunEndInput->getString());
+        try{
+            r.end = std::stoi(addRunEndInput->getString());
+        }
+        catch (...){ }
     
     if (r.start > r.end) return;
 
@@ -1674,7 +1714,10 @@ void DTLayer::onRemovedRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != "")
-        amount = std::stoi(runsAmountInput->getString());
+        try{
+            amount = std::stoi(runsAmountInput->getString());
+        }
+        catch (...){ }
     
     Run r{
         0,
@@ -1682,10 +1725,17 @@ void DTLayer::onRemovedRun(CCObject*){
     };
 
     if (addRunStartInput->getString() != "")
-        r.start = std::stoi(addRunStartInput->getString());
+        try{
+            r.start = std::stoi(addRunStartInput->getString());
+        }
+        catch (...){ }
 
     if (addRunEndInput->getString() != "")
-        r.end = std::stoi(addRunEndInput->getString());
+        try{
+            r.end = std::stoi(addRunEndInput->getString());
+        }
+        catch (...){ }
+        
 
     if (r.start > r.end) return;
 
