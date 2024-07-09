@@ -42,7 +42,7 @@ CCPoint LabelLayoutWindow::mousePosToNode(CCNode* node){
     CCPoint mousePos;
 
     if (m_DTLayer->ClickPos->getLocation() != ccp(0, CCDirector::sharedDirector()->getWinSize().height))
-        mousePos = node->getParent()->convertTouchToNodeSpace(m_DTLayer->ClickPos);
+        mousePos = node->getParent()->convertToNodeSpace(m_DTLayer->ClickPos->getLocation());
     else
         mousePos = node->getPosition();
     
