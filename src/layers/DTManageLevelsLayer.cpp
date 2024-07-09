@@ -89,8 +89,6 @@ void DTManageLevelsLayer::refreshLists(bool SavePos){
         }
         if (m_AllLevels[i].second.levelName == "-1")
             levelNameLower = "unknown name";
-        if (StatsManager::splitLevelKey(m_AllLevels[i].first).first == "0")
-            levelNameLower = "Shared Save";
 
         if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower)){
             levelsListItems->addObject(LinkLevelCell::create(this, m_AllLevels[i].first, m_AllLevels[i].second, false));

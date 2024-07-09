@@ -2,6 +2,7 @@
 #include "../layers/DTLayer.hpp"
 #include "../managers/DTPopupManager.hpp"
 #include "../utils/Settings.hpp"
+#include "../hooks/DTPlayLayer.hpp"
 
 using namespace geode::prelude;
 
@@ -32,4 +33,15 @@ class $modify(DTPauseLayer, PauseLayer) {
         this->addChild(dtLayer);
     }
 
+    #if defined(GEODE_IS_MACOS)
+
+    void onNormalMode(cocos2d::CCObject* sender){
+        PauseLayer::onNormalMode(sender);
+
+        static_cast<DTPlayLayer*>(GameManager::get()->getPlayLayer())->m_fields->currentRun.end = 0;
+
+        //log::info("PauseLayer::onNormalMode()");
+    }
+
+    #endif
 };
