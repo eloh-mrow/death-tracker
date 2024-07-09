@@ -20,8 +20,8 @@ class $modify(DTEditLevelLayer, EditLevelLayer) {
             this,
             menu_selector(DTEditLevelLayer::openDTLayer)
         );
+        btn->setID("dt-skull-button");
         btn->setZOrder(1);
-        btn->setID("death-tracker-menu"_spr);
 
         IBMenu->addChild(btn);
         btn->setPosition({IBMenu->getChildByID("info-button")->getPosition() + ccp(btn->getScaledContentSize().width, 0)});

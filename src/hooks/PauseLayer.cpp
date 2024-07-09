@@ -24,6 +24,7 @@ class $modify(DTPauseLayer, PauseLayer) {
             menu_selector(DTPauseLayer::onDTMiniMenuOpened)
         );
 
+        button->setID("dt-skull-button");
         sideMenu->addChild(button);
         sideMenu->updateLayout();
     }

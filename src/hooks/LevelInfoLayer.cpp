@@ -27,9 +27,9 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
             this,
             menu_selector(myLevelInfoLayer::openDTLayer)
         );
+        m_fields->btn->setID("dt-skull-button");
         m_fields->btn->setZOrder(1);
         m_fields->btn->setVisible(false);
-        m_fields->btn->setID("death-tracker-menu"_spr);
 
         otherMenu->addChild(m_fields->btn);
         if (otherMenu->getChildByID("favorite-button")->isVisible())
