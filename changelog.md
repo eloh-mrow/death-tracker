@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.1
+- fixed a crash bug when clicking cancel on edit layout
+
 ## v2.0.0 full release!
 - <cg>added Android support</c>
 - <cg>added macOS support</c>

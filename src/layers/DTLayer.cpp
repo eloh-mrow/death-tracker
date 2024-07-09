@@ -517,7 +517,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
-        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>code refactor</c>\n- <cg>a layout system</c>\n- <cg>run tracking</c>\n- <cg>multi-session tracking</c>\n- <cg>complete UI overhaul</c>\n- <cg>graphs</c>\n- <cg>linking between levels</c>\n- <cg>saved level support</c>\n<cy>And more! :D</c>", "OK")->show();
+        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a crash bug when clicking cancel on edit layout</c>", "OK")->show();
     }
 
     return true;
@@ -534,7 +534,10 @@ void DTLayer::onEditLayout(CCObject* sender){
 
 void DTLayer::onEditLayoutCancle(CCObject*){
     EditLayoutEnabled(false);
-    m_LayoutStuffCont->removeMeAndCleanup();
+    if (m_LayoutStuffCont){
+        m_LayoutStuffCont->removeMeAndCleanup();
+        m_LayoutStuffCont = nullptr;
+    }
     createLayoutBlocks();
     RefreshText();
 }
