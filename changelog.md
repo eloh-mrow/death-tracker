@@ -1,31 +1,19 @@
-# v2 Roadmap
+# Changelog
 
-<---------- DONE ---------->
-
+## v2.0.0 full release!
 - <cg>added Android support</c>
+- <cg>added macOS support</c>
 - <cg>code refactor</c>
-- <cg>added scrolling</c>
+- <cg>added a layout system</c>
 - <cg>added run tracking</c>
 - <cg>added multi-session tracking</c>
 - <cg>complete UI overhaul</c>
 - <cg>added graphs</c>
 - <cg>linking between levels</c>
-- <cg>saved level support (kinda)</c>
-- <cg>saved level support (real)</c>
+- <cg>saved level support</c>
 - <cg>custom save data folder path</c>
 - <cg>import/export save data</c>
 
-<---------- IN PROGRESS ---------->
-
-- <cy>macOS support</c>
-- <cy>some extra polish before v2.0.0 releases</c>
-
-<---------- TO-DO ---------->
-
-
-
-
-# Changelog
 ## v2.0.0-beta.13
 - 'Track any runs' is now on by default
 - added the option to export your saved runs into text files

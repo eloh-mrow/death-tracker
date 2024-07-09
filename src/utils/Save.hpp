@@ -58,4 +58,7 @@ class Save {
 
         static bool getExportWOutLabels();
         static void setExportWOutLabels(bool b);
+
+        static std::string getLastOpenedVersion();
+        static void setLastOpenedVersion(std::string verion);
 };

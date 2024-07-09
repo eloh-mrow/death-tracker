@@ -32,3 +32,12 @@ bool Save::getExportWOutLabels(){
 void Save::setExportWOutLabels(bool b){
     Mod::get()->setSavedValue("ExportWLabels", b);
 }
+
+std::string Save::getLastOpenedVersion(){
+    return Mod::get()->getSavedValue<std::string>("LastOpenedVersion");
+}
+
+void Save::setLastOpenedVersion(std::string verion){
+    Mod::get()->setSavedValue("LastOpenedVersion", verion);
+}
+
