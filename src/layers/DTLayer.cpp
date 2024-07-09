@@ -148,6 +148,17 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     layoutInfoButton->setPosition({159, 118});
     m_EditLayoutMenu->addChild(layoutInfoButton);
 
+    auto resetLayoutBS = CCSprite::createWithSpriteFrameName("GJ_replayBtn_001.png");
+    resetLayoutBS->setScale(0.5f);
+    auto resetLayoutButton = CCMenuItemSpriteExtra::create(
+        resetLayoutBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onResetLayout)
+    );
+    resetLayoutButton->setPosition({-157, -112});
+    m_EditLayoutMenu->addChild(resetLayoutButton);
+
 
     //session selection
 
@@ -806,6 +817,9 @@ void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
 void DTLayer::createLayoutBlocks(){
     auto m_CurretLayout = Save::getLayout();
 
+    if (m_LayoutStuffCont)
+        m_LayoutStuffCont->removeMeAndCleanup();
+
     m_LayoutStuffCont = CCNode::create();
     m_LayoutStuffCont->setPositionX(m_ScrollLayer->getContentSize().width / 2);
     m_LayoutStuffCont->setPositionY(m_ScrollLayer->m_contentLayer->getContentSize().height);
@@ -1458,6 +1472,76 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
 
         onClose(nullptr);
     }
+
+    if (ResetLayoutAlert == layer && selected){
+        std::vector<LabelLayout> defaultLayout{
+            {
+                .labelName = "from 0",
+                .text = "From 0:{nl}{f0}{nl} ",
+                .line = 2,
+                .position = 0,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "Session",
+                .text = "Session:{nl}{s0}{nl} ",
+                .line = 2,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "Runs",
+                .text = "Runs:{nl}{runs}{nl} ",
+                .line = 3,
+                .position = 0,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "SRuns",
+                .text = "Session Runs:{nl}{sruns}{nl} ",
+                .line = 3,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 0,
+                .fontSize = 0.5f
+            },
+            {
+                .labelName = "Title",
+                .text = "{lvln}:",
+                .line = 0,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 2,
+                .fontSize = 1
+            },
+            {
+                .labelName = "att",
+                .text = "{att} attempts",
+                .line = 1,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 1,
+                .fontSize = 0.75f
+            }
+        };
+
+        Save::setLayout(defaultLayout);
+
+        createLayoutBlocks();
+        onEditLayoutApply(nullptr);
+    }
 }
 
 void DTLayer::onClose(cocos2d::CCObject*) {
@@ -1870,4 +1954,10 @@ void DTLayer::onExportClicked(CCObject*){
     auto EILayer = DTExportImportLayer::create(this);
     EILayer->setZOrder(100);
     this->addChild(EILayer);
+}
+
+void DTLayer::onResetLayout(CCObject*){
+    ResetLayoutAlert = FLAlertLayer::create(this, "Warning!", "This will reset your layout back to the default layout.\n\nAre you sure you want to do this?", "Cancel", "Reset");
+    ResetLayoutAlert->setZOrder(150);
+    this->addChild(ResetLayoutAlert);
 }

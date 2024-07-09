@@ -87,7 +87,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void onEditLayoutApply(CCObject*);
         void EditLayoutEnabled(bool b);
         std::vector<CCNode*> m_LayoutLines;
-        CCNode* m_LayoutStuffCont;
+        CCNode* m_LayoutStuffCont = nullptr;
         void createLayoutBlocks();
         bool m_IsMovingAWindow;
         void changeScrollSizeByBoxes(bool moveToTop = false);
@@ -96,6 +96,8 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCMenuItemSpriteExtra* addWindowButton;
         CCMenuItemSpriteExtra* layoutInfoButton;
         void clickedWindow(CCNode* window);
+        FLAlertLayer* ResetLayoutAlert;
+        void onResetLayout(CCObject*);
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
