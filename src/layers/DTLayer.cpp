@@ -9,6 +9,7 @@
 #include "../layers/DTExportImportLayer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
+#include "../hooks/CCControlColourPickerBypass.h"
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -158,6 +159,36 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     );
     resetLayoutButton->setPosition({-157, -112});
     m_EditLayoutMenu->addChild(resetLayoutButton);
+
+    auto nbcColorPickerLabel = CCLabelBMFont::create("New Best\nColor", "bigFont.fnt");
+    nbcColorPickerLabel->setPosition({-205, 82});
+    nbcColorPickerLabel->setScale(0.4f);
+    nbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_EditLayoutMenu->addChild(nbcColorPickerLabel);
+
+    nbcColorPicker = CCControlColourPicker::colourPicker();
+    nbcColorPicker->setAnchorPoint({0,0});
+    nbcColorPicker->setPosition({-100, -100});
+    nbcColorPicker->setScale(0.425f);
+    nbcColorPicker->setColorValue(Save::getNewBestColor());
+    nbcColorPicker->setID("new-best-Color-Picker");
+    nbcColorPicker->setDelegate(this);
+    m_EditLayoutMenu->addChild(nbcColorPicker);
+
+    auto sbcColorPickerLabel = CCLabelBMFont::create("Session Best\nColor", "bigFont.fnt");
+    sbcColorPickerLabel->setPosition({-205, -18});
+    sbcColorPickerLabel->setScale(0.35f);
+    sbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_EditLayoutMenu->addChild(sbcColorPickerLabel);
+
+    sbcColorPicker = CCControlColourPicker::colourPicker();
+    sbcColorPicker->setAnchorPoint({0,0});
+    sbcColorPicker->setPosition({-100, -100});
+    sbcColorPicker->setScale(0.425f);
+    sbcColorPicker->setColorValue(Save::getSessionBestColor());
+    sbcColorPicker->setID("new-session-best-Color-Picker");
+    sbcColorPicker->setDelegate(this);
+    m_EditLayoutMenu->addChild(sbcColorPicker);
 
 
     //session selection
@@ -517,7 +548,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
-        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a crash bug when clicking cancel on edit layout</c>", "OK")->show();
+        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>added the option to change the new best colors\n</c>- <cg>added a new type of graph\n</c>- <cg>added a new logo made taz!</c>", "OK")->show();
     }
 
     return true;
@@ -704,6 +735,9 @@ void DTLayer::onEditLayoutApply(CCObject*){
         layout.push_back(IWindow->m_MyLayout);
     }
 
+    Save::setNewBestColor(static_cast<CCControlColourPickerBypass*>(nbcColorPicker)->getPickedColor());
+    Save::setSessionBestColor(static_cast<CCControlColourPickerBypass*>(sbcColorPicker)->getPickedColor());
+
     Save::setLayout(layout);
 
     RefreshText(true);
@@ -762,9 +796,13 @@ void DTLayer::EditLayoutEnabled(bool b){
     {
         changeScrollSizeByBoxes(true);
         m_TextBG->setOpacity(200);
+        sbcColorPicker->setPosition({-205, -64});
+        nbcColorPicker->setPosition({-205, 33});
     }
     else{
         RefreshText(true);
+        sbcColorPicker->setPosition({-100, -100});
+        nbcColorPicker->setPosition({-100, -100});
         m_TextBG->setOpacity(100);
         auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
         sprite->m_BGSprite->setOpacity(255);
@@ -1541,6 +1579,9 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
         };
 
         Save::setLayout(defaultLayout);
+
+        Save::setNewBestColor({255, 255, 0});
+        Save::setSessionBestColor({ 255, 136, 0 });
 
         createLayoutBlocks();
         onEditLayoutApply(nullptr);

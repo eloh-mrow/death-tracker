@@ -112,6 +112,33 @@ struct matjson::Serialize<LevelStats> {
     }
 };
 
+typedef struct {
+    std::string name;
+    float value;
+    std::string type;
+} prismSetting;
+
+// matjson fuckery
+template <>
+struct matjson::Serialize<prismSetting> {
+    static prismSetting from_json(const matjson::Value& value) {
+        prismSetting setting {
+            .name = value["name"].as_string(),
+            .value = 0,
+            .type = value["type"].as_string(),
+        };
+
+        if (value["value"].is_bool()){
+            setting.value = value["value"].as_bool() ? 1 : 0;
+        }
+        else{
+            setting.value = static_cast<float>(value["value"].as_double());
+        }
+
+        return setting;
+    }
+};
+
 class StatsManager {
 private:
     static GJGameLevel* m_level;
@@ -172,4 +199,10 @@ public:
     static int getDifficulty(GJGameLevel* level);
 
     static void setPath(std::filesystem::path path);
+
+    /*
+    true = hack are on!! :(
+    false = all good :D
+    */
+    static bool safeModeCheck();
 };

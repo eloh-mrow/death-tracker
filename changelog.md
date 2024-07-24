@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.0
+- added the option to change the new best colors
+- added a new type of graph
+- added a new logo made taz!
+
 ## v2.0.1
 - fixed a crash bug when clicking cancel on edit layout
 

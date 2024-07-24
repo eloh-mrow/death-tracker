@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol {
+class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol, public ColorPickerDelegate {
     protected:
         bool setup(GJGameLevel* const& Level) override;
 
@@ -98,6 +98,8 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void clickedWindow(CCNode* window);
         FLAlertLayer* ResetLayoutAlert;
         void onResetLayout(CCObject*);
+        CCControlColourPicker* nbcColorPicker;
+        CCControlColourPicker* sbcColorPicker;
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;

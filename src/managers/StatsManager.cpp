@@ -824,3 +824,33 @@ int StatsManager::getDifficulty(GJGameLevel* level){
 void StatsManager::setPath(std::filesystem::path path){
     m_savesFolderPath = path;
 }
+
+bool StatsManager::safeModeCheck(){
+    auto prism = Loader::get()->getLoadedMod("firee.prism");
+
+    bool isAHaxxor = false;
+
+    if (prism){
+        auto prismHacks = prism->getSavedValue<std::vector<prismSetting>>("values");
+
+        for (int i = 0; i < prismHacks.size(); i++)
+        {
+            if (prismHacks[i].name == "Noclip" && prismHacks[i].value == 1){
+                isAHaxxor = true;
+            }
+        }
+    }
+
+    auto qol = Loader::get()->getLoadedMod("thesillydoggo.qolmod");
+    
+    if (qol){
+        if (qol->getSavedValue<bool>("noclip_enabled")){
+            isAHaxxor = true;
+        }
+        if (qol->getSavedValue<bool>("speedhack-enabled_enabled")){
+            isAHaxxor = true;
+        }
+    }
+
+    return isAHaxxor;
+}

@@ -20,8 +20,15 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         CCNode* alighmentNode;
 
-        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery);
-        CCNode* CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery);
+        enum GraphType{
+            PassRate,
+            ReachRate
+        };
+
+        GraphType currentType = GraphType::PassRate;
+
+        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
+        CCNode* CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
         static int GetBestRun(NewBests bests);
         static int GetBestRunDeathS(std::vector<std::tuple<std::string, int, float>> selectedPrecentDeathsInfo);
         static int GetBestRun(std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo);
@@ -45,8 +52,10 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         ButtonSprite* viewModeButtonS;
         ButtonSprite* runViewModeButtonS;
+        ButtonSprite* typeViewModeButtonS;
         void onViewModeButton(CCObject*);
         void onRunViewModeButton(CCObject*);
+        void onTypeViewModeButton(CCObject*);
         bool ViewModeNormal = true;
         bool RunViewModeFromZero = true;
 

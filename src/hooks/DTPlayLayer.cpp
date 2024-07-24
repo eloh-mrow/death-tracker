@@ -140,6 +140,8 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
     // disable tracking deaths on completed levels
     if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
+    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
+
     if (!m_level->isPlatformer())
         m_fields->currentRun.end = this->getCurrentPercent();
 
@@ -192,6 +194,8 @@ void DTPlayLayer::levelComplete() {
 
     // disable tracking deaths on completed levels
     if (DTPlayLayer::disableCompletedLevelTracking()) return;
+
+    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
 
     if (!m_level->isPlatformer())
         m_fields->currentRun.end = 100;

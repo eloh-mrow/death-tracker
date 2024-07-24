@@ -24,3 +24,7 @@ bool Settings::getLateSaveEnabled(){
 std::filesystem::path Settings::getSavePath(){
     return std::filesystem::path{static_cast<SavePathSettingValue*>(Mod::get()->getSetting("save-path"))->getSavedPath()};
 }
+
+bool Settings::getSafeModeEnabled(){
+    return Mod::get()->getSettingValue<bool>("safe-mode");
+}

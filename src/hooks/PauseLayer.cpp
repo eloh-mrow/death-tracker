@@ -15,10 +15,13 @@ class $modify(DTPauseLayer, PauseLayer) {
 
         auto sideMenu = this->getChildByID("left-button-menu");
 
-        auto buttonSprite = CCSprite::create("dt_skullBtn.png"_spr);
-        buttonSprite->setScale(0.25f);
+        auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+        auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");
+        s2->setPosition(s->getContentSize() / 2);
+        s->addChild(s2);
+        s->setScale(0.75f);
         auto button = CCMenuItemSpriteExtra::create(
-            buttonSprite,
+            s,
             nullptr,
             this,
             menu_selector(DTPauseLayer::onDTMiniMenuOpened)

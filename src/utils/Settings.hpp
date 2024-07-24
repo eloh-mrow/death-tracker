@@ -12,4 +12,5 @@ public:
     static bool getPauseMenuEnabled();
     static bool getLateSaveEnabled();
     static std::filesystem::path getSavePath();
+    static bool getSafeModeEnabled();
 };

@@ -1,12 +1,12 @@
 {
-	"geode": "3.2.0",
+	"geode": "3.3.0",
 	"gd": {
         "android": "2.206",
         "win": "2.206",
 		"mac": "2.206",
 		"ios": "2.206"
     },
-	"version": "v2.0.1",
+	"version": "v2.1.0",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -38,6 +38,12 @@
 			"description": "Will save your deaths when exiting the level instead of when you die, this may fix lag spikes that happen on death.",
 			"type": "bool",
 			"default": false
+		},
+		"safe-mode": {
+			"name": "Safe Mode",
+			"description": "will not track runs if you are in noclip or speedhack (compatable with QOLMod and prism menu)",
+			"type": "bool",
+			"default": true
 		},
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",

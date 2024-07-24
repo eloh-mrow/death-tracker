@@ -19,8 +19,11 @@ class $modify(myLevelInfoLayer, LevelInfoLayer) {
         auto otherMenu = getChildByID("other-menu");
         auto settingsMenu = getChildByID("settings-menu");
 
-        auto s = CCSprite::create("dt_skullBtn.png"_spr);
-        s->setScale(0.25f);
+        auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+        auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");
+        s2->setPosition(s->getContentSize() / 2);
+        s->addChild(s2);
+        s->setScale(0.75f);
         m_fields->btn = CCMenuItemSpriteExtra::create(
             s,
             nullptr,
