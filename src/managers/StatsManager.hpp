@@ -20,6 +20,7 @@ typedef struct {
     Runs runs;
     NewBests newBests;
     int currentBest;
+    long long sessionStartDate;
 } Session;
 
 struct LevelStats_s {
@@ -40,13 +41,20 @@ typedef struct LevelStats_s LevelStats;
 template <>
 struct matjson::Serialize<Session> {
     static Session from_json(const matjson::Value& value) {
-        return Session {
+        Session session{
             .lastPlayed = value["lastPlayed"].as<long long>(),
             .deaths = value["deaths"].as<Deaths>(),
             .runs = value["runs"].as<Runs>(),
             .newBests = value["newBests"].as<NewBests>(),
             .currentBest = value["currentBest"].as_int(),
         };
+
+        if (value.contains("sessionStartDate"))
+            session.sessionStartDate = value["sessionStartDate"].as<long long>();
+        else
+            session.sessionStartDate = -1;
+
+        return session;
     }
 
     static matjson::Value to_json(const Session& value) {
@@ -56,6 +64,7 @@ struct matjson::Serialize<Session> {
         obj["runs"] = value.runs;
         obj["newBests"] = value.newBests;
         obj["currentBest"] = value.currentBest;
+        obj["sessionStartDate"] = value.sessionStartDate;
         return obj;
     }
 };

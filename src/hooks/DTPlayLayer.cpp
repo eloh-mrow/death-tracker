@@ -108,12 +108,12 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     DTPlayLayer::updateSessionLastPlayed();
     return true;
 }
-
+/*
 void DTPlayLayer::checkpointActivated(CheckpointGameObject* checkpt) {
     PlayLayer::checkpointActivated(checkpt);
 
     m_fields->currentRun.end++;
-}
+}*/
 
 void DTPlayLayer::resetLevel() {
     PlayLayer::resetLevel();
@@ -140,8 +140,6 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
     // disable tracking deaths on completed levels
     if (DTPlayLayer::disableCompletedLevelTracking()) return;
 
-    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
-
     if (!m_level->isPlatformer())
         m_fields->currentRun.end = this->getCurrentPercent();
 
@@ -153,6 +151,8 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
 
     if (m_fields->currentRun.start < 0)
         return;
+
+    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
 
     if (!Settings::getLateSaveEnabled()){
         // log deaths from 0 in normal mode

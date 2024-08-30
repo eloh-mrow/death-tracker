@@ -97,9 +97,12 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCMenuItemSpriteExtra* layoutInfoButton;
         void clickedWindow(CCNode* window);
         FLAlertLayer* ResetLayoutAlert;
+        CCMenuItemSpriteExtra* resetLayoutButton;
         void onResetLayout(CCObject*);
         CCControlColourPicker* nbcColorPicker;
+        CCLabelBMFont* nbcColorPickerLabel;
         CCControlColourPicker* sbcColorPicker;
+        CCLabelBMFont* sbcColorPickerLabel;
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;

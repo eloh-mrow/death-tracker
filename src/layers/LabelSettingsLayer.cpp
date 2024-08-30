@@ -702,9 +702,13 @@ void LabelSettingsLayer::onOverallInfo(CCObject*){
     {sruns} - selected session runs
 
     {nl} - new line
+
+    {ssd} - session start date
+
+    {sst} - session start time
     */
 void LabelSettingsLayer::onSpecialInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Special Text Keys:", "{f0} - runs from 0\n{runs} - runs\n{lvln} - the levels name\n{att} - level attempts (with linked levels attempts)\n{s0} - selected session runs from 0\n{sruns} - selected session runs\n{nl} - new line", "Ok");
+    auto alert = FLAlertLayer::create("Special Text Keys:", "{f0} - runs from 0\n{runs} - runs\n{lvln} - the levels name\n{att} - level attempts (with linked levels attempts)\n{s0} - selected session runs from 0\n{sruns} - selected session runs\n{ssd} - selected sessions start date\n{sst} - selected sessions start time\n{nl} - new line", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
 }

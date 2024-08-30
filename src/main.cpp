@@ -20,7 +20,7 @@ $execute {
             },
             {
                 .labelName = "Session",
-                .text = "Session:{nl}{s0}{nl} ",
+                .text = "Session:{nl}{ssd}{nl}{s0}{nl} ",
                 .line = 2,
                 .position = 1,
                 .color = {255,255,255,255},

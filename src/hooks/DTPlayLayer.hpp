@@ -26,7 +26,7 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     bool init(GJGameLevel* level, bool p1, bool p2);
 
-    void checkpointActivated(CheckpointGameObject* checkpt);
+    //void checkpointActivated(CheckpointGameObject* checkpt);
 
     void resetLevel();
 

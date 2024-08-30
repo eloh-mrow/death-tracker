@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.1
+- fixed a bug on android where checkpoints will crash your game (hopefully)
+- added some new text keys! {ssd} - selected session start date, and {sst} - selected session start time
+- some small fixes
+
 ## v2.1.0
 - added the option to change the new best colors
 - added a new type of graph

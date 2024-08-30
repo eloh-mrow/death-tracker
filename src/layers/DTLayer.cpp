@@ -151,7 +151,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     auto resetLayoutBS = CCSprite::createWithSpriteFrameName("GJ_replayBtn_001.png");
     resetLayoutBS->setScale(0.5f);
-    auto resetLayoutButton = CCMenuItemSpriteExtra::create(
+    resetLayoutButton = CCMenuItemSpriteExtra::create(
         resetLayoutBS,
         nullptr,
         this,
@@ -160,7 +160,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     resetLayoutButton->setPosition({-157, -112});
     m_EditLayoutMenu->addChild(resetLayoutButton);
 
-    auto nbcColorPickerLabel = CCLabelBMFont::create("New Best\nColor", "bigFont.fnt");
+    nbcColorPickerLabel = CCLabelBMFont::create("New Best\nColor", "bigFont.fnt");
     nbcColorPickerLabel->setPosition({-205, 82});
     nbcColorPickerLabel->setScale(0.4f);
     nbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -175,7 +175,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     nbcColorPicker->setDelegate(this);
     m_EditLayoutMenu->addChild(nbcColorPicker);
 
-    auto sbcColorPickerLabel = CCLabelBMFont::create("Session Best\nColor", "bigFont.fnt");
+    sbcColorPickerLabel = CCLabelBMFont::create("Session Best\nColor", "bigFont.fnt");
     sbcColorPickerLabel->setPosition({-205, -18});
     sbcColorPickerLabel->setScale(0.35f);
     sbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -548,7 +548,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
-        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>added the option to change the new best colors\n</c>- <cg>added a new type of graph\n</c>- <cg>added a new logo made taz!</c>", "OK")->show();
+        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a bug on android where checkpoints will crash your game (hopefully)\n</c>- <cg>added some new text keys! {ssd} - session start date, and {sst} - session start time\n</c>- <cg>some small fixes :)</c>", "OK")->show();
     }
 
     return true;
@@ -782,6 +782,9 @@ void DTLayer::EditLayoutEnabled(bool b){
     runsAmountInput->setEnabled(!b);
     layoutInfoButton->setVisible(b);
     addWindowButton->setVisible(b);
+    resetLayoutButton->setVisible(b);
+    nbcColorPickerLabel->setVisible(b);
+    sbcColorPickerLabel->setVisible(b);
     if (m_SessionSelectionInput)
         m_SessionSelectionInput->setEnabled(!b);
     m_AddRunAllowedInput->setEnabled(!b);
@@ -801,8 +804,8 @@ void DTLayer::EditLayoutEnabled(bool b){
     }
     else{
         RefreshText(true);
-        sbcColorPicker->setPosition({-100, -100});
-        nbcColorPicker->setPosition({-100, -100});
+        sbcColorPicker->setPosition({-500, -500});
+        nbcColorPicker->setPosition({-500, -500});
         m_TextBG->setOpacity(100);
         auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
         sprite->m_BGSprite->setOpacity(255);
@@ -1058,6 +1061,11 @@ std::string DTLayer::modifyString(std::string ToModify){
     {sruns} - selected session runs
 
     {nl} - new line
+
+    {ssd}
+
+    {sst}
+    
     */
     
     for (int i = 0; i < ToModify.length(); i++)
@@ -1091,6 +1099,39 @@ std::string DTLayer::modifyString(std::string ToModify){
                 if (isKeyInIndex(ToModify, i + 1, "nl}")){
                     ToModify.erase(i, 4);
                     ToModify.insert(i, "\n");
+                }
+                if (isKeyInIndex(ToModify, i + 1, "ssd}")){
+                    ToModify.erase(i, 5);
+
+                    if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
+                        ToModify.insert(i, "(Unknow date)");
+                    }
+                    else{
+                        time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
+                        auto tm = std::localtime(&time);
+
+                        ToModify.insert(i, fmt::format("{}/{}/{}", tm->tm_mon + 1, tm->tm_mday, tm->tm_year + 1900));
+                    }
+                }
+                if (isKeyInIndex(ToModify, i + 1, "sst}")){
+                    ToModify.erase(i, 5);
+
+                    if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
+                        ToModify.insert(i, "(Unknow time)");
+                    }
+                    else{
+                        time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
+                        auto tm = std::localtime(&time);
+
+                        std::string clock12Time = "AM";
+
+                        if (tm->tm_hour > 12){
+                            tm->tm_hour -= 12;
+                            clock12Time = "PM";
+                        }
+
+                        ToModify.insert(i, fmt::format("{}:{}{}", tm->tm_hour, tm->tm_min, clock12Time));
+                    }
                 }
             }
         }
@@ -1415,7 +1456,7 @@ void DTLayer::refreshRunAllowedListView(){
 }
 
 void DTLayer::deleteUnused(CCObject*){
-    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "this will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the precents you want on the tracked runs list before doing this.", "Cancel", "Delete");
+    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "This will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the percents you want on the tracked runs list before doing this.", "Cancel", "Delete");
     m_RunDeleteAlert->setZOrder(101);
     this->addChild(m_RunDeleteAlert);
 }
@@ -1528,7 +1569,7 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             },
             {
                 .labelName = "Session",
-                .text = "Session:{nl}{s0}{nl} ",
+                .text = "Session:{nl}{ssd}{nl}{s0}{nl} ",
                 .line = 2,
                 .position = 1,
                 .color = {255,255,255,255},
@@ -1957,6 +1998,12 @@ void DTLayer::copyText(CCObject*)
     auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
     sprite->m_BGSprite->setOpacity(100);
     sprite->m_label->setOpacity(100);
+    resetLayoutButton->setVisible(false);
+    nbcColorPickerLabel->setVisible(false);
+    sbcColorPickerLabel->setVisible(false);
+
+    sbcColorPicker->setPosition({-500, -500});
+    nbcColorPicker->setPosition({-500, -500});
 
     for (int i = 0; i < m_LayoutLines.size(); i++)
     {

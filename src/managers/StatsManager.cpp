@@ -417,7 +417,8 @@ Session* StatsManager::getSession() {
         .deaths = {},
         .runs = {},
         .newBests = {},
-        .currentBest = -1
+        .currentBest = -1,
+        .sessionStartDate = StatsManager::getNowSeconds()
     };
 
     m_levelStats.sessions.push_back(session);
