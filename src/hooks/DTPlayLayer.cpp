@@ -108,12 +108,14 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     DTPlayLayer::updateSessionLastPlayed();
     return true;
 }
-/*
+
+#if defined(GEODE_IS_MACOS)
 void DTPlayLayer::checkpointActivated(CheckpointGameObject* checkpt) {
     PlayLayer::checkpointActivated(checkpt);
 
     m_fields->currentRun.end++;
-}*/
+}
+#endif
 
 void DTPlayLayer::resetLevel() {
     PlayLayer::resetLevel();

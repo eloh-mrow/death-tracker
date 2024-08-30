@@ -26,8 +26,6 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     bool init(GJGameLevel* level, bool p1, bool p2);
 
-    //void checkpointActivated(CheckpointGameObject* checkpt);
-
     void resetLevel();
 
     void destroyPlayer(PlayerObject* player, GameObject* p1);
@@ -37,6 +35,11 @@ class $modify(DTPlayLayer, PlayLayer) {
     #if !defined(GEODE_IS_MACOS)
 
     void resetLevelFromStart();
+
+    #else
+
+    void checkpointActivated(CheckpointGameObject* checkpt);
+    
     #endif
 
     void onQuit();

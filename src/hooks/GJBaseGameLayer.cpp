@@ -1,3 +1,5 @@
+#if !defined(GEODE_IS_MACOS)
+
 #include "../hooks/GJBaseGameLayer.hpp"
 #include "../hooks/DTPlayLayer.hpp"
 
@@ -8,3 +10,5 @@ void DTGJBaseGameLayer::checkpointActivated(CheckpointGameObject* checkpt) {
         static_cast<DTPlayLayer*>(PlayLayer::get())->m_fields->currentRun.end++;
     }
 }
+
+#endif
