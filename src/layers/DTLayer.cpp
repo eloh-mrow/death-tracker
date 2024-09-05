@@ -38,6 +38,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
      * main page
     */
 
+    this->setID("dt-layer");
+
     this->setZOrder(100);
     this->m_buttonMenu->setZOrder(1);
 
@@ -548,7 +550,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
-        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a bug on android where checkpoints will crash your game (hopefully)\n</c>- <cg>added some new text keys! {ssd} - session start date, and {sst} - session start time\n</c>- <cg>some small fixes :)</c>", "OK")->show();
+        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a crash bug on macos</c>\n- <cg>fixed some typos</c>", "OK")->show();
     }
 
     return true;
@@ -1104,7 +1106,7 @@ std::string DTLayer::modifyString(std::string ToModify){
                     ToModify.erase(i, 5);
 
                     if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
-                        ToModify.insert(i, "(Unknow date)");
+                        ToModify.insert(i, "(Unknown date)");
                     }
                     else{
                         time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
@@ -1117,7 +1119,7 @@ std::string DTLayer::modifyString(std::string ToModify){
                     ToModify.erase(i, 5);
 
                     if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
-                        ToModify.insert(i, "(Unknow time)");
+                        ToModify.insert(i, "(Unknown time)");
                     }
                     else{
                         time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
@@ -1978,7 +1980,7 @@ void DTLayer::onCurrentDeleteClicked(CCObject*){
 }
 
 void DTLayer::onRevertClicked(CCObject*){
-    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to Do this if your json doesn't load or is corrupted.", "Cancel", "Revert");
+    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to do this if your json doesn't load or is corrupted.", "Cancel", "Revert");
     revertAlert->setZOrder(150);
     this->addChild(revertAlert);
 }

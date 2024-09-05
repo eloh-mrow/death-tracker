@@ -408,6 +408,10 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
     //log::info("sorting done");
 
+    CCPoint previousPoint = ccp(-1, -1);
+
+    std::map<int, int> ignoredIndexes{};
+
     if (type == GraphType::PassRate){
         //add the min and max points if needed
         if (std::stoi(std::get<0>(deathsString[0])) > 0)
@@ -420,8 +424,6 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
         
 
         //log::info("added extras");
-
-        CCPoint previousPoint = ccp(-1, -1);
 
         for (int i = 0; i < deathsString.size(); i++)
         {
@@ -479,8 +481,18 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
         for (int i = 0; i < precentageDeaths.size(); i++)
         {
             float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
-            log::info("rate {}, s {}", reachRate, Scaling.y);
-            lines.push_back(ccp(std::stof(precentageDeaths[i].first) * Scaling.x, reachRate * Scaling.y * 100));
+            //log::info("rate {}, s {}", reachRate, Scaling.y);
+
+            CCPoint p = ccp(std::stof(precentageDeaths[i].first) * Scaling.x, reachRate * Scaling.y * 100);
+
+            if (p.x != previousPoint.x + 1 * Scaling.x){
+                lines.push_back(ccp(previousPoint.x + 1 * Scaling.x, reachRate * Scaling.y * 100));
+                ignoredIndexes.insert({static_cast<int>(lines.size()) - 1, static_cast<int>(lines.size()) - 1});
+            }
+
+            lines.push_back(p);
+
+            previousPoint = p;
         }
         
     }
@@ -495,6 +507,7 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
     for (int i = 0; i < lines.size(); i++)
     {
+        if (ignoredIndexes.contains(i)) continue;
         if (lines[i].x >= 0 || lines[i].x <= 100 * Scaling.x || lines[i].y >= 0 || lines[i].y <= 100 * Scaling.y)
         {
             auto GP = GraphPoint::create(fmt::format("{}%", lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
@@ -712,7 +725,7 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
         for (int i = 0; i < precentageDeaths.size(); i++)
         {
             float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
-            log::info("rate {}, s {}", reachRate, Scaling.y);
+            //log::info("rate {}, s {}", reachRate, Scaling.y);
             lines.push_back(ccp(precentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100));
         }
         

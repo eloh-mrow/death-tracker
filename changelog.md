@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.2
+- fixed a crash bug on macos
+- fixed some typos
+
 ## v2.1.1
 - fixed a bug on android where checkpoints will crash your game (hopefully)
 - added some new text keys! {ssd} - selected session start date, and {sst} - selected session start time
