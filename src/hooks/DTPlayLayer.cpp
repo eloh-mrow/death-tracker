@@ -228,16 +228,12 @@ void DTPlayLayer::levelComplete() {
     }            
 }
 
-#if !defined(GEODE_IS_MACOS)
-
 void DTPlayLayer::resetLevelFromStart() {
     PlayLayer::resetLevelFromStart();
     //log::info("PlayLayer::resetLevelFromStart()");
 
     m_fields->currentRun.end = 0;
 }
-
-#endif
 
 void DTPlayLayer::onQuit() {
     PlayLayer::onQuit();

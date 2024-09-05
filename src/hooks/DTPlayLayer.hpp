@@ -32,11 +32,9 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void levelComplete();
 
-    #if !defined(GEODE_IS_MACOS)
-
     void resetLevelFromStart();
 
-    #else
+    #if defined(GEODE_IS_MACOS)
 
     void checkpointActivated(CheckpointGameObject* checkpt);
     
