@@ -145,11 +145,13 @@ void DTLinkLayer::refreshLists(){
 
     int endI = levelPage * 10;
     if (endI > AllLevelsSearch.size() - 1){
-        endI = AllLevelsSearch.size() - 1;
+        endI = AllLevelsSearch.size();
         levelsMoveRight->setVisible(false);
     }
     else
         levelsMoveRight->setVisible(true);
+
+    if (AllLevelsSearch.size() <= 0) return;
 
     std::vector<std::pair<std::string, LevelStats>> allLevelsInRange(std::next(AllLevelsSearch.begin(), startI), std::next(AllLevelsSearch.begin(), endI));
     

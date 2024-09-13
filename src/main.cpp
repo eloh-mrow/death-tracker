@@ -2,6 +2,7 @@
 using namespace geode::prelude;
 #include "utils/Save.hpp"
 #include "managers/StatsManager.hpp"
+#include "utils/Settings.hpp"
 
 $execute {
     auto _ = file::createDirectory(Mod::get()->getSaveDir() / "levels");
@@ -77,6 +78,8 @@ $execute {
         Save::setSessionBestColor({ 255, 136, 0 });
     }
 
+    StatsManager::m_savesFolderPath = Settings::getSavePath();
+
     auto verNums = StatsManager::splitStr(Save::getLastOpenedVersion(), ".");
 
     if (verNums.size() < 2) return;
@@ -84,8 +87,6 @@ $execute {
     VersionInfo* oldver = new VersionInfo(2, 1, 2);
 
     VersionInfo* oldsavedver = new VersionInfo(std::stoi(verNums[0]), std::stoi(verNums[1]), std::stoi(verNums[2]));
-
-    log::info("{} | {}", oldver->toString(), oldsavedver->toString());
 
     if (oldver >= oldsavedver){
         if (Mod::get()->getSettingValue<int64_t>("session-length") == -2){

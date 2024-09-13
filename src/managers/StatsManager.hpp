@@ -163,7 +163,6 @@ private:
     static LevelStats m_levelStats;
     
     static bool m_scheduleCreateNewSession;
-    static std::filesystem::path m_savesFolderPath;
 
     // internal functions
     static void saveData();
@@ -175,6 +174,8 @@ public:
     StatsManager() = delete;
 
     static int MainLevelIDs[26];
+
+    static std::filesystem::path m_savesFolderPath;
 
     // main functions
     static void loadLevelStats(GJGameLevel* level);
