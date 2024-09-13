@@ -1331,7 +1331,7 @@ void DTLayer::editnbcColor(CCObject*){
     colorSelectnb = ColorSelectPopup::create(colorSpritenb->getColor());
     colorSelectnb->show();
     colorSelectnb->m_colorPicker->setColorValue(colorSpritenb->getColor());
-    colorSelectnb->updateColorLabels();
+    //colorSelectnb->updateColorLabels();
     static_cast<CCNode*>(colorSelectnb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
     static_cast<DTColorSelectPopup*>(colorSelectnb)->setCallback(callfunc_selector(DTLayer::setnbcColor), this);
 }
@@ -1346,7 +1346,7 @@ void DTLayer::editsbcColor(CCObject*){
     colorSelectsb = ColorSelectPopup::create(colorSpritesb->getColor());
     colorSelectsb->show();
     colorSelectsb->m_colorPicker->setColorValue(colorSpritesb->getColor());
-    colorSelectsb->updateColorLabels();
+    //colorSelectsb->updateColorLabels();
     static_cast<CCNode*>(colorSelectsb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
     static_cast<DTColorSelectPopup*>(colorSelectsb)->setCallback(callfunc_selector(DTLayer::setsbcColor), this);
 }
