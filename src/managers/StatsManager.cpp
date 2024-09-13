@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 // return a splitted version of the string provided, devided by the delim
-std::vector<std::string> splitStr(std::string str, std::string delim) {
+std::vector<std::string> StatsManager::splitStr(std::string str, std::string delim) {
     size_t posStart = 0;
     size_t posEnd;
     size_t delimLen = delim.length();
@@ -32,7 +32,7 @@ bool StatsManager::m_scheduleCreateNewSession = false;
 
 LevelStats StatsManager::m_levelStats{};
 
-std::filesystem::path StatsManager::m_savesFolderPath = "";
+std::filesystem::path StatsManager::m_savesFolderPath = Settings::getSavePath();
 
 int StatsManager::MainLevelIDs[26]{
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 5001, 5002, 5003, 5004, 3001
@@ -768,6 +768,7 @@ std::vector<std::string> StatsManager::getAllFont(){
 
 std::vector<std::pair<std::string, LevelStats>> StatsManager::getAllLevels(){
     auto res = file::readDirectory(m_savesFolderPath);
+    log::info("{}", m_savesFolderPath.string());
     if (!res.isOk()){
         geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
         return std::vector<std::pair<std::string, LevelStats>>{};
@@ -824,34 +825,4 @@ int StatsManager::getDifficulty(GJGameLevel* level){
 
 void StatsManager::setPath(std::filesystem::path path){
     m_savesFolderPath = path;
-}
-
-bool StatsManager::safeModeCheck(){
-    auto prism = Loader::get()->getLoadedMod("firee.prism");
-
-    bool isAHaxxor = false;
-
-    if (prism){
-        auto prismHacks = prism->getSavedValue<std::vector<prismSetting>>("values");
-
-        for (int i = 0; i < prismHacks.size(); i++)
-        {
-            if (prismHacks[i].name == "Noclip" && prismHacks[i].value == 1){
-                isAHaxxor = true;
-            }
-        }
-    }
-
-    auto qol = Loader::get()->getLoadedMod("thesillydoggo.qolmod");
-    
-    if (qol){
-        if (qol->getSavedValue<bool>("noclip_enabled")){
-            isAHaxxor = true;
-        }
-        if (qol->getSavedValue<bool>("speedhack-enabled_enabled")){
-            isAHaxxor = true;
-        }
-    }
-
-    return isAHaxxor;
 }

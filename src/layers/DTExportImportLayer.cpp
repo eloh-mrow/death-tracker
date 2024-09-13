@@ -2,7 +2,7 @@
 #include "../utils/Save.hpp"
 #include "../layers/confirmImportLayer.hpp"
 
-DTExportImportLayer* DTExportImportLayer::create(DTLayer* const& layer) {
+DTExportImportLayer* DTExportImportLayer::create(DTLayer* layer) {
     auto ret = new DTExportImportLayer();
     if (ret && ret->init(226, 137, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
@@ -12,7 +12,7 @@ DTExportImportLayer* DTExportImportLayer::create(DTLayer* const& layer) {
     return nullptr;
 }
 
-bool DTExportImportLayer::setup(DTLayer* const& layer) {
+bool DTExportImportLayer::setup(DTLayer* layer) {
 
     m_DTLayer = layer;
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.3.0
+- removed most UI from the main page
+- added a level options page where all the level-specific settings are now
+- fixed some typos
+- added an option to hid all runs up to a certain percentage
+- edit layout now has a new button
+- removed "safe mode" due to bugs
+
 ## v2.1.2
 - fixed a crash bug on macos
 - fixed some typos

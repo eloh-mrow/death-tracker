@@ -3,7 +3,7 @@
 
 DTLinkLayer* DTLinkLayer::create(DTLayer* const& layer) {
     auto ret = new DTLinkLayer();
-    if (ret && ret->init(520, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->init(540, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -14,8 +14,6 @@ DTLinkLayer* DTLinkLayer::create(DTLayer* const& layer) {
 bool DTLinkLayer::setup(DTLayer* const& layer) {
     //create trackerLayer
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-
-    this->setOpacity(0);
 
     auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     overallInfoBS->setScale(0.8f);
@@ -35,6 +33,30 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
     m_DTLayer = layer;
 
     m_AllLevels = StatsManager::getAllLevels();
+    log::info("{}", m_AllLevels.size());
+
+    auto levelsMoveRightS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+    levelsMoveRightS->setScale(0.5f);
+    levelsMoveRightS->setRotation(180);
+    levelsMoveRight = CCMenuItemSpriteExtra::create(
+        levelsMoveRightS,
+        nullptr,
+        this,
+        menu_selector(DTLinkLayer::levelsListMoveRight)
+    );
+    levelsMoveRight->setPosition({-2, 0});
+    this->m_buttonMenu->addChild(levelsMoveRight);
+
+    auto levelsMoveLeftS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+    levelsMoveLeftS->setScale(0.5f);
+    levelsMoveLeft = CCMenuItemSpriteExtra::create(
+        levelsMoveLeftS,
+        nullptr,
+        this,
+        menu_selector(DTLinkLayer::levelsListMoveLeft)
+    );
+    levelsMoveLeft->setPosition({-252, 0});
+    this->m_buttonMenu->addChild(levelsMoveLeft);
 
     refreshLists();
 
@@ -81,8 +103,8 @@ void DTLinkLayer::SpacialEditList(GJListLayer* list, CCPoint titlePos, float tit
 }
 
 void DTLinkLayer::refreshLists(){
-    if (m_LevelsList != nullptr) m_LevelsList->removeMeAndCleanup();
-    if (m_LinkedLevelsList != nullptr) m_LinkedLevelsList->removeMeAndCleanup();
+
+    if (!m_AllLevels.size()) return;
 
     auto levelsListItems = CCArray::create();
 
@@ -90,41 +112,83 @@ void DTLinkLayer::refreshLists(){
 
     auto myKey = StatsManager::getLevelKey(m_DTLayer->m_Level);
 
+    std::vector<std::pair<std::string, LevelStats>> AllLevelsSearch{};
+
     for (int i = 0; i < m_AllLevels.size(); i++)
     {
-        std::string filterTextLower = "";
-        for (char ch : m_filterText) { 
-            filterTextLower += std::tolower(ch); 
-        }
-
         std::string levelNameLower = "";
         for (char ch : m_AllLevels[i].second.levelName) { 
             levelNameLower += std::tolower(ch);
         }
         if (m_AllLevels[i].second.levelName == "-1")
             levelNameLower = "unknown name";
+        
+        if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower))
+            AllLevelsSearch.push_back(m_AllLevels[i]);
+    }
 
-        if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower)){
-            bool isValidForList = true;
-            for (int s = 0; s < m_DTLayer->m_MyLevelStats.LinkedLevels.size(); s++)
-            {
-                if (m_DTLayer->m_MyLevelStats.LinkedLevels[s] == m_AllLevels[i].first)
-                    isValidForList = false;
-            }
+    if (!AllLevelsSearch.size() && m_LevelsList && m_LinkedLevelsList){
+        m_LevelsList->m_listView->m_tableView->m_contentLayer->removeAllChildrenWithCleanup(true);
+        m_LinkedLevelsList->m_listView->m_tableView->m_contentLayer->removeAllChildrenWithCleanup(true);
+        return;
+    }
+
+    if (m_LevelsList != nullptr) m_LevelsList->removeMeAndCleanup();
+    if (m_LinkedLevelsList != nullptr) m_LinkedLevelsList->removeMeAndCleanup();
+
+    int startI = (levelPage - 1) * 10;
+    if (startI <= 0){
+        levelsMoveLeft->setVisible(false);
+    }
+    else
+        levelsMoveLeft->setVisible(true);
+
+    int endI = levelPage * 10;
+    if (endI > AllLevelsSearch.size() - 1){
+        endI = AllLevelsSearch.size() - 1;
+        levelsMoveRight->setVisible(false);
+    }
+    else
+        levelsMoveRight->setVisible(true);
+
+    std::vector<std::pair<std::string, LevelStats>> allLevelsInRange(std::next(AllLevelsSearch.begin(), startI), std::next(AllLevelsSearch.begin(), endI));
+    
+    
+    std::vector<std::pair<std::string, LevelStats>> linkedOnes{};
+
+    for (int i = 0; i < AllLevelsSearch.size(); i++)
+    {
+        for (int s = 0; s < m_DTLayer->m_MyLevelStats.LinkedLevels.size(); s++)
+        {
+            if (m_DTLayer->m_MyLevelStats.LinkedLevels[s] == AllLevelsSearch[i].first)
+                linkedLevelsListItems->addObject(LinkLevelCell::create(this, AllLevelsSearch[i].first, AllLevelsSearch[i].second, true));
+        }
+    }
+    
+
+    for (int i = 0; i < allLevelsInRange.size(); i++)
+    {
+        std::string filterTextLower = "";
+        for (char ch : m_filterText) { 
+            filterTextLower += std::tolower(ch); 
+        }
+
+        bool isValidForList = true;
+        for (int s = 0; s < m_DTLayer->m_MyLevelStats.LinkedLevels.size(); s++)
+        {
+            if (m_DTLayer->m_MyLevelStats.LinkedLevels[s] == allLevelsInRange[i].first)
+                isValidForList = false;
+        }
             
-            if (isValidForList){
-                levelsListItems->addObject(LinkLevelCell::create(this, m_AllLevels[i].first, m_AllLevels[i].second, false));
-            }
-            else{
-                linkedLevelsListItems->addObject(LinkLevelCell::create(this, m_AllLevels[i].first, m_AllLevels[i].second, true));
-            }
+        if (isValidForList){
+            levelsListItems->addObject(LinkLevelCell::create(this, allLevelsInRange[i].first, allLevelsInRange[i].second, false));
         }
     }
 
     auto levelsListView = ListView::create(levelsListItems, 40, CellsWidth, 220);
 
     m_LevelsList = GJListLayer::create(levelsListView, "Levels", {0,0,0,75}, CellsWidth, 220, 1);
-    m_LevelsList->setPosition({-233, -116});
+    m_LevelsList->setPosition({-242, -116});
     alighmentNode->addChild(m_LevelsList);
 
     SpacialEditList(m_LevelsList, {m_LevelsList->getContentSize().width / 2, 234}, 0.7f);
@@ -132,7 +196,7 @@ void DTLinkLayer::refreshLists(){
     auto linkedLevelsListView = ListView::create(linkedLevelsListItems, 40, CellsWidth, 220);
 
     m_LinkedLevelsList = GJListLayer::create(linkedLevelsListView, "Linked", {0,0,0,75}, CellsWidth, 220, 1);
-    m_LinkedLevelsList->setPosition({2, -116});
+    m_LinkedLevelsList->setPosition({11, -116});
     alighmentNode->addChild(m_LinkedLevelsList);
 
     SpacialEditList(m_LinkedLevelsList, {m_LinkedLevelsList->getContentSize().width / 2, 234}, 0.7f);
@@ -211,6 +275,7 @@ void DTLinkLayer::update(float delta){
 }
 
 void DTLinkLayer::textChanged(CCTextInputNode* input){
+    levelPage = 1;
     if (seartchInput->getInput() == input){
         std::string filterText = "";
         if (input->getString() != "")
@@ -224,8 +289,7 @@ void DTLinkLayer::textChanged(CCTextInputNode* input){
 void DTLinkLayer::onClose(CCObject*) {
     m_DTLayer->UpdateSharedStats();
     m_DTLayer->refreshStrings();
-    m_DTLayer->RefreshText();
-    m_DTLayer->refreshRunAllowedListView();
+    m_DTLayer->RefreshText(true);
     this->setKeypadEnabled(false);
     this->setTouchEnabled(false);
     this->removeFromParentAndCleanup(true);
@@ -235,4 +299,13 @@ void DTLinkLayer::onOverallInfo(CCObject*){
     auto alert = FLAlertLayer::create("Help", "On the left you have a list of all levels you have <cy>saved progress</c> on, on the right is the list of levels that are <cg>linked</c> to this one :)\nClick the arrows to move them around and use the search bar if you want.\n \nLinked levels will share stats.", "Ok");
     alert->setZOrder(150);
     this->addChild(alert);
+}
+
+void DTLinkLayer::levelsListMoveLeft(CCObject*){
+    levelPage--;
+    refreshLists();
+}
+void DTLinkLayer::levelsListMoveRight(CCObject*){
+    levelPage++;
+    refreshLists();
 }

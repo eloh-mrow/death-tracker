@@ -12,17 +12,6 @@ LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, Lev
     return ret;
 }
 
-LinkLevelCell* LinkLevelCell::create(DTManageLevelsLayer* DTMLL, std::string levelKey, LevelStats stats, bool linked) {
-    auto ret = new LinkLevelCell();
-    if (ret && ret->init(DTMLL, levelKey, stats, linked)) {
-        ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
-    }
-    return ret;
-}
-
 bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool linked){
 
     m_LevelKey = levelKey;
@@ -34,11 +23,6 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
     if (dynamic_cast<DTLinkLayer*>(l)){
         m_DTLinkLayer = dynamic_cast<DTLinkLayer*>(l);
         cellW = m_DTLinkLayer->CellsWidth;
-    }
-    else
-    {
-        m_DTManageLevelsLayer = dynamic_cast<DTManageLevelsLayer*>(l);
-        cellW = m_DTManageLevelsLayer->CellsWidth;
     }
     
     auto splittedKey = StatsManager::splitLevelKey(levelKey);
@@ -127,29 +111,6 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
             MoveButtonSprite->setPositionX(-MoveButtonSprite->getPositionX());
         }
     }
-    else{
-        auto deleteLevelBS = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-        deleteLevelBS->setScale(0.6f);
-        auto deleteLevelButton = CCMenuItemSpriteExtra::create(
-            deleteLevelBS,
-            nullptr,
-            this,
-            menu_selector(LinkLevelCell::DeleteMe)
-        );
-        deleteLevelButton->setPosition({282, 20});
-        bMenu->addChild(deleteLevelButton);
-
-        auto viewBS = ButtonSprite::create("View");
-        viewBS->setScale(0.6f);
-        auto viewButton = CCMenuItemSpriteExtra::create(
-            viewBS,
-            nullptr,
-            this,
-            menu_selector(LinkLevelCell::ViewMe)
-        );
-        viewButton->setPosition({242, 20});
-        bMenu->addChild(viewButton);
-    }
 
     scheduleUpdate();
 
@@ -158,86 +119,4 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
 
 void LinkLevelCell::MoveMe(CCObject*){
     m_DTLinkLayer->ChangeLevelLinked(m_LevelKey, m_Stats, m_Linked);
-}
-
-void LinkLevelCell::DeleteMe(CCObject*){
-    DeleteWarningAlert = FLAlertLayer::create(this, "Warning!", fmt::format("Doing this will delete all progress saved on <cy>{}</c>\n \nAre you sure you want to delete it?", m_Stats.levelName), "No", "Yes");
-    DeleteWarningAlert->setZOrder(105);
-    m_DTManageLevelsLayer->addChild(DeleteWarningAlert);
-}
-
-void LinkLevelCell::ViewMe(CCObject*){
-    if (m_DTManageLevelsLayer->dInfo) return;
-
-    if (StatsManager::splitLevelKey(m_LevelKey).second != "online"){
-        geode::Notification::create(fmt::format("Cant view {} levels!", StatsManager::splitLevelKey(m_LevelKey).second), CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
-        return;
-    }
-
-    m_DTManageLevelsLayer->downloadCircle->setVisible(true);
-
-    GameLevelManager::get()->m_levelManagerDelegate = this;
-    GameLevelManager::get()->getOnlineLevels(GJSearchObject::create(SearchType::Search, StatsManager::splitLevelKey(m_LevelKey).first));
-    
-    downloadingInfo = true;
-    m_DTManageLevelsLayer->dInfo = true;
-}
-
-void LinkLevelCell::loadLevelsFinished(cocos2d::CCArray* levels, char const* hash){
-    downloadingInfo = false;
-    m_DTManageLevelsLayer->dInfo = false;
-
-    m_DTManageLevelsLayer->downloadCircle->setVisible(false);
-
-    if (levels->count() == 0) {
-        log::info("failed to fetch level");
-    }
-
-    auto* level = static_cast<GJGameLevel*>(
-        levels->objectAtIndex(0)
-    );
-
-    auto layer = LevelInfoLayer::create(level, false);
-    auto scene = CCScene::create();
-
-    scene->addChild(layer);
-    auto transition = CCTransitionFade::create(0.5f, scene);
-
-    CCDirector::sharedDirector()->pushScene(transition);
-}
-
-void LinkLevelCell::loadLevelsFinished(cocos2d::CCArray* p0, char const* p1, int p2){
-    loadLevelsFinished(p0, p1);
-}
-
-void LinkLevelCell::loadLevelsFailed(char const* p0){
-    downloadingInfo = false;
-    m_DTManageLevelsLayer->dInfo = false;
-    m_DTManageLevelsLayer->downloadCircle->setVisible(false);
-    log::info("failed to fetch level");
-}
-
-void LinkLevelCell::loadLevelsFailed(char const* p0, int p1){
-    loadLevelsFailed(p0);
-}
-
-void LinkLevelCell::FLAlert_Clicked(FLAlertLayer* alert, bool selected){
-    if (DeleteWarningAlert == alert && selected){
-        if (m_DTManageLevelsLayer->dInfo) return;
-
-        for (int i = 0; i < m_DTManageLevelsLayer->m_AllLevels.size(); i++)
-        {
-            if (m_DTManageLevelsLayer->m_AllLevels[i].first == m_LevelKey){
-                m_DTManageLevelsLayer->m_AllLevels.erase(std::next(m_DTManageLevelsLayer->m_AllLevels.begin(), i));
-                break;
-            }
-        }
-        
-        std::filesystem::path filep = Settings::getSavePath() / (m_LevelKey + ".json");
-
-        std::filesystem::remove(filep);
-
-        m_DTManageLevelsLayer->refreshLists(true);
-    }
-    
 }

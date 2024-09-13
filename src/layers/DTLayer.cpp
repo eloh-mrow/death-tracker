@@ -2,18 +2,16 @@
 #include "../managers/DTPopupManager.hpp"
 #include "../utils/Settings.hpp"
 #include "../layers/LabelLayoutWindow.hpp"
-#include "../layers/RunAllowedCell.hpp"
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/DTLinkLayer.hpp"
-#include "../layers/DTManageLevelsLayer.hpp"
-#include "../layers/DTExportImportLayer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
 #include "../hooks/CCControlColourPickerBypass.h"
+#include "../hooks/DTColorSelectPopup.hpp"
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
-    if (ret && ret->init(520, 280, Level, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->init(368, 280, Level, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -42,33 +40,29 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     this->setZOrder(100);
     this->m_buttonMenu->setZOrder(1);
-
-    auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    overallInfoBS->setScale(0.8f);
-    auto overallInfoButton = CCMenuItemSpriteExtra::create(
-        overallInfoBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onOverallInfo)
-    );
-    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
-    this->m_buttonMenu->addChild(overallInfoButton);
+    m_mainLayer->setZOrder(1);
 
     alighmentNode = CCNode::create();
     alighmentNode->setPosition(m_buttonMenu->getPosition());
     alighmentNode->setZOrder(2);
     m_mainLayer->addChild(alighmentNode);
 
+    auto sideBG = CCScale9Sprite::create("square01_001.png", {0,0, 94, 94});
+    sideBG->setContentSize({154, 145});
+    sideBG->setPosition(alighmentNode->getPosition() + ccp(233.5f, 10));
+    sideBG->setScale(0.65f);
+    m_mainLayer->addChild(sideBG);
+
     //texts bg
     m_TextBG = CCScale9Sprite::create("GJ_square05.png", {0,0, 80, 80});
-    m_TextBG->setContentSize({m_size.width / 1.6f, m_size.height / 1.15f});
+    m_TextBG->setContentSize({520 / 1.6f, m_size.height / 1.15f});
     m_TextBG->setPosition({winSize.width / 2, winSize.height / 2});
     m_TextBG->setOpacity(100);
     m_TextBG->setZOrder(10);
     m_mainLayer->addChild(m_TextBG);
 
     //create a scroll layer for the text
-    m_ScrollLayer = ScrollLayer::create({m_size.width / 1.6f, m_size.height / 1.15f});
+    m_ScrollLayer = ScrollLayer::create({520 / 1.6f, m_size.height / 1.15f});
     m_ScrollLayer->setPosition(CCSize{winSize.width / 2, winSize.height / 2} - m_TextBG->getContentSize() / 2);
     m_ScrollLayer->setZOrder(11);
     m_mainLayer->addChild(m_ScrollLayer);
@@ -79,16 +73,58 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_ScrollBar->setPosition({154, 0});
     alighmentNode->addChild(m_ScrollBar);
 
-    auto editLayoutBtnS = ButtonSprite::create("Edit Layout");
-    editLayoutBtnS->setScale(0.475f);
+    auto editLayoutBtnS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+    auto editLayoutBtnSS = CCSprite::create("layout_button.png"_spr);
+    editLayoutBtnSS->setPosition(editLayoutBtnS->getContentSize() / 2);
+    editLayoutBtnS->addChild(editLayoutBtnSS);
+    editLayoutBtnS->setScale(0.8f);
     m_EditLayoutBtn = CCMenuItemSpriteExtra::create(
         editLayoutBtnS,
         nullptr,
         this,
         menu_selector(DTLayer::onEditLayout)
     );
-    m_EditLayoutBtn->setPosition({207, 114});
+    m_EditLayoutBtn->setPosition(m_size.width / 2 - 3.0f, m_size.height / 2 - 3.0f);
     this->m_buttonMenu->addChild(m_EditLayoutBtn);
+
+    auto LinkLevelsButtonS = CCSprite::createWithSpriteFrameName("gj_linkBtn_001.png");
+    LinkLevelsButtonS->setScale(1.2f);
+    LinkLevelsButton = CCMenuItemSpriteExtra::create(
+        LinkLevelsButtonS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::OnLinkButtonClicked)
+    );
+    LinkLevelsButton->setPosition({-m_size.width / 2 + 3.0f, -m_size.height / 2 + 3.0f});
+    m_buttonMenu->addChild(LinkLevelsButton);
+
+    auto settingsBS = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
+    settingsBS->setScale(0.75f);
+    settingsButton = CCMenuItemSpriteExtra::create(
+        settingsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onSettings)
+    );
+    settingsButton->setPosition({m_size.width / 2 - 8.5f, -m_size.height / 2 + 8.5f});
+    this->m_buttonMenu->addChild(settingsButton);
+
+    auto levelSettingsBS = CCSprite::createWithSpriteFrameName("GJ_editBtn_001.png");
+    levelSettingsBS->setScale(0.4f);
+
+    levelSettingsBSArrow = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
+    levelSettingsBSArrow->setPosition({-15, levelSettingsBS->getContentHeight() / 2});
+    levelSettingsBSArrow->setScale(0.75f);
+    levelSettingsBS->addChild(levelSettingsBSArrow);
+
+    auto levelSettingsButton = CCMenuItemSpriteExtra::create(
+        levelSettingsBS,
+        nullptr,
+        this,
+        menu_selector(DTLayer::onSpecificSettings)
+    );
+    levelSettingsButton->setPosition({-m_size.width / 2 + 3.0f, 0});
+    this->m_buttonMenu->addChild(levelSettingsButton);
 
     /*
      * edit layout
@@ -107,26 +143,18 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setOpacity(150);
     alighmentNode->addChild(m_BlackSquare);
 
-    auto editLayoutCancelBtnS = ButtonSprite::create("Cancel", "goldFont.fnt", "GJ_button_06.png");
-    editLayoutCancelBtnS->setScale(0.375f);
-    auto editLayoutCancelBtn = CCMenuItemSpriteExtra::create(
-        editLayoutCancelBtnS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onEditLayoutCancle)
-    );
-    editLayoutCancelBtn->setPosition({226, 114});
-    m_EditLayoutMenu->addChild(editLayoutCancelBtn);
-
-    auto editLayoutApplyBtnS = ButtonSprite::create("Apply");
-    editLayoutApplyBtnS->setScale(0.375f);
+    auto editLayoutApplyBtnS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+    auto editLayoutApplyBtnSS = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
+    editLayoutApplyBtnSS->setPosition(editLayoutBtnS->getContentSize() / 2);
+    editLayoutApplyBtnS->addChild(editLayoutApplyBtnSS);
+    editLayoutApplyBtnS->setScale(0.65f);
     editLayoutApplyBtn = CCMenuItemSpriteExtra::create(
         editLayoutApplyBtnS,
         nullptr,
         this,
         menu_selector(DTLayer::onEditLayoutApply)
     );
-    editLayoutApplyBtn->setPosition({186, 114});
+    editLayoutApplyBtn->setPosition({159, -120});
     m_EditLayoutMenu->addChild(editLayoutApplyBtn);
 
     auto addWindowButtonS = CCSprite::createWithSpriteFrameName("GJ_plusBtn_001.png");
@@ -162,42 +190,54 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     resetLayoutButton->setPosition({-157, -112});
     m_EditLayoutMenu->addChild(resetLayoutButton);
 
-    nbcColorPickerLabel = CCLabelBMFont::create("New Best\nColor", "bigFont.fnt");
-    nbcColorPickerLabel->setPosition({-205, 82});
+    auto editLayoutSideBG = CCScale9Sprite::create("square01_001.png", {0,0, 94, 94});
+    editLayoutSideBG->setContentSize({154, 145});
+    editLayoutSideBG->setPosition(ccp(233.5f, 10));
+    editLayoutSideBG->setScale(0.65f);
+    m_EditLayoutMenu->addChild(editLayoutSideBG);
+
+    colorSpritenb = ColorChannelSprite::create();
+    colorSpritenb->setColor(Save::getNewBestColor());
+    colorSpritenb->setScale(0.65f);
+    auto nbcPicker = CCMenuItemSpriteExtra::create(
+        colorSpritenb,
+        nullptr,
+        this,
+        menu_selector(DTLayer::editnbcColor)
+    );
+    nbcPicker->setPosition({233, 38});
+    m_EditLayoutMenu->addChild(nbcPicker);
+
+    colorSpritesb = ColorChannelSprite::create();
+    colorSpritesb->setColor(Save::getSessionBestColor());
+    colorSpritesb->setScale(0.65f);
+    auto sbcPicker = CCMenuItemSpriteExtra::create(
+        colorSpritesb,
+        nullptr,
+        this,
+        menu_selector(DTLayer::editsbcColor)
+    );
+    sbcPicker->setPosition({233, -3});
+    m_EditLayoutMenu->addChild(sbcPicker);
+
+    auto nbcColorPickerLabel = CCLabelBMFont::create("New best", "bigFont.fnt");
+    nbcColorPickerLabel->setPosition({233, 22});
     nbcColorPickerLabel->setScale(0.4f);
     nbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     m_EditLayoutMenu->addChild(nbcColorPickerLabel);
 
-    nbcColorPicker = CCControlColourPicker::colourPicker();
-    nbcColorPicker->setAnchorPoint({0,0});
-    nbcColorPicker->setPosition({-100, -100});
-    nbcColorPicker->setScale(0.425f);
-    nbcColorPicker->setColorValue(Save::getNewBestColor());
-    nbcColorPicker->setID("new-best-Color-Picker");
-    nbcColorPicker->setDelegate(this);
-    m_EditLayoutMenu->addChild(nbcColorPicker);
-
-    sbcColorPickerLabel = CCLabelBMFont::create("Session Best\nColor", "bigFont.fnt");
-    sbcColorPickerLabel->setPosition({-205, -18});
+    auto sbcColorPickerLabel = CCLabelBMFont::create("Session best", "bigFont.fnt");
+    sbcColorPickerLabel->setPosition({233, -19});
     sbcColorPickerLabel->setScale(0.35f);
     sbcColorPickerLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     m_EditLayoutMenu->addChild(sbcColorPickerLabel);
-
-    sbcColorPicker = CCControlColourPicker::colourPicker();
-    sbcColorPicker->setAnchorPoint({0,0});
-    sbcColorPicker->setPosition({-100, -100});
-    sbcColorPicker->setScale(0.425f);
-    sbcColorPicker->setColorValue(Save::getSessionBestColor());
-    sbcColorPicker->setID("new-session-best-Color-Picker");
-    sbcColorPicker->setDelegate(this);
-    m_EditLayoutMenu->addChild(sbcColorPicker);
-
 
     //session selection
 
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
-    SessionSelectCont->setPosition({-207, 99});
+    SessionSelectCont->setPosition({233, 24});
+    SessionSelectCont->setZOrder(1);
     alighmentNode->addChild(SessionSelectCont);
 
     m_SessionSelectMenu = CCMenu::create();
@@ -247,287 +287,28 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     SessionSelectionLabel->setScale(0.45f);
     SessionSelectCont->addChild(SessionSelectionLabel);
 
-    refreshRunAllowedListView();
-
-    m_AddRunAllowedInput = InputNode::create(90, "ST%");
-    m_AddRunAllowedInput->getInput()->setMaxLabelLength(3);
-    m_AddRunAllowedInput->getInput()->setAllowedChars("1234567890");
-    m_AddRunAllowedInput->getInput()->setDelegate(this);
-    m_AddRunAllowedInput->setPosition({-218, 61});
-    m_AddRunAllowedInput->setScale(0.5f);
-    alighmentNode->addChild(m_AddRunAllowedInput);
-
-    m_RunStuffMenu = CCMenu::create();
-    m_mainLayer->addChild(m_RunStuffMenu);
-
-    auto AddRunAllowedButtonS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
-    AddRunAllowedButtonS->setScale(0.75f);
-    auto AddRunAllowedButton = CCMenuItemSpriteExtra::create(
-        AddRunAllowedButtonS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::addRunAllowed)
-    );
-    AddRunAllowedButton->setPosition({-180, 61});
-    m_RunStuffMenu->addChild(AddRunAllowedButton);
-
-    auto RunAllowedInfoButtonS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    RunAllowedInfoButtonS->setScale(0.5f);
-    auto RunAllowedInfoButton = CCMenuItemSpriteExtra::create(
-        RunAllowedInfoButtonS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onRunsAInfo)
-    );
-    RunAllowedInfoButton->setPosition({-180, 76});
-    m_RunStuffMenu->addChild(RunAllowedInfoButton);
-
-    auto checkOn = CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png");
-    auto checkOff = CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png");
-    allRunsToggle = CCMenuItemToggler::create(
-        checkOff,
-        checkOn,
-        this,
-        menu_selector(DTLayer::OnToggleAllRuns)
-    );
-
-    if (m_MyLevelStats.RunsToSave.size())
-        if (m_MyLevelStats.RunsToSave[0] == -1){
-            allRunsToggle->toggle(true);
-        }
-
-    allRunsToggle->setPosition({-238, -26});
-    allRunsToggle->setScale(0.35f);
-    m_RunStuffMenu->addChild(allRunsToggle);
-
-    auto allRunsToggleLabel = CCLabelBMFont::create("Track any run", "bigFont.fnt");
-    allRunsToggleLabel->setPosition({-198, -26});
-    allRunsToggleLabel->setScale(0.25f);
-    m_RunStuffMenu->addChild(allRunsToggleLabel);
-
-    auto DeleteUnusedButtonS = ButtonSprite::create("Delete Unused", "bigFont.fnt", "GJ_button_06.png");
-    DeleteUnusedButtonS->setScale(0.3f);
-    auto DeleteUnusedButton = CCMenuItemSpriteExtra::create(
-        DeleteUnusedButtonS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::deleteUnused)
-    );
-    DeleteUnusedButton->setPosition({-207, -40});
-    m_RunStuffMenu->addChild(DeleteUnusedButton);
-
-    //graph
-
     auto GraphButtonS = CCSprite::create("graph_button.png"_spr);
-    GraphButtonS->setScale(0.75f);
+    GraphButtonS->setScale(0.85f);
     auto GraphButton = CCMenuItemSpriteExtra::create(
         GraphButtonS,
         nullptr,
         this,
         menu_selector(DTLayer::openGraphMenu)
     );
-    GraphButton->setPosition({-224, -66});
+    GraphButton->setPosition({233, -9});
     m_buttonMenu->addChild(GraphButton);
 
-    //linking
+    //copy text
 
-    auto LinkLevelsButtonS = CCSprite::createWithSpriteFrameName("gj_linkBtn_001.png");
-    auto LinkLevelsButton = CCMenuItemSpriteExtra::create(
-        LinkLevelsButtonS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::OnLinkButtonClicked)
-    );
-    LinkLevelsButton->setPosition({-182, -65});
-    m_buttonMenu->addChild(LinkLevelsButton);
-
-    //manage levels
-    auto manageLevelsBS = ButtonSprite::create("Manage");
-    manageLevelsBS->setScale(0.6f);
-    auto manageLevelsButton = CCMenuItemSpriteExtra::create(
-        manageLevelsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::OnManage)
-    );
-    manageLevelsButton->setPosition({207, -52});
-    this->m_buttonMenu->addChild(manageLevelsButton);
-
-    //settings
-    auto settingsBS = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
-    settingsBS->setScale(0.75f);
-    auto settingsButton = CCMenuItemSpriteExtra::create(
-        settingsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onSettings)
-    );
-    settingsButton->setPosition({227, -106});
-    this->m_buttonMenu->addChild(settingsButton);
-
-    //export/import
-    auto exportBS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
-    auto exportBS1 = CCSprite::createWithSpriteFrameName("geode.loader/install.png");
-    exportBS1->setPosition(exportBS->getContentSize() / 2);
-    exportBS1->setScale(1.2f);
-    exportBS->addChild(exportBS1);
-    exportBS->setScale(0.8f);
-    auto exportButton = CCMenuItemSpriteExtra::create(
-        exportBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onExportClicked)
-    );
-    exportButton->setAnchorPoint({0.5f, 0.5f});
-    exportButton->setPosition({185, -106});
-    this->m_buttonMenu->addChild(exportButton);
-
-    //modify runs
-
-    CCNode* mRunsCont = CCNode::create();
-    mRunsCont->setPosition({208, 96});
-    alighmentNode->addChild(mRunsCont);
-
-    modifyRunsMenu = CCMenu::create();
-    modifyRunsMenu->setPosition({0, 0});
-    mRunsCont->addChild(modifyRunsMenu);
-
-    auto addRunsInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    addRunsInfoBS->setScale(0.65f);
-    auto addRunsInfoButton = CCMenuItemSpriteExtra::create(
-        addRunsInfoBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onModRunsInfo)
-    );
-    addRunsInfoButton->setPosition({32, -21});
-    modifyRunsMenu->addChild(addRunsInfoButton);
-
-    auto modifyRunsTitle = CCLabelBMFont::create("Modify\nRuns", "bigFont.fnt");
-    modifyRunsTitle->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    modifyRunsTitle->setPosition({0, -11});
-    modifyRunsTitle->setScale(0.55f);
-    mRunsCont->addChild(modifyRunsTitle);
-
-    addFZRunInput = InputNode::create(90, "Run%");
-    addFZRunInput->setPosition({-14, -44});
-    addFZRunInput->setScale(0.55f);
-    addFZRunInput->getInput()->setDelegate(this);
-    addFZRunInput->getInput()->setAllowedChars("1234567890");
-    mRunsCont->addChild(addFZRunInput);
-
-    auto addFZRunsBS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
-    addFZRunsBS->setScale(0.8f);
-    auto addFZRunsButton = CCMenuItemSpriteExtra::create(
-        addFZRunsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onAddedFZRun)
-    );
-    addFZRunsButton->setPosition({26, -38});
-    modifyRunsMenu->addChild(addFZRunsButton);
-
-    auto removeFZRunsBS = CCSprite::create("minus_button.png"_spr);
-    removeFZRunsBS->setScale(0.8f);
-    auto removeFZRunsButton = CCMenuItemSpriteExtra::create(
-        removeFZRunsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onRemovedFZRun)
-    );
-    removeFZRunsButton->setPosition({26.5f, -54});
-    modifyRunsMenu->addChild(removeFZRunsButton);
-
-
-    addRunStartInput = InputNode::create(90, "RunS");
-    addRunStartInput->setPosition({-16, -74});
-    addRunStartInput->setScale(0.5f);
-    addRunStartInput->getInput()->setDelegate(this);
-    addRunStartInput->getInput()->setAllowedChars("1234567890");
-    mRunsCont->addChild(addRunStartInput);
-
-    auto runSeparator = CCLabelBMFont::create("-", "bigFont.fnt");
-    runSeparator->setPosition({-16, -84});
-    runSeparator->setScale(0.8f);
-    runSeparator->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    mRunsCont->addChild(runSeparator);
-
-    addRunEndInput = InputNode::create(90, "RunE");
-    addRunEndInput->setPosition({-16, -99});
-    addRunEndInput->setScale(0.5f);
-    addRunEndInput->getInput()->setDelegate(this);
-    addRunEndInput->getInput()->setAllowedChars("1234567890");
-    mRunsCont->addChild(addRunEndInput);
-
-    auto addRunsBS = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
-    addRunsBS->setScale(0.8f);
-    auto addRunsButton = CCMenuItemSpriteExtra::create(
-        addRunsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onAddedRun)
-    );
-    addRunsButton->setPosition({26, -75});
-    modifyRunsMenu->addChild(addRunsButton);
-
-    auto removeRunsBS = CCSprite::create("minus_button.png"_spr);
-    removeRunsBS->setScale(0.8f);
-    auto removeRunsButton = CCMenuItemSpriteExtra::create(
-        removeRunsBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onRemovedRun)
-    );
-    removeRunsButton->setPosition({26.5f, -95});
-    modifyRunsMenu->addChild(removeRunsButton);
-
-    auto runsAmountlabel = CCLabelBMFont::create("Amount", "bigFont.fnt");
-    runsAmountlabel->setPosition({1, -113});
-    runsAmountlabel->setScale(0.35f);
-    runsAmountlabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    mRunsCont->addChild(runsAmountlabel);
-
-    runsAmountInput = InputNode::create(90, "Amount");
-    runsAmountInput->setPosition({0, -128});
-    runsAmountInput->setScale(0.5f);
-    runsAmountInput->getInput()->setDelegate(this);
-    runsAmountInput->getInput()->setAllowedChars("1234567890");
-    runsAmountInput->setString("1");
-    mRunsCont->addChild(runsAmountInput);
-
-    //current level managment
-    auto deleteCurrentSaveBS = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-    deleteCurrentSaveBS->setScale(0.75f);
-    auto deleteCurrentSaveButton = CCMenuItemSpriteExtra::create(
-        deleteCurrentSaveBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onCurrentDeleteClicked)
-    );
-    deleteCurrentSaveButton->setPosition({-226, -106});
-    m_buttonMenu->addChild(deleteCurrentSaveButton);
-
-    auto revertBackupBS = CCSprite::createWithSpriteFrameName("GJ_replayBtn_001.png");
-    revertBackupBS->setScale(0.525f);
-    auto revertBackupButton = CCMenuItemSpriteExtra::create(
-        revertBackupBS,
-        nullptr,
-        this,
-        menu_selector(DTLayer::onRevertClicked)
-    );
-    revertBackupButton->setPosition({-187, -106});
-    m_buttonMenu->addChild(revertBackupButton);
-
-    //copy
     auto copyTextBS = ButtonSprite::create("Copy Text");
-    copyTextBS->setScale(0.525f);
-    auto copyTextButton = CCMenuItemSpriteExtra::create(
+    copyTextBS->setScale(0.575f);
+    copyTextButton = CCMenuItemSpriteExtra::create(
         copyTextBS,
         nullptr,
         this,
         menu_selector(DTLayer::copyText)
     );
-    copyTextButton->setPosition({207, -74});
+    copyTextButton->setPosition({0, -m_size.height / 2 + 3.0f});
     this->m_buttonMenu->addChild(copyTextButton);
 
     auto copyInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -550,7 +331,15 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
-        FLAlertLayer::create(fmt::format("Death Tracker\n{} Changelog", Mod::get()->getVersion().toVString()).c_str(), "\n- <cg>fixed a crash bug on macos</c>\n- <cg>fixed some typos</c>", "OK")->show();
+        FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
+            "{}\n{}\n{}\n{}\n{}\n{}",
+            "- <cg>removed most UI from the main page</c>",
+            "- <cg>added a level options page where all the level-specific settings are now</c>",
+            "- <cg>fixed some typos</c>",
+            "- <cg>added an option to hid all runs up to a certain percentage</c>",
+            "- <cg>edit layout now has a new button</c>",
+            "- <cg>removed \"safe mode\" due to bugs</c>"
+        ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 
     return true;
@@ -563,16 +352,6 @@ void DTLayer::update(float delta){
 
 void DTLayer::onEditLayout(CCObject* sender){
     EditLayoutEnabled(true);
-}
-
-void DTLayer::onEditLayoutCancle(CCObject*){
-    EditLayoutEnabled(false);
-    if (m_LayoutStuffCont){
-        m_LayoutStuffCont->removeMeAndCleanup();
-        m_LayoutStuffCont = nullptr;
-    }
-    createLayoutBlocks();
-    RefreshText();
 }
 
 void DTLayer::textChanged(CCTextInputNode* input){
@@ -598,88 +377,6 @@ void DTLayer::textChanged(CCTextInputNode* input){
         updateSessionString(m_SessionSelected);
         RefreshText();
     }
-
-    if (input == m_AddRunAllowedInput->getInput()){
-
-        int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
-            }
-            catch (...){ }
-
-        if (res > 100){
-            res = 100;
-            input->setString("100");
-        }
-
-    }
-
-    if (input == addFZRunInput->getInput()){
-        int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
-            }
-            catch (...){ }
-
-        if (res > 100){
-            res = 100;
-            input->setString("100");
-        }
-
-    }
-
-    if (input == addRunStartInput->getInput()){
-
-        int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
-            }
-            catch (...){ }
-            
-        
-        if (res > 100){
-            res = 100;
-            input->setString("100");
-        }
-    }
-
-    if (input == addRunEndInput->getInput()){
-
-        int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
-            }
-            catch (...){ }
-        
-        if (res > 100){
-            res = 100;
-            input->setString("100");
-        }
-    }
-
-    if (input == runsAmountInput->getInput()){
-
-        int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
-            }
-            catch (...){ }
-
-        if (res == 0){
-            res = 1;
-            input->setString("1");
-        }
-
-        if (res > 10){
-            res = 10;
-            input->setString("10");
-        }
-    }
 }
 
 void DTLayer::textInputOpened(CCTextInputNode* input){
@@ -687,6 +384,8 @@ void DTLayer::textInputOpened(CCTextInputNode* input){
         input->setString(fmt::format("{}", m_SessionSelected));
         m_SessionSelectionInputSelected = true;
     }
+
+    
 }
 
 void DTLayer::textInputClosed(CCTextInputNode* input){
@@ -708,6 +407,19 @@ void DTLayer::updateSessionString(int session){
     for (int i = 0; i < selectedSessionInfo.size(); i++)
     {
         if (std::get<0>(selectedSessionInfo[0]) != "-1" && std::get<0>(selectedSessionInfo[0]) != "No Saved Progress"){
+            std::string fixedPrecent = std::get<0>(m_DeathsInfo[i]);
+            if (fixedPrecent.length() > 0)
+                if (fixedPrecent[0] == '<' && fixedPrecent.length() > 1){
+                    if (isKeyInIndex(fixedPrecent, 1, "nbc>")){
+                        fixedPrecent = fixedPrecent.erase(0, 5);
+                    }
+                    if (isKeyInIndex(fixedPrecent, 1, "sbc>")){
+                        fixedPrecent = fixedPrecent.erase(0, 5);
+                    }
+                }
+            
+            if (std::stoi(fixedPrecent) < m_MyLevelStats.hideUpto) continue;
+
             mergedString += fmt::format("{}% x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
             if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
         }
@@ -737,8 +449,8 @@ void DTLayer::onEditLayoutApply(CCObject*){
         layout.push_back(IWindow->m_MyLayout);
     }
 
-    Save::setNewBestColor(static_cast<CCControlColourPickerBypass*>(nbcColorPicker)->getPickedColor());
-    Save::setSessionBestColor(static_cast<CCControlColourPickerBypass*>(sbcColorPicker)->getPickedColor());
+    Save::setNewBestColor(colorSpritenb->getColor());
+    Save::setSessionBestColor(colorSpritesb->getColor());
 
     Save::setLayout(layout);
 
@@ -771,25 +483,25 @@ void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
 void DTLayer::EditLayoutEnabled(bool b){
     this->m_buttonMenu->setEnabled(!b);
     m_SessionSelectMenu->setEnabled(!b);
-    m_RunStuffMenu->setEnabled(!b);
-    modifyRunsMenu->setEnabled(!b);
+    //m_RunStuffMenu->setEnabled(!b);
+    //modifyRunsMenu->setEnabled(!b);
     m_EditLayoutMenu->setVisible(b);
-    m_EditLayoutBtn->setVisible(!b);
+    m_EditLayoutBtn->setEnabled(!b);
     m_BlackSquare->setVisible(b);
     m_LayoutStuffCont->setVisible(b);
     editLayoutApplyBtn->setEnabled(b);
-    addFZRunInput->setEnabled(!b);
-    addRunStartInput->setEnabled(!b);
-    addRunEndInput->setEnabled(!b);
-    runsAmountInput->setEnabled(!b);
+    //addFZRunInput->setEnabled(!b);
+    //addRunStartInput->setEnabled(!b);
+    //addRunEndInput->setEnabled(!b);
+    //runsAmountInput->setEnabled(!b);
     layoutInfoButton->setVisible(b);
     addWindowButton->setVisible(b);
     resetLayoutButton->setVisible(b);
-    nbcColorPickerLabel->setVisible(b);
-    sbcColorPickerLabel->setVisible(b);
+    //nbcColorPickerLabel->setVisible(b);
+    //sbcColorPickerLabel->setVisible(b);
     if (m_SessionSelectionInput)
         m_SessionSelectionInput->setEnabled(!b);
-    m_AddRunAllowedInput->setEnabled(!b);
+    //m_AddRunAllowedInput->setEnabled(!b);
 
     for (int i = 0; i < m_LayoutLines.size(); i++)
     {
@@ -797,23 +509,28 @@ void DTLayer::EditLayoutEnabled(bool b){
         IWindow->setMoveEnabled(b);
     }
 
+    float transitionFadeSpeed = 0.5f;
+
     if (b)
     {
         changeScrollSizeByBoxes(true);
         m_TextBG->setOpacity(200);
-        sbcColorPicker->setPosition({-205, -64});
-        nbcColorPicker->setPosition({-205, 33});
+        //sbcColorPicker->setPosition({-205, -64});
+        //nbcColorPicker->setPosition({-205, 33});
+        colorSpritenb->setColor(Save::getNewBestColor());
+        colorSpritesb->setColor(Save::getSessionBestColor());
     }
     else{
         RefreshText(true);
-        sbcColorPicker->setPosition({-500, -500});
-        nbcColorPicker->setPosition({-500, -500});
+        //sbcColorPicker->setPosition({-500, -500});
+        //nbcColorPicker->setPosition({-500, -500});
         m_TextBG->setOpacity(100);
-        auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
-        sprite->m_BGSprite->setOpacity(255);
-        sprite->m_label->setOpacity(255);
+
+        auto sprite = static_cast<CCSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
+        sprite->setOpacity(255);
+        static_cast<CCSprite*>(sprite->getChildren()->objectAtIndex(0))->setOpacity(255);
         isInCopyMenu = false;
-        copyInfoButton->setVisible(false);
+        //copyInfoButton->setVisible(false);
     }
 }
 
@@ -1164,6 +881,19 @@ void DTLayer::refreshStrings(){
     for (int i = 0; i < m_DeathsInfo.size(); i++)
     {
         if (std::get<0>(m_DeathsInfo[0]) != "-1" && std::get<0>(m_DeathsInfo[0]) != "No Saved Progress"){
+            std::string fixedPrecent = std::get<0>(m_DeathsInfo[i]);
+            if (fixedPrecent.length() > 0)
+                if (fixedPrecent[0] == '<' && fixedPrecent.length() > 1){
+                    if (isKeyInIndex(fixedPrecent, 1, "nbc>")){
+                        fixedPrecent = fixedPrecent.erase(0, 5);
+                    }
+                    if (isKeyInIndex(fixedPrecent, 1, "sbc>")){
+                        fixedPrecent = fixedPrecent.erase(0, 5);
+                    }
+                }
+            
+            if (std::stoi(fixedPrecent) < m_MyLevelStats.hideUpto) continue;
+
             mergedString += fmt::format("{}% x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
             if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
         }
@@ -1247,25 +977,9 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateRunsString(Runs 
     std::vector<std::tuple<std::string, int>> sortedRuns{};
 
     for (const auto [runKey, count] : runs){
-        if (m_MyLevelStats.RunsToSave.size())
-            if (m_MyLevelStats.RunsToSave[0] == -1){
-                sortedRuns.push_back(std::make_tuple(runKey, count));
+        sortedRuns.push_back(std::make_tuple(runKey, count));
                         
-                totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
-            }
-            else{
-                for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-                {
-                    if (m_MyLevelStats.RunsToSave[i] == StatsManager::splitRunKey(runKey).start){
-                        sortedRuns.push_back(std::make_tuple(runKey, count));
-                        
-                        totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
-                        
-                        break;
-                    }
-                }
-            }
-        
+        totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
     }
 
     // sort the runs
@@ -1350,56 +1064,6 @@ void DTLayer::addBox(CCObject*){
     changeScrollSizeByBoxes();
 }
 
-void DTLayer::addRunAllowed(CCObject*){
-
-    int startPrecent = -1;
-    if (m_AddRunAllowedInput->getString() != "")
-        try{
-            startPrecent = std::stoi(m_AddRunAllowedInput->getString());
-        }
-        catch (...) {}
-    if (startPrecent == -1) return;
-
-    bool doesExist = false;
-    for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-    {
-        if (m_MyLevelStats.RunsToSave[i] == startPrecent)
-            doesExist = true;
-    }
-    
-    if (!doesExist){
-        m_MyLevelStats.RunsToSave.push_back(startPrecent);
-
-        std::ranges::sort(m_MyLevelStats.RunsToSave, [](const int a, const int b) {
-            return a < b; // true --> A before B
-        });
-
-        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
-        {
-            auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
-
-            bool doesExist2 = false;
-            for (int r = 0; r < currStats.RunsToSave.size(); r++)
-            {
-                if (currStats.RunsToSave[r] == startPrecent)
-                    doesExist2 = true;
-            }
-
-            if (!doesExist2 && currStats.currentBest != -1){
-                currStats.RunsToSave.push_back(startPrecent);
-
-                std::ranges::sort(currStats.RunsToSave, [](const int a, const int b) {
-                    return a < b; // true --> A before B
-                });
-
-                StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
-            }
-        }
-        refreshRunAllowedListView();
-        updateRunsAllowed();
-    }
-}
-
 void DTLayer::updateRunsAllowed(){
     if (m_MyLevelStats.currentBest != -1)
         StatsManager::saveData(m_MyLevelStats, m_Level);
@@ -1407,156 +1071,7 @@ void DTLayer::updateRunsAllowed(){
     RefreshText();
 }
 
-void DTLayer::refreshRunAllowedListView(){
-    if (m_RunsList) m_RunsList->removeMeAndCleanup();
-    CCArray* runsAllowed = CCArray::create();
-
-    for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-    {
-        if (m_MyLevelStats.RunsToSave[i] != -1)
-            runsAllowed->addObject(RunAllowedCell::create(m_MyLevelStats.RunsToSave[i], this));
-    }
-    
-    auto runsAllowedView = ListView::create(runsAllowed, 20, 75, 70);
-
-    m_RunsList = GJListLayer::create(runsAllowedView, "Runs", {0,0,0,75}, 75, 70, 1);
-    m_RunsList->setPosition({-245, -19});
-    alighmentNode->addChild(m_RunsList);
-
-    m_ScrollLayer->retain();
-    m_ScrollLayer->removeFromParent();
-    m_mainLayer->addChild(m_ScrollLayer);
-    m_ScrollLayer->release();
-
-    CCObject* child;
-
-    CCARRAY_FOREACH(m_RunsList->m_listView->m_tableView->m_cellArray, child){
-        auto childCell = dynamic_cast<GenericListCell*>(child);
-        if (childCell)
-            childCell->m_backgroundLayer->setOpacity(30);
-    }
-
-    std::vector<CCSprite*> spritesToRemove;
-    CCLabelBMFont* title;
-
-    CCARRAY_FOREACH(m_RunsList->getChildren(), child){
-        auto childSprite = dynamic_cast<CCSprite*>(child);
-        auto childLabel = dynamic_cast<CCLabelBMFont*>(child);
-        if (childSprite)
-            spritesToRemove.push_back(childSprite);
-        if (childLabel)
-            title = childLabel;
-    }
-
-    for (int i = 0; i < spritesToRemove.size(); i++)
-    {
-        spritesToRemove[i]->removeMeAndCleanup();
-    }
-
-    title->setScale(0.4f);
-    title->setPosition({39, 96});
-}
-
-void DTLayer::deleteUnused(CCObject*){
-    m_RunDeleteAlert = FLAlertLayer::create(this, "Warning!", "This will delete all saved runs that were not added to the list of runs to track, please make sure you have all of the percents you want on the tracked runs list before doing this.", "Cancel", "Delete");
-    m_RunDeleteAlert->setZOrder(101);
-    this->addChild(m_RunDeleteAlert);
-}
-
 void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
-    if (m_RunDeleteAlert == layer && selected){
-        if (m_MyLevelStats.currentBest == -1) return;
-
-        for (auto it = m_MyLevelStats.runs.cbegin(); it != m_MyLevelStats.runs.cend();)
-        {
-            bool erase = true;
-            for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-            {
-                
-                if (StatsManager::splitRunKey(it->first).start == m_MyLevelStats.RunsToSave[i]){
-                    erase = false;
-                }
-            }
-            if (erase){
-                m_MyLevelStats.runs.erase(it++);
-            }
-            else{
-                ++it;
-            }
-        }
-
-        for (int i = 0; i < m_MyLevelStats.sessions.size(); i++)
-        {
-            for (auto it = m_MyLevelStats.sessions[i].runs.cbegin(); it != m_MyLevelStats.sessions[i].runs.cend();)
-            {
-                bool erase = true;
-                for (int i = 0; i < m_MyLevelStats.RunsToSave.size(); i++)
-                {
-                    
-                    if (StatsManager::splitRunKey(it->first).start == m_MyLevelStats.RunsToSave[i]){
-                        erase = false;
-                    }
-                }
-                if (erase){
-                    m_MyLevelStats.sessions[i].runs.erase(it++);
-                }
-                else{
-                    ++it;
-                }
-            }
-        }
-        
-
-        StatsManager::saveData(m_MyLevelStats, m_Level);
-        UpdateSharedStats();
-        refreshStrings();
-        RefreshText();
-    }
-
-    if (currDeleteAlert == layer && selected){
-        std::filesystem::remove(StatsManager::getLevelSaveFilePath(m_Level));
-
-        LevelStats stats;
-
-        stats.attempts = m_Level->m_attempts;
-        stats.levelName = m_Level->m_levelName;
-        stats.currentBest = 0;
-        stats.difficulty = StatsManager::getDifficulty(m_Level);
-
-        Session startingSession;
-        startingSession.lastPlayed = -2;
-        startingSession.currentBest = -1;
-
-        stats.sessions.push_back(startingSession);
-
-        StatsManager::saveData(stats, m_Level);
-
-        auto alert = FLAlertLayer::create("Success!", "All progress has been deleted.", "Ok");
-        alert->setZOrder(150);
-        this->getParent()->addChild(alert);
-
-        onClose(nullptr);
-    }
-
-    if (revertAlert == layer && selected){
-        auto stats = StatsManager::getBackupStats(m_Level);
-
-        if (stats.currentBest == -1){
-            auto alert = FLAlertLayer::create("Failed", "No valid backup found :(\n\nIf your data doesn't load then it is probably corrupt, and in that case it is best to <cr>delete the current level using the delete button.</c>", "Ok");
-            alert->setZOrder(150);
-            this->addChild(alert);
-            return;
-        }
-        
-        StatsManager::saveData(stats, m_Level);
-
-        auto alert = FLAlertLayer::create("Success!", "Progress reverted to the latest backup.", "Ok");
-        alert->setZOrder(150);
-        this->getParent()->addChild(alert);
-
-        onClose(nullptr);
-    }
-
     if (ResetLayoutAlert == layer && selected){
         std::vector<LabelLayout> defaultLayout{
             {
@@ -1634,6 +1149,16 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
 void DTLayer::onClose(cocos2d::CCObject*) {
     if (m_EditLayoutMenu->isVisible()){
         EditLayoutEnabled(false);
+        if (m_LayoutStuffCont){
+            m_LayoutStuffCont->removeMeAndCleanup();
+            m_LayoutStuffCont = nullptr;
+        }
+        createLayoutBlocks();
+        RefreshText();
+    }
+    else if (LevelSpecificSettingsLayer){
+        //exit
+        onSpecificSettings(nullptr);
     }
     else{
         this->setKeypadEnabled(false);
@@ -1646,37 +1171,6 @@ void DTLayer::openGraphMenu(CCObject*){
     auto graph = DTGraphLayer::create(this);
     graph->setZOrder(100);
     this->addChild(graph);
-}
-
-void DTLayer::OnToggleAllRuns(CCObject*){
-    if (allRunsToggle->isOn()){
-        
-        if (m_MyLevelStats.RunsToSave.size()){
-            if (m_MyLevelStats.RunsToSave[0] == -1){
-                m_MyLevelStats.RunsToSave.erase(m_MyLevelStats.RunsToSave.begin());
-
-                for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
-                {
-                    auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
-
-                    if (currStats.RunsToSave.size() != 0 && currStats.currentBest != -1){
-                        if (currStats.RunsToSave[0] == -1){
-                            currStats.RunsToSave.erase(std::next(currStats.RunsToSave.begin(), 0));
-                        }
-                        StatsManager::saveData(currStats, m_MyLevelStats.LinkedLevels[i]);
-                    }
-                }
-
-                updateRunsAllowed();
-                m_ScrollLayer->moveToTop();
-            }
-        }
-    }
-    else{
-        m_MyLevelStats.RunsToSave.insert(m_MyLevelStats.RunsToSave.begin(), -1);
-        updateRunsAllowed();
-        m_ScrollLayer->moveToTop();
-    }
 }
 
 void DTLayer::OnLinkButtonClicked(CCObject*){
@@ -1761,234 +1255,18 @@ void DTLayer::UpdateSharedStats(){
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
 }
 
-void DTLayer::OnManage(CCObject*){
-    auto manageL = DTManageLevelsLayer::create(this);
-    manageL->setZOrder(100);
-    this->addChild(manageL);
-}
-
 void DTLayer::onSettings(CCObject*){
     geode::openSettingsPopup(Mod::get());
 }
 
-void DTLayer::onAddedFZRun(CCObject*){
-    if (m_MyLevelStats.currentBest == -1) return;
-
-    int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
-        }
-        catch (...) {}
-
-    int precent = 0;
-    if (addFZRunInput->getString() != "")
-        try{
-            precent = std::stoi(addFZRunInput->getString());
-        }
-        catch (...) {}
-    
-    m_MyLevelStats.deaths[std::to_string(precent)] += amount;
-
-    StatsManager::saveData(m_MyLevelStats, m_Level);
-    UpdateSharedStats();
-    refreshStrings();
-    RefreshText();
-}
-
-void DTLayer::onRemovedFZRun(CCObject*){
-    if (m_MyLevelStats.currentBest == -1) return;
-
-    int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
-        }
-        catch (...) {}
-        
-    int precent = 0;
-    if (addFZRunInput->getString() != "")
-        try{
-            precent = std::stoi(addFZRunInput->getString());
-        }
-        catch (...) {}
-        
-    if (m_MyLevelStats.deaths.contains(std::to_string(precent))){
-        m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
-        if (m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
-            m_MyLevelStats.deaths.erase(std::to_string(precent));
-        }
-
-        StatsManager::saveData(m_MyLevelStats, m_Level);
-    }
-    else{
-        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
-        {
-            auto lStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
-
-            if (lStats.deaths.contains(std::to_string(precent))){
-                lStats.deaths[std::to_string(precent)] -= amount;
-                if (lStats.deaths[std::to_string(precent)] <= 0){
-                    lStats.deaths.erase(std::to_string(precent));
-                }
-
-                StatsManager::saveData(lStats, m_MyLevelStats.LinkedLevels[i]);
-                break;
-            }
-        }
-        
-    }
-    
-    UpdateSharedStats();
-    refreshStrings();
-    RefreshText();
-}
-
-void DTLayer::onAddedRun(CCObject*){
-    if (m_MyLevelStats.currentBest == -1) return;
-
-    int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
-        }
-        catch (...){ }
-        
-    
-    Run r{
-        0,
-        0
-    };
-
-    if (addRunStartInput->getString() != "")
-        try{
-            r.start = std::stoi(addRunStartInput->getString());
-        }
-        catch (...){ }
-        
-
-    if (addRunEndInput->getString() != "")
-        try{
-            r.end = std::stoi(addRunEndInput->getString());
-        }
-        catch (...){ }
-    
-    if (r.start > r.end) return;
-
-    std::string runKey = fmt::format("{}-{}", r.start, r.end);
-    
-    m_MyLevelStats.runs[runKey] += amount;
-
-    StatsManager::saveData(m_MyLevelStats, m_Level);
-    UpdateSharedStats();
-    refreshStrings();
-    RefreshText();
-}
-
-void DTLayer::onRemovedRun(CCObject*){
-    if (m_MyLevelStats.currentBest == -1) return;
-
-    int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
-        }
-        catch (...){ }
-    
-    Run r{
-        0,
-        0
-    };
-
-    if (addRunStartInput->getString() != "")
-        try{
-            r.start = std::stoi(addRunStartInput->getString());
-        }
-        catch (...){ }
-
-    if (addRunEndInput->getString() != "")
-        try{
-            r.end = std::stoi(addRunEndInput->getString());
-        }
-        catch (...){ }
-        
-
-    if (r.start > r.end) return;
-
-    std::string runKey = fmt::format("{}-{}", r.start, r.end);
-    
-    if (m_MyLevelStats.runs.contains(runKey)){
-        m_MyLevelStats.runs[runKey] -= amount;
-        if (m_MyLevelStats.runs[runKey] <= 0){
-            m_MyLevelStats.runs.erase(runKey);
-        }
-
-        StatsManager::saveData(m_MyLevelStats, m_Level);
-    }
-    else{
-        for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
-        {
-            auto lStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
-
-            if (lStats.runs.contains(runKey)){
-                lStats.runs[runKey] -= amount;
-                if (lStats.runs[runKey] <= 0){
-                    lStats.runs.erase(runKey);
-                }
-
-                StatsManager::saveData(lStats, m_MyLevelStats.LinkedLevels[i]);
-                break;
-            }
-        }
-        
-    }
-
-    
-    UpdateSharedStats();
-    refreshStrings();
-    RefreshText();
-}
-
-void DTLayer::onOverallInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "The window in the middle of the screen will have your <cy>selected layout</c> displayed\n \nYou can change the <co>selected session</c> using the session selector on the top left (the latest session is always the first session)", "Ok");
-    alert->setZOrder(150);
-    this->addChild(alert);
-}
-
-void DTLayer::onRunsAInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "Select which runs to keep track of.\n \nType the start % of the run you wish to track on the input field below and then click the <cg>green button</c> to add it to the list.\nYou can remove any run from this list with the <cr>trash</c> button\n \nYou can also check <cy>\"track any run\"</c> for the mod to track runs from any precentage!", "Ok");
-    alert->setZOrder(150);
-    this->addChild(alert);
-}
-
-void DTLayer::onModRunsInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "Here you can manually add and remove runs from the save file :D\n \nInput the run you wish to add or remove into the text fields and click the <cg>plus</c> button to add and the <cr>minus</c> button to remove a run\n \nThe <cy>amount</c> below changes how much is added or removed when editing the runs.", "Ok");
-    alert->setZOrder(150);
-    this->addChild(alert);
-}
-
 void DTLayer::onLayoutInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", "The boxes (labels) here represent the text displayed.\n \nYou drag them around to change their order and <cy>double click</c> any of them for more options.\nClick the <cg>plus</c> button to add a new label.", "Ok");
-    alert->setZOrder(150);
-    this->addChild(alert);
-}
-
-void DTLayer::onCurrentDeleteClicked(CCObject*){
-    currDeleteAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will delete <cr>ALL</c> of your saved progress on this level.", "Cancel", "Delete");
-    currDeleteAlert->setZOrder(150);
-    this->addChild(currDeleteAlert);
-}
-
-void DTLayer::onRevertClicked(CCObject*){
-    revertAlert = FLAlertLayer::create(this, "WARNING!", "Doing this will <cy>revert your progress to the last created backup</c>, It's recommended to do this if your json doesn't load or is corrupted.", "Cancel", "Revert");
-    revertAlert->setZOrder(150);
-    this->addChild(revertAlert);
+    auto alert = FLAlertLayer::create("Help", "The boxes (labels) here represent the text displayed.\n \nYou drag them around to change their order and <cy>double click</c> any of them for more options.\nClick the <cg>plus</c> button to add a new label.\nThe button on the bottom left will <cy>reset everything back to default.</c>", "Ok");
+    alert->show();
 }
 
 void DTLayer::onCopyInfo(CCObject*){
     auto alert = FLAlertLayer::create("Help", "Click a label to copy its text.", "Ok");
-    alert->setZOrder(150);
-    this->addChild(alert);
+    alert->show();
 }
 
 void DTLayer::copyText(CCObject*)
@@ -1997,15 +1275,15 @@ void DTLayer::copyText(CCObject*)
 
     isInCopyMenu = true;
     editLayoutApplyBtn->setEnabled(false);
-    auto sprite = static_cast<ButtonSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
-    sprite->m_BGSprite->setOpacity(100);
-    sprite->m_label->setOpacity(100);
+    auto sprite = static_cast<CCSprite*>(editLayoutApplyBtn->getChildren()->objectAtIndex(0));
+    sprite->setOpacity(100);
+    static_cast<CCSprite*>(sprite->getChildren()->objectAtIndex(0))->setOpacity(100);
     resetLayoutButton->setVisible(false);
-    nbcColorPickerLabel->setVisible(false);
-    sbcColorPickerLabel->setVisible(false);
+    //nbcColorPickerLabel->setVisible(false);
+    //sbcColorPickerLabel->setVisible(false);
 
-    sbcColorPicker->setPosition({-500, -500});
-    nbcColorPicker->setPosition({-500, -500});
+    //sbcColorPicker->setPosition({-500, -500});
+    //nbcColorPicker->setPosition({-500, -500});
 
     for (int i = 0; i < m_LayoutLines.size(); i++)
     {
@@ -2043,14 +1321,106 @@ void DTLayer::clickedWindow(CCNode* nwindow){
     }   
 }
 
-void DTLayer::onExportClicked(CCObject*){
-    auto EILayer = DTExportImportLayer::create(this);
-    EILayer->setZOrder(100);
-    this->addChild(EILayer);
-}
-
 void DTLayer::onResetLayout(CCObject*){
     ResetLayoutAlert = FLAlertLayer::create(this, "Warning!", "This will reset your layout back to the default layout.\n\nAre you sure you want to do this?", "Cancel", "Reset");
     ResetLayoutAlert->setZOrder(150);
     this->addChild(ResetLayoutAlert);
+}
+
+void DTLayer::editnbcColor(CCObject*){
+    colorSelectnb = ColorSelectPopup::create(colorSpritenb->getColor());
+    colorSelectnb->show();
+    colorSelectnb->m_colorPicker->setColorValue(colorSpritenb->getColor());
+    colorSelectnb->updateColorLabels();
+    static_cast<CCNode*>(colorSelectnb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
+    static_cast<DTColorSelectPopup*>(colorSelectnb)->setCallback(callfunc_selector(DTLayer::setnbcColor), this);
+}
+
+void DTLayer::setnbcColor(){
+    if (!colorSelectnb) return;
+
+    colorSpritenb->setColor(static_cast<CCControlColourPickerBypass*>(colorSelectnb->m_colorPicker)->getPickedColor());
+}
+
+void DTLayer::editsbcColor(CCObject*){
+    colorSelectsb = ColorSelectPopup::create(colorSpritesb->getColor());
+    colorSelectsb->show();
+    colorSelectsb->m_colorPicker->setColorValue(colorSpritesb->getColor());
+    colorSelectsb->updateColorLabels();
+    static_cast<CCNode*>(colorSelectsb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
+    static_cast<DTColorSelectPopup*>(colorSelectsb)->setCallback(callfunc_selector(DTLayer::setsbcColor), this);
+}
+
+void DTLayer::setsbcColor(){
+    if (!colorSelectsb) return;
+
+    colorSpritesb->setColor(static_cast<CCControlColourPickerBypass*>(colorSelectsb->m_colorPicker)->getPickedColor());
+}
+
+void DTLayer::onSpecificSettings(CCObject*){
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    if (runningMoveTransition) return;
+    runningMoveTransition = true;
+
+    if (LevelSpecificSettingsLayer){
+        isExitingSSLayer = true;
+
+        settingsButton->runAction(CCFadeIn::create(0.3f));
+        LinkLevelsButton->runAction(CCFadeIn::create(0.3f));
+        static_cast<ButtonSprite*>(copyTextButton->getChildren()->objectAtIndex(0))->m_label->runAction(CCFadeIn::create(0.3f));
+        static_cast<ButtonSprite*>(copyTextButton->getChildren()->objectAtIndex(0))->m_BGSprite->runAction(CCFadeIn::create(0.3f));
+        m_closeBtn->runAction(CCFadeIn::create(0.3f));
+        m_EditLayoutBtn->runAction(CCFadeIn::create(0.3f));
+
+        levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, 0.75f, 0.75f));
+
+        LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 0), 2));
+        LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(310, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
+        m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(0, 0)), 2), nullptr));
+        LevelSpecificSettingsLayer->EnableTouch(false);
+
+        return;
+    }
+
+
+    LevelSpecificSettingsLayer = DTLevelSpecificSettingsLayer::create({375, 280}, this);
+    this->addChild(LevelSpecificSettingsLayer);
+    LevelSpecificSettingsLayer->EnableTouch(false);
+
+    settingsButton->setEnabled(false);
+    settingsButton->runAction(CCFadeOut::create(0.3f));
+    LinkLevelsButton->setEnabled(false);
+    LinkLevelsButton->runAction(CCFadeOut::create(0.3f));
+    copyTextButton->setEnabled(false);
+    static_cast<ButtonSprite*>(copyTextButton->getChildren()->objectAtIndex(0))->m_label->runAction(CCFadeOut::create(0.3f));
+    static_cast<ButtonSprite*>(copyTextButton->getChildren()->objectAtIndex(0))->m_BGSprite->runAction(CCFadeOut::create(0.3f));
+    m_closeBtn->setEnabled(false);
+    m_closeBtn->runAction(CCFadeOut::create(0.3f));
+    m_EditLayoutBtn->setEnabled(false);
+    m_EditLayoutBtn->runAction(CCFadeOut::create(0.3f));
+
+    levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, -0.75f, 0.75f));
+
+    LevelSpecificSettingsLayer->setPosition(104, 159);
+    LevelSpecificSettingsLayer->setScale(0);
+    LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 1), 2));
+    LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
+    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(320, 0)), 2), nullptr));
+}
+
+void DTLayer::onMoveTransitionEnded(){
+    runningMoveTransition = false;
+    if (isExitingSSLayer){
+        isExitingSSLayer = false;
+        LevelSpecificSettingsLayer->removeMeAndCleanup();
+        LevelSpecificSettingsLayer = nullptr;
+        settingsButton->setEnabled(true);
+        LinkLevelsButton->setEnabled(true);
+        copyTextButton->setEnabled(true);
+        m_closeBtn->setEnabled(true);
+        m_EditLayoutBtn->setEnabled(true);
+    }
+    else{
+        LevelSpecificSettingsLayer->EnableTouch(true);
+    }
 }

@@ -35,4 +35,7 @@ public:
     bool MoveEnabled = true;
     void setMoveEnabled(bool b);
     bool oneTimeClickDetect;
+
+    void setOpacity(GLubyte opacity);
+    void runAction(CCAction* action);
 };

@@ -34,6 +34,7 @@ struct LevelStats_s {
     std::string levelName;
     int attempts;
     int difficulty;
+    int hideUpto;
 };
 typedef struct LevelStats_s LevelStats;
 
@@ -102,6 +103,11 @@ struct matjson::Serialize<LevelStats> {
         else
             stats.difficulty = 0;
 
+        if (value.contains("hideUpto"))
+            stats.hideUpto = value["hideUpto"].as_int();
+        else
+            stats.hideUpto = 0;
+
         return stats;
     }
 
@@ -117,6 +123,7 @@ struct matjson::Serialize<LevelStats> {
         obj["levelName"] = value.levelName;
         obj["attempts"] = value.attempts;
         obj["difficulty"] = value.difficulty;
+        obj["hideUpto"] = value.hideUpto;
         return obj;
     }
 };
@@ -209,9 +216,5 @@ public:
 
     static void setPath(std::filesystem::path path);
 
-    /*
-    true = hack are on!! :(
-    false = all good :D
-    */
-    static bool safeModeCheck();
+    static std::vector<std::string> splitStr(std::string str, std::string delim);
 };

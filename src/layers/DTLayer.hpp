@@ -4,6 +4,7 @@
 #include "Geode/ui/TextArea.hpp"
 #include "../managers/StatsManager.hpp"
 #include "../utils/Save.hpp"
+#include "../layers/DTLevelSpecificSettingsLayer.hpp"
 
 using namespace geode::prelude;
 
@@ -49,18 +50,6 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         std::string RunString;
         std::string selectedSessionRunString;
 
-        //run managment
-        GJListLayer* m_RunsList = nullptr;
-        InputNode* m_AddRunAllowedInput;
-        CCMenu* m_RunStuffMenu;
-        void addRunAllowed(CCObject*);
-        void updateRunsAllowed();
-        void refreshRunAllowedListView();
-        void deleteUnused(CCObject*);
-        FLAlertLayer* m_RunDeleteAlert;
-        CCMenuItemToggler* allRunsToggle;
-        void OnToggleAllRuns(CCObject*);
-
         //session selection
         InputNode* m_SessionSelectionInput = nullptr;
         CCMenu* m_SessionSelectMenu;
@@ -73,17 +62,14 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
 
         //linking
         void OnLinkButtonClicked(CCObject*);
+        CCMenuItemSpriteExtra* LinkLevelsButton;
         void UpdateSharedStats();
-
-        //manage
-        void OnManage(CCObject*);
 
         //edit layout mode
         CCMenuItemSpriteExtra* m_EditLayoutBtn;
         void onEditLayout(CCObject*);
         CCMenu* m_EditLayoutMenu;
         CCSprite* m_BlackSquare;
-        void onEditLayoutCancle(CCObject*);
         void onEditLayoutApply(CCObject*);
         void EditLayoutEnabled(bool b);
         std::vector<CCNode*> m_LayoutLines;
@@ -99,10 +85,14 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         FLAlertLayer* ResetLayoutAlert;
         CCMenuItemSpriteExtra* resetLayoutButton;
         void onResetLayout(CCObject*);
-        CCControlColourPicker* nbcColorPicker;
-        CCLabelBMFont* nbcColorPickerLabel;
-        CCControlColourPicker* sbcColorPicker;
-        CCLabelBMFont* sbcColorPickerLabel;
+        ColorChannelSprite* colorSpritenb;
+        ColorSelectPopup* colorSelectnb;
+        void editnbcColor(CCObject*);
+        void setnbcColor();
+        ColorChannelSprite* colorSpritesb;
+        ColorSelectPopup* colorSelectsb;
+        void editsbcColor(CCObject*);
+        void setsbcColor();
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
@@ -120,43 +110,30 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
 
         void onClose(cocos2d::CCObject*) override;
 
+        void updateRunsAllowed();
+
         //graph
         void openGraphMenu(CCObject*);
 
         //settings
         void onSettings(CCObject*);
-
-        //modify runs
-        InputNode* addFZRunInput;
-        InputNode* addRunStartInput;
-        InputNode* addRunEndInput;
-        InputNode* runsAmountInput;
-        CCMenu* modifyRunsMenu;
-
-        void onAddedFZRun(CCObject*);
-        void onRemovedFZRun(CCObject*);
-
-        void onAddedRun(CCObject*);
-        void onRemovedRun(CCObject*);
+        CCMenuItemSpriteExtra* settingsButton;
 
         //info
-        void onOverallInfo(CCObject*);
-        void onRunsAInfo(CCObject*);
-        void onModRunsInfo(CCObject*);
         void onLayoutInfo(CCObject*);
         void onCopyInfo(CCObject*);
-
-        //current level managment
-        void onCurrentDeleteClicked(CCObject*);
-        void onRevertClicked(CCObject*);
-        FLAlertLayer* currDeleteAlert;
-        FLAlertLayer* revertAlert;
 
         //copy
         void copyText(CCObject*);
         bool isInCopyMenu;
         CCMenuItemSpriteExtra* copyInfoButton;
+        CCMenuItemSpriteExtra* copyTextButton;
 
-        //export/import
-        void onExportClicked(CCObject*);
+        //specific settings
+        void onSpecificSettings(CCObject*);
+        DTLevelSpecificSettingsLayer* LevelSpecificSettingsLayer = nullptr;
+        bool runningMoveTransition = false;
+        void onMoveTransitionEnded();
+        bool isExitingSSLayer = false;
+        CCSprite* levelSettingsBSArrow;
 };

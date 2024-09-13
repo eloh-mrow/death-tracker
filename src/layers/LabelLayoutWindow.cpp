@@ -255,3 +255,25 @@ void LabelLayoutWindow::updateLine(int line){
 void LabelLayoutWindow::setMoveEnabled(bool b){
     MoveEnabled = b;
 }
+
+void LabelLayoutWindow::setOpacity(GLubyte opacity){
+    s->setOpacity(opacity);
+    if (m_Label->getLines().size())
+        m_Label->getLines()[0]->setOpacity(opacity);
+}
+
+void LabelLayoutWindow::runAction(CCAction* action){
+    auto ACopy = static_cast<CCAction*>(action->copy());
+
+    if (auto fadeIn = typeinfo_cast<CCFadeIn*>(ACopy)){
+        s->runAction(CCFadeTo::create(fadeIn->getDuration(), m_MyLayout.color.a));
+    }
+    else{
+        s->runAction(ACopy);
+    }
+
+    if (m_Label->getLines().size())
+    {
+        m_Label->getLines()[0]->runAction(action);
+    }
+}

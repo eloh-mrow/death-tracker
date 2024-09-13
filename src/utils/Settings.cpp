@@ -1,8 +1,13 @@
 #include "Settings.hpp"
-#include "../utils/SavePathSettingValue.hpp"
 
 int64_t Settings::getMaxSessionLength() {
-    return Mod::get()->getSettingValue<int64_t>("session-length");
+    auto sessionMethod = Mod::get()->getSettingValue<std::string>("session-method");
+    if (sessionMethod == "Exit level")
+        return -2;
+    else if (sessionMethod == "Exit game")
+        return -1;
+    else
+        return Mod::get()->getSettingValue<int64_t>("session-length");
 }
 
 bool Settings::isCompletedLevelTrackingDisabled() {
@@ -22,9 +27,5 @@ bool Settings::getLateSaveEnabled(){
 }
 
 std::filesystem::path Settings::getSavePath(){
-    return std::filesystem::path{static_cast<SavePathSettingValue*>(Mod::get()->getSetting("save-path"))->getSavedPath()};
-}
-
-bool Settings::getSafeModeEnabled(){
-    return Mod::get()->getSettingValue<bool>("safe-mode");
+    return Mod::get()->getSettingValue<std::filesystem::path>("save-path-new");
 }

@@ -1,12 +1,12 @@
 {
-	"geode": "3.4.0",
+	"geode": "3.6.0",
 	"gd": {
         "android": "2.206",
         "win": "2.206",
 		"mac": "2.206",
 		"ios": "2.206"
     },
-	"version": "v2.1.2",
+	"version": "v2.3.0",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -19,12 +19,19 @@
 	},
 	"tags": ["utility", "interface", "offline"],
 	"settings": {
+		"session-method": {
+			"name": "Session Method",
+			"description": "Determines when a session should end.\n<cy>Exit level</c> - Ends when exiting the level.\n<cy>Exit Game</c> - Ends when exiting the game.\n<cy>Exit Game</c> - End after a set amount of seconds pass (Session Length).",
+			"type": "string",
+			"default": "Exit level",
+			"one-of": ["Exit level", "Exit game", "Seconds"]
+		},
 		"session-length": {
 			"name": "Session Length",
-			"description": "Allows a session to continue if entering a level before this duration (in seconds) has passed since exiting the level.\n\n<cy>A value of -2</c> means the session will end when you exit the level (default).\n\n<co>A value of -1</c> means the session will end when you exit the game.",
+			"description": "How long a session last in seconds, only if the session method is \"Seconds\"",
 			"type": "int",
-			"default": -2,
-			"min": -2,
+			"default": 1,
+			"min": 1,
 			"max": 86400
 		},
 		"pause-menu": {
@@ -39,12 +46,6 @@
 			"type": "bool",
 			"default": false
 		},
-		"safe-mode": {
-			"name": "Safe Mode",
-			"description": "will not track runs if you are in noclip or speedhack (compatable with QOLMod and prism menu)",
-			"type": "bool",
-			"default": true
-		},
 		"disable-tracking-completed-levels": {
 			"name": "Disable Tracking Completed Levels",
 			"description": "Disables tracking on completed online levels.",
@@ -55,11 +56,12 @@
 			"name": "Enable 0% Practice Mode Deaths",
 			"description": "Deaths will be shown instead of runs from 0% in practice mode.",
 			"type": "bool",
-			"default": false
+			"default": true
 		},
-		"save-path": {
+		"save-path-new": {
+			"type": "folder",
 			"name": "Save Path",
-			"type": "custom"
+			"default": "{mod_save_dir}/levels"
 		}
 	},
 	"dependencies": [

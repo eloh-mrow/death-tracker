@@ -154,8 +154,6 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
     if (m_fields->currentRun.start < 0)
         return;
 
-    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
-
     if (!Settings::getLateSaveEnabled()){
         // log deaths from 0 in normal mode
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode)
@@ -196,8 +194,6 @@ void DTPlayLayer::levelComplete() {
 
     // disable tracking deaths on completed levels
     if (DTPlayLayer::disableCompletedLevelTracking()) return;
-
-    if (Settings::getSafeModeEnabled() && StatsManager::safeModeCheck()) return;
 
     if (!m_level->isPlatformer())
         m_fields->currentRun.end = 100;

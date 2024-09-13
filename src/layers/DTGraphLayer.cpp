@@ -15,8 +15,6 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
-    this->setOpacity(0);
-
     auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     overallInfoBS->setScale(0.8f);
     auto overallInfoButton = CCMenuItemSpriteExtra::create(

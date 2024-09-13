@@ -30,6 +30,7 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         bool scrollSwitchLock;
 
         GJListLayer* m_LevelsList = nullptr;
+        int levelPage = 1;
         GJListLayer* m_LinkedLevelsList = nullptr;
 
         InputNode* seartchInput;
@@ -41,4 +42,9 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         void onClose(CCObject*);
         //info
         void onOverallInfo(CCObject*);
+
+        CCMenuItemSpriteExtra* levelsMoveRight;
+        CCMenuItemSpriteExtra* levelsMoveLeft;
+        void levelsListMoveLeft(CCObject*);
+        void levelsListMoveRight(CCObject*);
 };
