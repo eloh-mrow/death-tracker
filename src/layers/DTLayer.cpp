@@ -1401,11 +1401,13 @@ void DTLayer::onSpecificSettings(CCObject*){
 
     levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, -0.75f, 0.75f));
 
+    log::info("{}", winSize);
+
     LevelSpecificSettingsLayer->setPosition(104, 159);
     LevelSpecificSettingsLayer->setScale(0);
     LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 1), 2));
     LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
-    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(320, 0)), 2), nullptr));
+    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(320 / (winSize.width / 569), 0)), 2), nullptr));
 }
 
 void DTLayer::onMoveTransitionEnded(){
