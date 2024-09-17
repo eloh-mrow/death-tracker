@@ -72,7 +72,7 @@
 		},
 		{
             "id": "cvolton.level-id-api",
-            "version": "v1.0.0",
+            "version": "v1.0.1",
             "importance": "required"
         }
 	]
