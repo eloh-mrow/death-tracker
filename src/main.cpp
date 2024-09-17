@@ -79,33 +79,4 @@ $execute {
     }
 
     StatsManager::m_savesFolderPath = Settings::getSavePath();
-
-    auto verNums = StatsManager::splitStr(Save::getLastOpenedVersion(), ".");
-
-    if (verNums.size() < 2) return;
-
-    VersionInfo* oldver = new VersionInfo(2, 1, 2);
-
-    VersionInfo* oldsavedver = new VersionInfo(std::stoi(verNums[0]), std::stoi(verNums[1]), std::stoi(verNums[2]));
-
-    if (oldver >= oldsavedver){
-        if (Mod::get()->getSettingValue<int64_t>("session-length") == -2){
-            Mod::get()->setSettingValue<std::string>("session-method", "Exit level");
-            Mod::get()->setSettingValue<int64_t>("session-length", 1);
-        }
-        else if (Mod::get()->getSettingValue<int64_t>("session-length") == -1){
-            Mod::get()->setSettingValue<std::string>("session-method", "Exit game");
-            Mod::get()->setSettingValue<int64_t>("session-length", 1);
-        }
-        else if (Mod::get()->getSettingValue<int64_t>("session-length") >= 0){
-            Mod::get()->setSettingValue<std::string>("session-method", "Seconds");
-            log::info("----------------\n-----------------\n-------------------");
-
-            if (Mod::get()->getSettingValue<int64_t>("session-length") == 0)
-                Mod::get()->setSettingValue<int64_t>("session-length", 1);
-        }
-    }
-
-    delete oldver;
-    delete oldsavedver;
 };

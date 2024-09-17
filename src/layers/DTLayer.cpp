@@ -332,13 +332,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
-            "{}\n{}\n{}\n{}\n{}\n{}",
-            "- <cg>removed most UI from the main page</c>",
-            "- <cg>added a level options page where all the level-specific settings are now</c>",
-            "- <cg>fixed some typos</c>",
-            "- <cg>added an option to hid all runs up to a certain percentage</c>",
-            "- <cg>edit layout now has a new button</c>",
-            "- <cg>removed \"safe mode\" due to bugs</c>"
+            "{}",
+            "- <cg>fixed a bug where the session method would reset whenever opening the game for some people</c>"
         ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 

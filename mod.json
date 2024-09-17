@@ -1,12 +1,12 @@
 {
-	"geode": "3.6.1",
+	"geode": "3.7.1",
 	"gd": {
         "android": "2.206",
         "win": "2.206",
 		"mac": "2.206",
 		"ios": "2.206"
     },
-	"version": "v2.3.0",
+	"version": "v2.3.1",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",

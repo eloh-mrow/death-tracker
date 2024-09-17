@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.3.1
+- fixed a bug where the session method would reset whenever opening the game for some people
+
 ## v2.3.0
 - removed most UI from the main page
 - added a level options page where all the level-specific settings are now
