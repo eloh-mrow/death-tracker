@@ -27,6 +27,7 @@ class DTExportImportLayer : public Popup<DTLayer*> {
         void onImportClicked(CCObject*);
         LoadingCircle* loading;
         bool importing;
+        EventListener<Task<Result<std::filesystem::path>>> openFileLocListener;
 
         //info
         void onExportInfo(CCObject*);

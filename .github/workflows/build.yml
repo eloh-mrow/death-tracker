@@ -38,8 +38,10 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
+          build-config: 'RelWithDebInfo'
           sdk: 'stable'
           cli: 'v3.0.5'
+          export-pdb: true
           combine: true
           target: ${{ matrix.config.target }}
 

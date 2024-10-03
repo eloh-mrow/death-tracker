@@ -256,7 +256,8 @@ void DTExportImportLayer::onImportClicked(CCObject*){
 
     loading->setVisible(true);
 
-    file::pick(file::PickMode::OpenFile, options).listen([this](Result<std::filesystem::path>* pathPacked) {
+    openFileLocListener.bind([this](Task<Result<std::filesystem::path>>::Event* e){
+        if (auto* pathPacked = e->getValue()){
             if (pathPacked->isOk()) {
                 std::filesystem::path path = pathPacked->unwrap();
 
@@ -367,10 +368,12 @@ void DTExportImportLayer::onImportClicked(CCObject*){
                 loading->setVisible(false);
                 geode::Notification::create("Failed opening the file!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
             }
-        },
-        [] (auto progress) {},
-        [] () {}
-    );
+        }
+    });
+
+    auto task = file::pick(file::PickMode::OpenFile, options);
+
+    openFileLocListener.setFilter(task);
 }
 
 void DTExportImportLayer::onExportInfo(CCObject*){
