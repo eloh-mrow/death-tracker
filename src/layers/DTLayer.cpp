@@ -333,7 +333,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
             "{}",
-            "- <cg>fixed a bug where the session method would reset whenever opening the game for some people</c>"
+            "- <cg>fixed a bug where exiting the link menu would crash (tysm firee :DD)</c>"
         ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 
