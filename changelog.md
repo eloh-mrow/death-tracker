@@ -1,6 +1,9 @@
 # Changelog
 
 ## v2.3.1
+- fixed a bug where exiting the link menu would crash (tysm firee :DD)
+
+## v2.3.1
 - fixed a bug where the session method would reset whenever opening the game for some people
 
 ## v2.3.0

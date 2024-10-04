@@ -415,7 +415,9 @@ void DTLayer::updateSessionString(int session){
             try{
                 if (std::stoi(fixedPrecent) < m_MyLevelStats.hideUpto) continue;
             }
-            catch (...){}
+            catch (...){
+                log::info("{}", fixedPrecent);
+            }
 
             mergedString += fmt::format("{}% x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
             if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
