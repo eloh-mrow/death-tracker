@@ -1,6 +1,9 @@
 # Changelog
 
-## v2.3.1
+## v2.3.3
+- removed all try catch statements from the code cz apparently exceptions dont work on android :) didnt know about that lol
+
+## v2.3.2
 - fixed a bug where exiting the link menu would crash (tysm firee :DD)
 
 ## v2.3.1

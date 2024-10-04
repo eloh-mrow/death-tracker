@@ -290,12 +290,13 @@ void DTGraphLayer::onRunViewModeButton(CCObject*){
 void DTGraphLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInput() && m_DTLayer->m_SessionsAmount > 0){
         int selected = 1;
-        if (input->getString() != "")
-            try{
-                selected = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto res = utils::numFromString<int>(input->getString());
+            if (res.isOk()){
+                selected = res.value();
             }
-            catch (...) {}
-        
+        }
+
         if (selected > m_DTLayer->m_SessionsAmount){
             selected = m_DTLayer->m_SessionsAmount;
             input->setString(fmt::format("{}", m_DTLayer->m_SessionsAmount));
@@ -316,11 +317,12 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
 
     if (input == m_RunSelectInput->getInput()){
         int selected = 0;
-        if (input->getString() != "")
-            try{
-                selected = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto res = utils::numFromString<int>(input->getString());
+            if (res.isOk()){
+                selected = res.value();
             }
-            catch (...) {}
+        }
 
         if (selected > 100){
             selected = 100;

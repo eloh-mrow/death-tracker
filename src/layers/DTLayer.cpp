@@ -333,7 +333,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
             "{}",
-            "- <cg>fixed a bug where exiting the link menu would crash (tysm firee :DD)</c>"
+            "- <cg>removed all try catch statements from the code cz apparently exceptions dont work on android :) didnt know about that lol</c>"
         ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 
@@ -352,11 +352,12 @@ void DTLayer::onEditLayout(CCObject* sender){
 void DTLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInput() && m_SessionsAmount > 0){
         int selected = 1;
-        if (input->getString() != "")
-            try{
-                selected = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto res = utils::numFromString<int>(input->getString());
+            if (res.isOk()){
+                selected = res.value();
             }
-            catch (...){ }
+        }
         
         if (selected > m_SessionsAmount){
             selected = m_SessionsAmount;
@@ -412,12 +413,13 @@ void DTLayer::updateSessionString(int session){
                         fixedPrecent = fixedPrecent.erase(0, 5);
                     }
                 }
-            try{
-                if (std::stoi(fixedPrecent) < m_MyLevelStats.hideUpto) continue;
+
+            auto res = utils::numFromString<int>(fixedPrecent);
+            if (res.isOk()){
+                if (res.value() < m_MyLevelStats.hideUpto) continue;
             }
-            catch (...){
+            else
                 log::info("{}", fixedPrecent);
-            }
 
             mergedString += fmt::format("{}% x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
             if (i != selectedSessionInfo.size() - 1) mergedString += '\n';

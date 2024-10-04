@@ -493,8 +493,11 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
         while (hexValue.length() < 6){
             hexValue.push_back('0');
         }
-        try{
-            ccColor3B hexColor = cc3bFromHexString(hexValue).value();
+
+        auto reshex = cc3bFromHexString(hexValue);
+
+        if (reshex.isOk()){
+            ccColor3B hexColor = reshex.value();
 
             m_BlockSelfCall += 1;
             m_ColorPicker->setColorValue(hexColor);
@@ -508,7 +511,6 @@ void LabelSettingsLayer::textChanged(CCTextInputNode* input){
                     
             m_LabelWin->m_MyLayout.color = {hexColor.r, hexColor.g, hexColor.b, m_LabelWin->m_MyLayout.color.a};
         }
-        catch (...) {}
     }
 
     if (input == m_LabelNameInput->getInput()){

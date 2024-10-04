@@ -422,11 +422,12 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
     DTLayer* mainDTLayer = static_cast<DTLayer*>(myDTLayer);
 
     int startPrecent = -1;
-    if (m_AddRunAllowedInput->getString() != "")
-        try{
-            startPrecent = std::stoi(m_AddRunAllowedInput->getString());
+    if (m_AddRunAllowedInput->getString() != ""){
+            auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
+            if (res.isOk()){
+                startPrecent = res.value();
+            }
         }
-        catch (...) {}
     if (startPrecent == -1) return;
 
     bool doesExist = false;
@@ -648,18 +649,20 @@ void DTLevelSpecificSettingsLayer::onAddedFZRun(CCObject*){
     if (mainDTLayer->m_MyLevelStats.currentBest == -1) return;
 
     int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
+    if (runsAmountInput->getString() != ""){
+            auto res = utils::numFromString<int>(runsAmountInput->getString());
+            if (res.isOk()){
+                amount = res.value();
+            }
         }
-        catch (...) {}
 
     int precent = 0;
-    if (addFZRunInput->getString() != "")
-        try{
-            precent = std::stoi(addFZRunInput->getString());
+    if (addFZRunInput->getString() != ""){
+            auto res = utils::numFromString<int>(addFZRunInput->getString());
+            if (res.isOk()){
+                precent = res.value();
+            }
         }
-        catch (...) {}
     
     mainDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] += amount;
 
@@ -675,18 +678,20 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
     if (mainDTLayer->m_MyLevelStats.currentBest == -1) return;
 
     int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
+    if (runsAmountInput->getString() != ""){
+            auto res = utils::numFromString<int>(runsAmountInput->getString());
+            if (res.isOk()){
+                amount = res.value();
+            }
         }
-        catch (...) {}
         
     int precent = 0;
-    if (addFZRunInput->getString() != "")
-        try{
-            precent = std::stoi(addFZRunInput->getString());
+    if (addFZRunInput->getString() != ""){
+            auto res = utils::numFromString<int>(addFZRunInput->getString());
+            if (res.isOk()){
+                precent = res.value();
+            }
         }
-        catch (...) {}
         
     if (mainDTLayer->m_MyLevelStats.deaths.contains(std::to_string(precent))){
         mainDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
@@ -725,11 +730,12 @@ void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
     if (mainDTLayer->m_MyLevelStats.currentBest == -1) return;
 
     int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
+    if (runsAmountInput->getString() != ""){
+            auto res = utils::numFromString<int>(runsAmountInput->getString());
+            if (res.isOk()){
+                amount = res.value();
+            }
         }
-        catch (...){ }
         
     
     Run r{
@@ -737,18 +743,20 @@ void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
         0
     };
 
-    if (addRunStartInput->getString() != "")
-        try{
-            r.start = std::stoi(addRunStartInput->getString());
+    if (addRunStartInput->getString() != ""){
+            auto res = utils::numFromString<int>(addRunStartInput->getString());
+            if (res.isOk()){
+                r.start = res.value();
+            }
         }
-        catch (...){ }
         
 
-    if (addRunEndInput->getString() != "")
-        try{
-            r.end = std::stoi(addRunEndInput->getString());
+    if (addRunEndInput->getString() != ""){
+            auto res = utils::numFromString<int>(addRunEndInput->getString());
+            if (res.isOk()){
+                r.end = res.value();
+            }
         }
-        catch (...){ }
     
     if (r.start > r.end) return;
 
@@ -768,28 +776,31 @@ void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
     if (mainDTLayer->m_MyLevelStats.currentBest == -1) return;
 
     int amount = 1;
-    if (runsAmountInput->getString() != "")
-        try{
-            amount = std::stoi(runsAmountInput->getString());
+    if (runsAmountInput->getString() != ""){
+            auto res = utils::numFromString<int>(runsAmountInput->getString());
+            if (res.isOk()){
+                amount = res.value();
+            }
         }
-        catch (...){ }
     
     Run r{
         0,
         0
     };
 
-    if (addRunStartInput->getString() != "")
-        try{
-            r.start = std::stoi(addRunStartInput->getString());
+    if (addRunStartInput->getString() != ""){
+            auto res = utils::numFromString<int>(addRunStartInput->getString());
+            if (res.isOk()){
+                r.start = res.value();
+            }
         }
-        catch (...){ }
 
-    if (addRunEndInput->getString() != "")
-        try{
-            r.end = std::stoi(addRunEndInput->getString());
+    if (addRunEndInput->getString() != ""){
+            auto res = utils::numFromString<int>(addRunEndInput->getString());
+            if (res.isOk()){
+                r.end = res.value();
+            }
         }
-        catch (...){ }
         
 
     if (r.start > r.end) return;
@@ -970,11 +981,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == m_AddRunAllowedInput->getInputNode()){
 
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
 
         if (res > 100){
             res = 100;
@@ -986,11 +998,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == HideUptoInput->getInputNode()){
 
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
 
         if (res > 100){
             res = 100;
@@ -1014,11 +1027,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == addFZRunInput->getInputNode()){
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
 
         if (res > 100){
             res = 100;
@@ -1030,11 +1044,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == addRunStartInput->getInputNode()){
 
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
             
         
         if (res > 100){
@@ -1046,11 +1061,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == addRunEndInput->getInputNode()){
 
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
         
         if (res > 100){
             res = 100;
@@ -1061,11 +1077,12 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == runsAmountInput->getInputNode()){
 
         int res = 0;
-        if (input->getString() != "")
-            try{
-                res = std::stoi(input->getString());
+        if (input->getString() != ""){
+            auto resNum = utils::numFromString<int>(input->getString());
+            if (resNum.isOk()){
+                res = resNum.value();
             }
-            catch (...){ }
+        }
 
         if (res == 0){
             res = 1;
