@@ -333,7 +333,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
             "{}",
-            "- <cg>removed all try catch statements from the code cz apparently exceptions dont work on android :) didnt know about that lol</c>"
+            "- <cg>fixed a crash when opening the link layer (i hope)</c>"
         ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 

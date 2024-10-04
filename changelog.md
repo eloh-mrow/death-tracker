@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.3.4
+- fixed a crash when opening the link layer (i hope) why are there so many link layer related crashes :sob:
+
 ## v2.3.3
 - removed all try catch statements from the code cz apparently exceptions dont work on android :) didnt know about that lol
 

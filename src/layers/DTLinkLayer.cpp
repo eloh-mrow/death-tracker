@@ -253,6 +253,8 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
 
 void DTLinkLayer::update(float delta){
 
+    if (m_LevelsList == nullptr || m_LinkedLevelsList == nullptr) return;
+
     CCRect LevelsListRect = {m_LevelsList->getPositionX(), m_LevelsList->getPositionY(), m_LevelsList->getScaledContentSize().width, m_LevelsList->getScaledContentSize().height};
 
     CCRect LinkedLevelsListRect = {m_LinkedLevelsList->getPositionX(), m_LinkedLevelsList->getPositionY(), m_LinkedLevelsList->getScaledContentSize().width, m_LinkedLevelsList->getScaledContentSize().height};
