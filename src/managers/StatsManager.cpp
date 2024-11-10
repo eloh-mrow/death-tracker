@@ -32,6 +32,13 @@ bool StatsManager::m_scheduleCreateNewSession = false;
 
 LevelStats StatsManager::m_levelStats{};
 
+static LevelStats noneStats;
+
+static LevelStats errStats;
+errStats.levelName = "Unknown Name";
+errStats.attempts = 0;
+errStats.currentBest = -1;
+
 std::filesystem::path StatsManager::m_savesFolderPath = Settings::getSavePath();
 
 int StatsManager::MainLevelIDs[26]{
@@ -133,21 +140,13 @@ LevelStats StatsManager::getLevelStats(std::filesystem::path level){
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknown Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
             return errStats;
         }
         else
             return res.value().as<LevelStats>();
     }
 
-    LevelStats none;
-
-    return none;
+    return noneStats;
 }
 
 LevelStats StatsManager::getLevelStats(std::string levelKey){
@@ -157,21 +156,13 @@ LevelStats StatsManager::getLevelStats(std::string levelKey){
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknown Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
             return errStats;
         }
         else
             return res.value().as<LevelStats>();
     }
 
-    LevelStats none;
-
-    return none;
+    return noneStats;
 }
 
 LevelStats StatsManager::getBackupStats(GJGameLevel* level){
@@ -181,12 +172,6 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
     if (level)
         levelKey = getLevelKey(level);
     else{
-        LevelStats errStats;
-
-        errStats.levelName = "Unknown Name";
-        errStats.attempts = 0;
-        errStats.currentBest = -1;
-
         return errStats;
     }
 
@@ -196,25 +181,11 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknown Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
             return errStats;
         }
         else
             return res.value().as<LevelStats>();
     }
-
-    LevelStats errStats;
-
-    errStats.levelName = "Unknown Name";
-    errStats.attempts = 0;
-    errStats.currentBest = -1;
-
-    return errStats;
 
     return errStats;
 }
@@ -594,12 +565,6 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
         if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknown Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
             return errStats;
         }
         else

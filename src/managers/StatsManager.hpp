@@ -161,6 +161,9 @@ private:
     static std::set<std::string> m_playedLevels;
 
     static LevelStats m_levelStats;
+
+    static LevelStats noneStats;
+    static LevelStats errStats;
     
     static bool m_scheduleCreateNewSession;
 
