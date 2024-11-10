@@ -135,7 +135,7 @@ LevelStats StatsManager::getLevelStats(std::filesystem::path level){
         if (res.isErr()){
             LevelStats errStats;
 
-            errStats.levelName = "Unknow Name";
+            errStats.levelName = "Unknown Name";
             errStats.attempts = 0;
             errStats.currentBest = -1;
 
@@ -159,7 +159,7 @@ LevelStats StatsManager::getLevelStats(std::string levelKey){
         if (res.isErr()){
             LevelStats errStats;
 
-            errStats.levelName = "Unknow Name";
+            errStats.levelName = "Unknown Name";
             errStats.attempts = 0;
             errStats.currentBest = -1;
 
@@ -183,7 +183,7 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
     else{
         LevelStats errStats;
 
-        errStats.levelName = "Unknow Name";
+        errStats.levelName = "Unknown Name";
         errStats.attempts = 0;
         errStats.currentBest = -1;
 
@@ -198,7 +198,7 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
         if (res.isErr()){
             LevelStats errStats;
 
-            errStats.levelName = "Unknow Name";
+            errStats.levelName = "Unknown Name";
             errStats.attempts = 0;
             errStats.currentBest = -1;
 
@@ -210,7 +210,7 @@ LevelStats StatsManager::getBackupStats(GJGameLevel* level){
 
     LevelStats errStats;
 
-    errStats.levelName = "Unknow Name";
+    errStats.levelName = "Unknown Name";
     errStats.attempts = 0;
     errStats.currentBest = -1;
 
@@ -596,7 +596,7 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
         if (res.isErr()){
             LevelStats errStats;
 
-            errStats.levelName = "Unknow Name";
+            errStats.levelName = "Unknown Name";
             errStats.attempts = 0;
             errStats.currentBest = -1;
 
