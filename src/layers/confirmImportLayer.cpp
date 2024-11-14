@@ -4,7 +4,7 @@
 
 confirmImportLayer* confirmImportLayer::create(DTLayer* const& layer, Deaths ds, Runs rs) {
     auto ret = new confirmImportLayer();
-    if (ret && ret->init(270, 230, layer, ds, rs, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->initAnchored(270, 230, layer, ds, rs, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }

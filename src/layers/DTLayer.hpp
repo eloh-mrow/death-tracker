@@ -27,22 +27,22 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCScale9Sprite* m_TextBG;
         ScrollLayer* m_ScrollLayer;
         Scrollbar* m_ScrollBar;
-        CCNode* alighmentNode;
+        CCNode* alignmentNode;
 
         //text
         void RefreshText(bool moveToTop = false);
         CCNode* m_TextCont = nullptr;
         std::string modifyString(std::string ToModify);
-        bool isKeyInIndex(std::string s, int Index, std::string key);
+        bool isKeyInIndex(const std::string& s, int Index, const std::string& key);
 
-        std::vector<std::tuple<std::string, int, float>> CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString);
-        std::vector<std::tuple<std::string, int, float>> CreateRunsString(Runs runs);
+        Result<std::vector<DeathInfo>> CreateDeathsString(const Deaths& deaths, const NewBests& newBests);
+        Result<std::vector<DeathInfo>> CreateRunsString(const Runs& runs);
         void refreshStrings();
 
-        std::vector<std::tuple<std::string, int, float>> m_DeathsInfo;
-        std::vector<std::tuple<std::string, int, float>> selectedSessionInfo;
-        std::vector<std::tuple<std::string, int, float>> m_RunInfo;
-        std::vector<std::tuple<std::string, int, float>> m_SelectedSessionRunInfo;
+        std::vector<DeathInfo> m_DeathsInfo;
+        std::vector<DeathInfo> selectedSessionInfo;
+        std::vector<DeathInfo> m_RunInfo;
+        std::vector<DeathInfo> m_SelectedSessionRunInfo;
 
         std::string deathsString;
         std::string selectedSessionString;
@@ -51,7 +51,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         std::string selectedSessionRunString;
 
         //session selection
-        InputNode* m_SessionSelectionInput = nullptr;
+        TextInput* m_SessionSelectionInput = nullptr;
         CCMenu* m_SessionSelectMenu;
         int m_SessionsAmount;
         int m_SessionSelected;
@@ -86,13 +86,11 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCMenuItemSpriteExtra* resetLayoutButton;
         void onResetLayout(CCObject*);
         ColorChannelSprite* colorSpritenb;
-        ColorSelectPopup* colorSelectnb;
+        geode::ColorPickPopup* colorSelectnb;
         void editnbcColor(CCObject*);
-        void setnbcColor();
         ColorChannelSprite* colorSpritesb;
-        ColorSelectPopup* colorSelectsb;
+        geode::ColorPickPopup* colorSelectsb;
         void editsbcColor(CCObject*);
-        void setsbcColor();
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;

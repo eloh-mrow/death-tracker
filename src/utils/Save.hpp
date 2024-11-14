@@ -18,29 +18,32 @@ typedef struct {
 
 template <>
 struct matjson::Serialize<LabelLayout> {
-    static LabelLayout from_json(const matjson::Value& value) {
-        return LabelLayout {
-            .labelName = value["labelName"].as_string(),
-            .text = value["text"].as_string(),
-            .line = value["line"].as_int(),
-            .position = value["position"].as_int(),
-            .color = value["color"].as<ccColor4B>(),
-            .alignment = static_cast<CCTextAlignment>(value["alignment"].as_int()),
-            .font = value["font"].as_int(),
-            .fontSize = static_cast<float>(value["fontSize"].as_double())
-        };
+    static Result<LabelLayout> fromJson(const matjson::Value& value) {
+        LabelLayout layout;
+        GEODE_UNWRAP_INTO(layout.labelName, value["labelName"].asString());
+        GEODE_UNWRAP_INTO(layout.text, value["text"].asString());
+        GEODE_UNWRAP_INTO(layout.line, value["line"].asInt());
+        GEODE_UNWRAP_INTO(layout.position, value["position"].asInt());
+        GEODE_UNWRAP_INTO(layout.color, value["color"].as<ccColor4B>());
+        GEODE_UNWRAP_INTO(auto alignment, value["alignment"].asInt());
+        layout.alignment = static_cast<CCTextAlignment>(alignment);
+        GEODE_UNWRAP_INTO(layout.font, value["font"].asInt());
+        GEODE_UNWRAP_INTO(layout.fontSize, value["fontSize"].asDouble());
+
+        return Ok(layout);
     }
 
-    static matjson::Value to_json(const LabelLayout& value) {
-        auto obj = matjson::Object();
-        obj["labelName"] = value.labelName;
-        obj["text"] = value.text;
-        obj["line"] = value.line;
-        obj["position"] = value.position;
-        obj["color"] = value.color;
-        obj["alignment"] = static_cast<int>(value.alignment);
-        obj["font"] = value.font;
-        obj["fontSize"] = value.fontSize;
+    static matjson::Value toJson(const LabelLayout& value) {
+        matjson::Value obj = matjson::makeObject({
+            { "labelName", value.labelName },
+            { "text", value.text },
+            { "line", value.line },
+            { "position", value.position },
+            { "color", value.color },
+            { "alignment", static_cast<int>(value.alignment) },
+            { "font", value.font },
+            { "fontSize", value.fontSize }
+        });
         return obj;
     }
 };

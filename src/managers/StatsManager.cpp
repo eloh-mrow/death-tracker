@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 // return a splitted version of the string provided, devided by the delim
-std::vector<std::string> StatsManager::splitStr(std::string str, std::string delim) {
+std::vector<std::string> StatsManager::splitStr(const std::string& str, const std::string& delim) {
     size_t posStart = 0;
     size_t posEnd;
     size_t delimLen = delim.length();
@@ -38,7 +38,7 @@ int StatsManager::MainLevelIDs[26]{
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 5001, 5002, 5003, 5004, 3001
 };
 
-std::vector<std::string> StatsManager::m_AllFontsMap{
+std::array<std::string, 62> StatsManager::m_AllFontsMap{
     "bigFont.fnt",
     "chatFont.fnt",
     "goldFont.fnt",
@@ -108,15 +108,12 @@ std::vector<std::string> StatsManager::m_AllFontsMap{
 void StatsManager::loadLevelStats(GJGameLevel* level) {
     if (m_level == level) return;
 
-    auto levelStats = StatsManager::loadData(level);
+    auto levelStatsRes = StatsManager::loadData(level);
+    if (!levelStatsRes.isOk()){
+        return;
+    }
+    auto levelStats = levelStatsRes.unwrap();
 
-    // log::info("StatsManager::loadLevelStats() --\ndeaths.size() = {}\nruns.size() = {}\nnewBests.size() = {}\ncurrentBest = {}\nsessions.size() = {}",
-    //     levelStats.deaths.size(),
-    //     levelStats.runs.size(),
-    //     levelStats.newBests.size(),
-    //     levelStats.currentBest,
-    //     levelStats.sessions.size()
-    // );
     m_levelStats = levelStats;
     m_level = level;
 }
@@ -126,105 +123,54 @@ LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
     return m_levelStats;
 }
 
-LevelStats StatsManager::getLevelStats(std::filesystem::path level){
+Result<LevelStats> StatsManager::getLevelStats(const std::filesystem::path& level){
     auto levelSaveFilePath = level;
-    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
-        if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknow Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
-            return errStats;
-        }
-        else
-            return res.value().as<LevelStats>();
+        GEODE_UNWRAP_INTO(auto json, res);
+        
+        return json.as<LevelStats>();
     }
 
-    LevelStats none;
-
-    return none;
+    return Err("deaths json does not exist!");
 }
 
-LevelStats StatsManager::getLevelStats(std::string levelKey){
+Result<LevelStats> StatsManager::getLevelStats(const std::string& levelKey){
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");;
-    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
-        if (res.isErr()){
-            LevelStats errStats;
+        GEODE_UNWRAP_INTO(auto json, res);
 
-            errStats.levelName = "Unknow Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
-            return errStats;
-        }
-        else
-            return res.value().as<LevelStats>();
+        return json.as<LevelStats>();
     }
 
-    LevelStats none;
-
-    return none;
+    return Err("deaths json does not exist!");
 }
 
-LevelStats StatsManager::getBackupStats(GJGameLevel* level){
+Result<LevelStats> StatsManager::getBackupStats(GJGameLevel* level){
+    auto levelKeyRes = StatsManager::getLevelKey(level);
 
-    std::string levelKey = "";
-
-    if (level)
-        levelKey = getLevelKey(level);
-    else{
-        LevelStats errStats;
-
-        errStats.levelName = "Unknow Name";
-        errStats.attempts = 0;
-        errStats.currentBest = -1;
-
-        return errStats;
-    }
+    GEODE_UNWRAP_INTO(std::string levelKey, levelKeyRes);
 
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
-    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
 
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
-        if (res.isErr()){
-            LevelStats errStats;
+        GEODE_UNWRAP_INTO(auto json, res);
 
-            errStats.levelName = "Unknow Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
-            return errStats;
-        }
-        else
-            return res.value().as<LevelStats>();
+        return json.as<LevelStats>();
     }
 
-    LevelStats errStats;
-
-    errStats.levelName = "Unknow Name";
-    errStats.attempts = 0;
-    errStats.currentBest = -1;
-
-    return errStats;
-
-    return errStats;
+    return Err("deaths json does not exist!");
 }
 
 void StatsManager::logDeath(int percent) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    // log::info("StatsManager::logDeath() -- {}%", percent);
 
-    auto percentKey = StatsManager::toPercentKey(percent);
+    auto percentKey = std::to_string(percent);
 
     m_levelStats.deaths[percentKey]++;
     session->deaths[percentKey]++;
@@ -243,14 +189,13 @@ void StatsManager::logDeath(int percent) {
     StatsManager::saveData();
 }
 
-void StatsManager::logDeaths(std::vector<int> percents) {
+void StatsManager::logDeaths(const std::vector<int>& percents) {
     auto session = StatsManager::getSession();
     if (!session) return;
-    // log::info("StatsManager::logDeath() -- {}%", percent);
 
     for (int i = 0; i < percents.size(); i++)
     {
-        auto percentKey = StatsManager::toPercentKey(percents[i]);
+        auto percentKey = std::to_string(percents[i]);
 
         m_levelStats.deaths[percentKey]++;
         session->deaths[percentKey]++;
@@ -290,11 +235,10 @@ void StatsManager::logRun(Run run) {
 
     auto session = StatsManager::getSession();
     if (!session) return;
-    // log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
 
     auto runKey = fmt::format("{}-{}",
-        StatsManager::toPercentKey(run.start),
-        StatsManager::toPercentKey(run.end)
+        run.start,
+        run.end
     );
 
     m_levelStats.runs[runKey]++;
@@ -304,7 +248,7 @@ void StatsManager::logRun(Run run) {
     StatsManager::saveData();
 }
 
-void StatsManager::logRuns(std::vector<Run> runs) {
+void StatsManager::logRuns(const std::vector<Run>& runs) {
     bool TrackRun = false;
     for (int i = 0; i < runs.size(); i++)
     {
@@ -326,11 +270,10 @@ void StatsManager::logRuns(std::vector<Run> runs) {
 
         auto session = StatsManager::getSession();
         if (!session) return;
-        // log::info("StatsManager::logRun() -- {}% - {}%", run.start, run.end);
 
         auto runKey = fmt::format("{}-{}",
-            StatsManager::toPercentKey(runs[i].start),
-            StatsManager::toPercentKey(runs[i].end)
+            runs[i].start,
+            runs[i].end
         );
 
         m_levelStats.runs[runKey]++;
@@ -349,8 +292,8 @@ long long StatsManager::getNowSeconds() {
     return time_point_cast<seconds>(now).time_since_epoch().count();
 }
 
-std::string StatsManager::getLevelKey(GJGameLevel* level) {
-	if (!level) return "-1";
+Result<std::string> StatsManager::getLevelKey(GJGameLevel* level) {
+	if (!level) return Err("invalid level!");
 
 	std::string levelId = "";
 
@@ -376,11 +319,11 @@ std::string StatsManager::getLevelKey(GJGameLevel* level) {
 	if (level->m_gauntletLevel)
 		levelId += "-gauntlet";
 
-	return levelId;
+	return Ok(levelId);
 }
 
-Run StatsManager::splitRunKey(std::string runKey) {
-    auto runKeySplit = splitStr(runKey, "-");
+Run StatsManager::splitRunKey(const std::string& runKey) {
+    auto runKeySplit = StatsManager::splitStr(runKey, "-");
 
     auto start = std::stof(runKeySplit[0]);
     auto end = std::stof(runKeySplit[1]);
@@ -393,8 +336,6 @@ Run StatsManager::splitRunKey(std::string runKey) {
 }
 
 Session* StatsManager::getSession() {
-    // log::info("StatsManager::getSession()");
-
     if (m_levelStats.currentBest == -1) return nullptr;
 
     auto currentSession = &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
@@ -404,8 +345,11 @@ Session* StatsManager::getSession() {
     if (!m_scheduleCreateNewSession) return currentSession;
     m_scheduleCreateNewSession = false;
 
-    auto levelKey = StatsManager::getLevelKey();
-    if (levelKey == "-1") return currentSession;
+    std::string levelKey = StatsManager::getLevelKey().unwrapOr("-1");
+
+    if (levelKey == "-1"){
+        return currentSession;
+    }
 
     // the user has played the level
     // if a new session is created
@@ -431,44 +375,40 @@ void StatsManager::updateSessionLastPlayed(bool save) {
 
     session->lastPlayed = now;
 
-    // log::info("StatsManager::updateSessionLastPlayed()\nnow = {}\nsave = {}\n# of deaths = {}",
-    //     now,
-    //     save,
-    //     session->deaths.size()
-    // );
-
     if (save && session->deaths.size() > 0)
         StatsManager::saveData();
 }
 
 void StatsManager::scheduleCreateNewSession(bool scheduled) {
-    // log::info("StatsManager::scheduleCreateNewSession() -- {}", scheduled);
     if (m_levelStats.currentBest != -1)
         m_scheduleCreateNewSession = scheduled;
 }
 
 bool StatsManager::hasPlayedLevel() {
     if (!m_level) return false;
-    auto levelKey = StatsManager::getLevelKey();
-    return m_playedLevels.contains(levelKey);
-}
 
-std::string StatsManager::toPercentKey(int percent) {
-    return std::to_string(percent);
+    std::string levelKey = StatsManager::getLevelKey().unwrapOr("-1");
+
+    if (levelKey == "-1"){
+        return false;
+    }
+
+    return m_playedLevels.contains(levelKey);
 }
 
 /* internal functions
 ======================= */
 void StatsManager::saveData() {
-    // log::info("StatsManager::saveData()");
-
     if (m_levelStats.currentBest == -1) return;
 
-    std::string levelKey = StatsManager::getLevelKey();
+    std::string levelKey = StatsManager::getLevelKey().unwrapOr("-1");
     
     if (levelKey == "-1") return;
 
-    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath();
+    std::filesystem::path path{};
+
+    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath().unwrapOrDefault();
+    if (levelSaveFilePath.empty()) return;
 
     // create the json file if it doesnt exist
     if (!std::filesystem::exists(levelSaveFilePath)) {
@@ -483,48 +423,17 @@ void StatsManager::saveData() {
 
     auto jsonStr = matjson::Value(m_levelStats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
-
-    /* <save_dir>/levels/<levelKey>.json
-     *
-     * {
-     *   "deaths": {
-     *     "1": 8,
-     *     "7": 12,
-     *     "24": 2,
-     *     ...
-     *   },
-     *
-     *   "runs": {
-     *     "2-7": 2,
-     *     "23-67": 5,
-     *     ...
-     *   },
-     *
-     *   "newBests": [1, 24, 32, ...],
-     *   "currentBest": 32,
-     *
-     *   "sessions": [{
-     *     "lastPlayed": 123456789,
-     *     "deaths": {...},
-     *     "runs": {...},
-     *     "newBests": [...],
-     *     "currentBest": 12
-     *   }, {...}, ...],
-     * }
-     *
-    */
 }
 
-void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
-    // log::info("StatsManager::saveData()");
-
-    std::string levelKey = StatsManager::getLevelKey(level);
+void StatsManager::saveData(const LevelStats& stats, GJGameLevel* level) {
+    std::string levelKey = StatsManager::getLevelKey(level).unwrapOr("-1");
     if (levelKey == "-1") return;
     
     if (level == m_level)
         m_levelStats = stats;
 
-    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
+    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level).unwrapOrDefault();
+    if (levelSaveFilePath.empty()) return;
 
     // create the json file if it doesnt exist
     if (!std::filesystem::exists(levelSaveFilePath)) {
@@ -541,10 +450,8 @@ void StatsManager::saveData(LevelStats stats, GJGameLevel* level) {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-void StatsManager::saveBackup(LevelStats stats, GJGameLevel* level) {
-    // log::info("StatsManager::saveData()");
-
-    std::string levelKey = StatsManager::getLevelKey(level);
+void StatsManager::saveBackup(const LevelStats& stats, GJGameLevel* level) {
+    std::string levelKey = StatsManager::getLevelKey(level).unwrapOr("-1");
     if (levelKey == "-1") return;
 
     std::filesystem::path levelSaveFilePath = m_savesFolderPath / (levelKey + ".deathsBackup");
@@ -564,10 +471,8 @@ void StatsManager::saveBackup(LevelStats stats, GJGameLevel* level) {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-void StatsManager::saveData(LevelStats stats, std::string levelKey) {
-    // log::info("StatsManager::saveData()");
-    
-    if (levelKey == getLevelKey(m_level))
+void StatsManager::saveData(const LevelStats& stats, const std::string& levelKey) {    
+    if (levelKey == StatsManager::getLevelKey(m_level).unwrapOr("-1"))
         m_levelStats = stats;
 
     auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");
@@ -587,33 +492,22 @@ void StatsManager::saveData(LevelStats stats, std::string levelKey) {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-LevelStats StatsManager::loadData(GJGameLevel* level) {
-    auto levelSaveFilePath = StatsManager::getLevelSaveFilePath(level);
-    // log::info("StatsManager::loadData() --\n{}", levelSaveFilePath);
+Result<LevelStats> StatsManager::loadData(GJGameLevel* level) {
+    GEODE_UNWRAP_INTO(auto levelSaveFilePath, StatsManager::getLevelSaveFilePath(level));
 
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
-        if (res.isErr()){
-            LevelStats errStats;
-
-            errStats.levelName = "Unknow Name";
-            errStats.attempts = 0;
-            errStats.currentBest = -1;
-
-            return errStats;
-        }
-        else
-        {
-            return res.value().as<LevelStats>();
-        }
-            
+        GEODE_UNWRAP_INTO(auto json, res);
+        
+        return json.as<LevelStats>();
     }
         
     // get defaults for level stats
     // includes backwards compatibility for v1.x.x
     LevelStats levelStats{};
 
-    auto levelKey = StatsManager::getLevelKey(level);
+    GEODE_UNWRAP_INTO(auto levelKey, StatsManager::getLevelKey(level));
+
     auto old__deaths = Mod::get()->getSavedValue<std::vector<int>>(levelKey);
     auto old__sessionDeaths = Mod::get()->getSavedValue<std::vector<int>>(levelKey + "-session");
     auto old__sessionBests = Mod::get()->getSavedValue<std::vector<bool>>(levelKey + "-session-bests");
@@ -626,14 +520,14 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     int currentSessionBest = -1;
 
     for (int percent = 0; percent < old__deaths.size(); percent++) {
-        auto percentKey = StatsManager::toPercentKey(percent);
+        auto percentKey = std::to_string(percent);
 
         if (old__deaths[percent] > 0)
             deaths[percentKey] = old__deaths[percent];
     }
 
     for (int percent = 0; percent < old__sessionDeaths.size(); percent++) {
-        auto percentKey = StatsManager::toPercentKey(percent);
+        auto percentKey = std::to_string(percent);
 
         if (old__sessionDeaths[percent] > 0)
             sessionDeaths[percentKey] = old__sessionDeaths[percent];
@@ -672,9 +566,12 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
             }
         }
     } else {
-        const auto [_newBests, _currentBest] = StatsManager::calcNewBests(level);
-        newBests = _newBests;
-        currentBest = _currentBest;
+        auto bestsCalcRes = StatsManager::calcNewBests(level);
+        if (bestsCalcRes.isOk()){
+            const auto [_newBests, _currentBest] = bestsCalcRes.unwrap();
+            newBests = _newBests;
+            currentBest = _currentBest;
+        }
     }
 
     levelStats.newBests = newBests;
@@ -684,38 +581,39 @@ LevelStats StatsManager::loadData(GJGameLevel* level) {
     if (!deaths.size()) {
         for (const auto percent : levelStats.newBests) {
             if (percent == 100) continue;
-            auto percentKey = StatsManager::toPercentKey(percent);
+            auto percentKey = std::to_string(percent);
             levelStats.deaths[percentKey] = 1;
         }
     }
 
-    return levelStats;
+    return Ok(levelStats);
 }
 
-std::tuple<NewBests, int> StatsManager::calcNewBests(GJGameLevel* level) {
+Result<std::tuple<NewBests, int>> StatsManager::calcNewBests(GJGameLevel* level) {
     NewBests newBests{};
     std::stringstream bestsStream(level->m_personalBests);
     std::string currentBest;
     int currentPercent = 0;
 
-    while (getline(bestsStream, currentBest, ',')) {
-        currentPercent += std::stoi(currentBest);
+    while (std::getline(bestsStream, currentBest, ',')) {
+        GEODE_UNWRAP_INTO(auto tempPercent, geode::utils::numFromString<int>(currentBest));
+        
+        currentPercent += tempPercent;
         newBests.insert(currentPercent);
     }
 
-    return std::make_tuple(newBests, currentPercent);
+    return Ok(std::make_tuple(newBests, currentPercent));
 }
 
-std::filesystem::path StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
+Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
     std::filesystem::path filePath{};
-    auto levelKey = StatsManager::getLevelKey(level);
-    if (levelKey == "-1") return filePath;
+    GEODE_UNWRAP_INTO(auto levelKey, StatsManager::getLevelKey(level));
 
     filePath = m_savesFolderPath / (levelKey + ".json");
-    return filePath;
+    return Ok(filePath);
 }
 
-bool StatsManager::ContainsAtIndex(int startIndex, std::string check, std::string str){
+bool StatsManager::ContainsAtIndex(int startIndex, const std::string& check, const std::string& str){
     if (startIndex + check.length() >= str.length()) return false;
     bool toReturn = true;
 
@@ -737,7 +635,7 @@ std::string StatsManager::getFont(int fontID){
         if (i == fontID)
             return m_AllFontsMap[i];
     }
-    return "-1";
+    return m_AllFontsMap[1];
 }
 
 std::string StatsManager::getFontName(int fontID){
@@ -759,34 +657,32 @@ std::string StatsManager::getFontName(int fontID){
             return fontName;
         }
     }
-    return "-1";
+    return "Chat Font";
 }
 
-std::vector<std::string> StatsManager::getAllFont(){
+std::array<std::string, 62> StatsManager::getAllFont(){
     return m_AllFontsMap;
 }
 
-std::vector<std::pair<std::string, LevelStats>> StatsManager::getAllLevels(){
+Result<std::vector<std::pair<std::string, LevelStats>>> StatsManager::getAllLevels(){
     auto res = file::readDirectory(m_savesFolderPath);
-    log::info("{}", m_savesFolderPath.string());
-    if (!res.isOk()){
-        geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
-        return std::vector<std::pair<std::string, LevelStats>>{};
-    }
-    auto allLevels = res.value();
+    GEODE_UNWRAP_INTO(auto allLevels, res);
 
     std::vector<std::pair<std::string, LevelStats>> toReturn;
 
     for (int i = 0; i < allLevels.size(); i++)
     {
-        if (allLevels[i].extension().string() == ".json")
-            toReturn.push_back(std::pair<std::string, LevelStats>{allLevels[i].stem().string(), getLevelStats(allLevels[i])});
+        if (allLevels[i].extension().string() == ".json"){
+            GEODE_UNWRAP_INTO(auto stats, StatsManager::getLevelStats(allLevels[i]));
+
+            toReturn.push_back(std::make_pair(allLevels[i].stem().string(), stats));
+        }
     }
     
-    return toReturn;
+    return Ok(toReturn);
 }
 
-std::pair<std::string, std::string> StatsManager::splitLevelKey(std::string levelKey){
+std::pair<std::string, std::string> StatsManager::splitLevelKey(const std::string& levelKey){
     auto levelKeySplit = splitStr(levelKey, "-");
 
     std::pair<std::string, std::string> toReturn;
@@ -823,6 +719,64 @@ int StatsManager::getDifficulty(GJGameLevel* level){
         return 0;
 }
 
-void StatsManager::setPath(std::filesystem::path path){
+void StatsManager::setPath(const std::filesystem::path& path){
     m_savesFolderPath = path;
 }
+
+void StatsManager::computeLPSArray(const std::string& pat, int M, std::vector<int>& lps) {
+    int length = 0;
+    int i = 1;
+    lps[0] = 0;
+
+    while (i < M) {
+        if (pat[i] == pat[length]) {
+            length++;
+            lps[i] = length;
+            i++;
+        }
+        else {
+            if (length != 0) {
+                length = lps[length - 1];
+            }
+            else {
+                lps[i] = 0;
+                i++;
+            }
+        }
+    }
+}
+
+std::vector<int> StatsManager::KMPSearch(const std::string& pat, const std::string& txt) {
+    std::vector<int> toReturn{};
+
+    int M = pat.size();
+    int N = txt.size();
+    std::vector<int> lps(M);
+
+    computeLPSArray(pat, M, lps);
+
+    int i = 0;
+    int j = 0;
+    while (i < N) {
+        if (pat[j] == txt[i]) {
+            j++;
+            i++;
+        }
+
+        if (j == M) {
+            toReturn.push_back(i - j);
+            j = lps[j - 1];
+        }
+        else if (i < N && pat[j] != txt[i]) {
+            if (j != 0) {
+                j = lps[j - 1];
+            }
+            else {
+                i++;
+            }
+        }
+    }
+
+    return toReturn;
+}
+

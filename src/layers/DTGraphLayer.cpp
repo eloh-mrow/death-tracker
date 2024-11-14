@@ -3,7 +3,7 @@
 
 DTGraphLayer* DTGraphLayer::create(DTLayer* const& layer) {
     auto ret = new DTGraphLayer();
-    if (ret && ret->init(520, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->initAnchored(520, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -23,7 +23,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTGraphLayer::onOverallInfo)
     );
-    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    overallInfoButton->setPosition(m_size.width - 8.5f, m_size.height - 8.5f);
     this->m_buttonMenu->addChild(overallInfoButton);
 
     alighmentNode = CCNode::create();
@@ -93,13 +93,13 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
         return a.lastPlayed > b.lastPlayed;
     });
 
-    m_SessionSelectionInput = InputNode::create(120, "Session");
+    m_SessionSelectionInput = TextInput::create(120, "Session");
     if (m_DTLayer->m_SessionsAmount == 0)
         m_SessionSelectionInput->setString("No sessions.");
     else
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_DTLayer->m_SessionSelected, m_DTLayer->m_SessionsAmount));
-    m_SessionSelectionInput->getInput()->setDelegate(this);
-    m_SessionSelectionInput->getInput()->setAllowedChars("1234567890");
+    m_SessionSelectionInput->getInputNode()->setDelegate(this);
+    m_SessionSelectionInput->setCommonFilter(CommonFilter::Uint);
     m_SessionSelectionInput->setScale(0.45f);
     SessionSelectCont->addChild(m_SessionSelectionInput);
 
@@ -147,7 +147,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTGraphLayer::onViewModeButton)
     );
-    viewModeButton->setPosition({-215, 106});
+    viewModeButton->setPosition({-215 + m_size.width / 2, 106 + m_size.height / 2});
     this->m_buttonMenu->addChild(viewModeButton);
 
     runViewModeButtonS = ButtonSprite::create("From 0");
@@ -158,7 +158,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTGraphLayer::onRunViewModeButton)
     );
-    runViewModeButton->setPosition({-215, 90});
+    runViewModeButton->setPosition({-215 + m_size.width / 2, 90 + m_size.height / 2});
     this->m_buttonMenu->addChild(runViewModeButton);
 
     typeViewModeButtonS = ButtonSprite::create("ReachRate");
@@ -169,13 +169,13 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTGraphLayer::onTypeViewModeButton)
     );
-    typeViewModeButton->setPosition({-215, 75});
+    typeViewModeButton->setPosition({-215 + m_size.width / 2, 75 + m_size.height / 2});
     typeViewModeButtonS->m_label->setString("PassRate");
     this->m_buttonMenu->addChild(typeViewModeButton);
 
-    m_RunSelectInput = InputNode::create(120, "Run %");
-    m_RunSelectInput->getInput()->setDelegate(this);
-    m_RunSelectInput->getInput()->setAllowedChars("1234567890");
+    m_RunSelectInput = TextInput::create(120, "Run %");
+    m_RunSelectInput->getInputNode()->setDelegate(this);
+    m_RunSelectInput->setCommonFilter(CommonFilter::Uint);
     m_RunSelectInput->setScale(0.45f);
     m_RunSelectInput->setPosition({-215, 34});
     alighmentNode->addChild(m_RunSelectInput);
@@ -288,13 +288,11 @@ void DTGraphLayer::onRunViewModeButton(CCObject*){
 }
 
 void DTGraphLayer::textChanged(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_DTLayer->m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_DTLayer->m_SessionsAmount > 0){
         int selected = 1;
         if (input->getString() != ""){
             auto res = utils::numFromString<int>(input->getString());
-            if (res.isOk()){
-                selected = res.value();
-            }
+            selected = res.unwrapOr(1);
         }
 
         if (selected > m_DTLayer->m_SessionsAmount){
@@ -315,13 +313,11 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
             refreshGraph();
     }
 
-    if (input == m_RunSelectInput->getInput()){
+    if (input == m_RunSelectInput->getInputNode()){
         int selected = 0;
         if (input->getString() != ""){
             auto res = utils::numFromString<int>(input->getString());
-            if (res.isOk()){
-                selected = res.value();
-            }
+            selected = res.unwrapOr(0);
         }
 
         if (selected > 100){
@@ -337,14 +333,14 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
 }
 
 void DTGraphLayer::textInputOpened(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_DTLayer->m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_DTLayer->m_SessionsAmount > 0){
         input->setString(fmt::format("{}", m_DTLayer->m_SessionSelected));
         m_DTLayer->m_SessionSelectionInputSelected = true;
     }
 }
 
 void DTGraphLayer::textInputClosed(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_DTLayer->m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_DTLayer->m_SessionsAmount > 0){
         input->setString(fmt::format("{}/{}", m_DTLayer->m_SessionSelected, m_DTLayer->m_SessionsAmount));
         m_DTLayer->m_SessionSelectionInputSelected = false;
     }
@@ -356,11 +352,8 @@ void DTGraphLayer::textInputClosed(CCTextInputNode* input){
     change the scaling to change the space between the points on the x and y
     //
 */
-CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
-    if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
-
-    std::vector<std::tuple<std::string, int, float>> origiDS = deathsString;
-
+CCNode* DTGraphLayer::CreateGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
+    if (!deathsString.size()) return nullptr;
     auto toReturnNode = CCNode::create();
 
     auto LabelsNode = CCNode::create();
@@ -388,47 +381,34 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
 
     std::vector<CCPoint> lines;
 
-    for (int i = 0; i < deathsString.size(); i++)
-    {
-        //remove extra coloring
-        std::string editedDString = std::get<0>(deathsString[i]);
-
-        if (StatsManager::ContainsAtIndex(0, "<nbc>", editedDString) || StatsManager::ContainsAtIndex(0, "<sbc>", editedDString)){
-            std::get<0>(deathsString[i]) = editedDString.erase(0, 5);
-        }
-    }
-    
-    //sort
-    std::ranges::sort(deathsString, [](const std::tuple<std::string, int, float> a, const std::tuple<std::string, int, float> b) {
-        //log::info("a:{}, b:{}", a, b);
-        auto percentA = std::stoi(std::get<0>(a));
-        auto percentB = std::stoi(std::get<0>(b));
-        return percentA < percentB; // true --> A before B
-    });
-
     //log::info("sorting done");
 
     CCPoint previousPoint = ccp(-1, -1);
 
     std::map<int, int> ignoredIndexes{};
 
+    std::vector<DeathInfo> fixedDS = deathsString;
+
     if (type == GraphType::PassRate){
         //add the min and max points if needed
-        if (std::stoi(std::get<0>(deathsString[0])) > 0)
-            deathsString.insert(deathsString.begin(), std::tuple<std::string, int, float>{"0", 0, 100});
-        
-        if (std::stoi(std::get<0>(deathsString[deathsString.size() - 1])) < 100)
-            deathsString.push_back(std::tuple<std::string, int, float>{"100", 0, 0});
-        else
-            std::get<2>(deathsString[deathsString.size() - 1]) = 100;
-        
+        if (fixedDS[0].run.end > 0){
+            auto info = DeathInfo(Run(0, 0), 0, 100);
+            fixedDS.insert(fixedDS.begin(), info);
+        }
+        if (fixedDS[fixedDS.size() - 1].run.end < 100){
+            auto info = DeathInfo(Run(0, 100), 0, 0);
+            fixedDS.push_back(info);
+        }
+        else{
+            fixedDS[fixedDS.size() - 1].passrate = 100;
+        }
 
         //log::info("added extras");
 
-        for (int i = 0; i < deathsString.size(); i++)
+        for (const auto& deathI : fixedDS)
         {
             //save point
-            CCPoint myPoint = ccp(std::stoi(std::get<0>(deathsString[i])), std::get<2>(deathsString[i]));
+            CCPoint myPoint = ccp(deathI.run.end, deathI.passrate);
 
             
             //add extra points
@@ -461,29 +441,28 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     else if (type == GraphType::ReachRate){
 
         int overallCount = 0;
-        std::vector<std::pair<std::string, int>> precentageDeaths{};
-        for (int i = deathsString.size() - 1; i >= 0; i--)
+        std::vector<std::pair<int, int>> precentageDeaths{};
+        for (int i = fixedDS.size() - 1; i >= 0; i--)
         {
-            overallCount += std::get<1>(deathsString[i]);
-            precentageDeaths.insert(precentageDeaths.begin(), std::pair<std::string, int>{std::get<0>(deathsString[i]), overallCount});
+            overallCount += fixedDS[i].deaths;
+            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
         }
 
-        if (std::stoi(precentageDeaths[0].first) > 0)
-            precentageDeaths.insert(precentageDeaths.begin(), std::pair<std::string, int>{"0", overallCount});
+        if (precentageDeaths[0].first > 0)
+            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(0, overallCount));
         
-        if (std::stoi(precentageDeaths[precentageDeaths.size() - 1].first) < 100){
-            precentageDeaths.push_back(std::pair<std::string, int>{std::to_string(std::stoi(precentageDeaths[precentageDeaths.size() - 1].first) + 1), 0});
+        if (precentageDeaths[precentageDeaths.size() - 1].first < 100){
+            precentageDeaths.push_back(std::make_pair(precentageDeaths[precentageDeaths.size() - 1].first + 1, 0));
 
-            if (std::stoi(precentageDeaths[precentageDeaths.size() - 1].first) != 100)
-                precentageDeaths.push_back(std::pair<std::string, int>{"100", 0});
+            if (precentageDeaths[precentageDeaths.size() - 1].first != 100)
+                precentageDeaths.push_back(std::make_pair(100, 0));
         }
 
         for (int i = 0; i < precentageDeaths.size(); i++)
         {
             float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
-            //log::info("rate {}, s {}", reachRate, Scaling.y);
 
-            CCPoint p = ccp(std::stof(precentageDeaths[i].first) * Scaling.x, reachRate * Scaling.y * 100);
+            CCPoint p = ccp(precentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100);
 
             if (p.x != previousPoint.x + 1 * Scaling.x){
                 lines.push_back(ccp(previousPoint.x + 1 * Scaling.x, reachRate * Scaling.y * 100));
@@ -524,7 +503,7 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     {
         if (i != 0){
             if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
-                return CreateGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
+                return CreateGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
             }
         }
     }
@@ -599,7 +578,7 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
                 !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
                 !gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor))
             ){
-                return CreateGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
+                return CreateGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
             }
         }
     }
@@ -608,12 +587,12 @@ CCNode* DTGraphLayer::CreateGraph(std::vector<std::tuple<std::string, int, float
     return toReturnNode;
 }
 
-CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
-    if (std::get<0>(deathsString[0]) == "-1" || std::get<0>(deathsString[0]) == "No Saved Progress") return nullptr;
+CCNode* DTGraphLayer::CreateRunGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
+    if (!deathsString.size()) return nullptr;
 
     auto toReturnNode = CCNode::create();
 
-    std::vector<std::tuple<std::string, int, float>> origiDS = deathsString;
+    std::vector<DeathInfo> fixedDS = deathsString;
 
     auto LabelsNode = CCNode::create();
     toReturnNode->addChild(LabelsNode);
@@ -638,43 +617,36 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     MenuForGP->setZOrder(1);
     toReturnNode->addChild(MenuForGP);
 
-    float RunStartPrecent = StatsManager::splitRunKey(std::get<0>(deathsString[0])).start;
+    float RunStartPrecent = fixedDS[0].run.start;
 
     std::vector<CCPoint> lines;
-    
-    //sort
-    std::ranges::sort(deathsString, [](const std::tuple<std::string, int, float> a, const std::tuple<std::string, int, float> b) {
-        auto runA = StatsManager::splitRunKey(std::get<0>(a));
-        auto runB = StatsManager::splitRunKey(std::get<0>(b));
 
-        // start is equal, compare end
-        if (runA.start == runB.start) return runA.end < runB.end;
-        return runA.start < runB.start;
-    });
-
-    //log::info("sorting done");
-
-    std::get<2>(deathsString[deathsString.size() - 1]) = 0;
+    fixedDS[fixedDS.size() - 1].passrate = 0;
 
     if (type == GraphType::PassRate){
         //add the min and max points if needed
-        if (StatsManager::splitRunKey(std::get<0>(deathsString[0])).end > RunStartPrecent)
-            deathsString.insert(deathsString.begin(), std::tuple<std::string, int, float>{fmt::format("{}-{}", RunStartPrecent, RunStartPrecent), 0, 100});
+        if (fixedDS[0].run.end > RunStartPrecent){
+            auto info = DeathInfo(Run(RunStartPrecent, RunStartPrecent), 0, 100);
+            fixedDS.insert(fixedDS.begin(), info);
+        }
         
-        if (StatsManager::splitRunKey(std::get<0>(deathsString[deathsString.size() - 1])).end < 100)
-            deathsString.push_back(std::tuple<std::string, int, float>{fmt::format("{}-100", RunStartPrecent), 100, 0});
-        else
-            std::get<2>(deathsString[deathsString.size() - 1]) = 100;
+        if (fixedDS[fixedDS.size() - 1].run.end < 100){
+            auto info = DeathInfo(Run(RunStartPrecent, 100), 100, 0);
+            fixedDS.push_back(info);
+        }
+        else{
+            fixedDS[fixedDS.size() - 1].passrate = 100;
+        }
         
 
         //log::info("added extras");
 
         CCPoint previousPoint = ccp(-1, -1);
 
-        for (int i = 0; i < deathsString.size(); i++)
+        for (const auto& deathI : fixedDS)
         {
             //save point
-            CCPoint myPoint = ccp(StatsManager::splitRunKey(std::get<0>(deathsString[i])).end, std::get<2>(deathsString[i]));
+            CCPoint myPoint = ccp(deathI.run.end, deathI.passrate);
 
             
             //add extra points
@@ -705,27 +677,26 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
 
         int overallCount = 0;
         std::vector<std::pair<int, int>> precentageDeaths{};
-        for (int i = deathsString.size() - 1; i >= 0; i--)
+        for (int i = fixedDS.size() - 1; i >= 0; i--)
         {
-            overallCount += std::get<1>(deathsString[i]);
-            precentageDeaths.insert(precentageDeaths.begin(), std::pair<int, int>{StatsManager::splitRunKey(std::get<0>(deathsString[i])).end, overallCount});
+            overallCount += fixedDS[i].deaths;
+            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
         }
 
         if (precentageDeaths[0].first > RunStartPrecent)
-            precentageDeaths.insert(precentageDeaths.begin(), std::pair<int, int>{RunStartPrecent, overallCount});
+            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(RunStartPrecent, overallCount));
         
         if (precentageDeaths[precentageDeaths.size() - 1].first < 100){
-            precentageDeaths.push_back(std::pair<int, int>{precentageDeaths[precentageDeaths.size() - 1].first + 1, 0});
+            precentageDeaths.push_back(std::make_pair(precentageDeaths[precentageDeaths.size() - 1].first + 1, 0));
 
             if (precentageDeaths[precentageDeaths.size() - 1].first != 100)
-                precentageDeaths.push_back(std::pair<int, int>{100, 0});
+                precentageDeaths.push_back(std::make_pair(100, 0));
         }
             
 
         for (int i = 0; i < precentageDeaths.size(); i++)
         {
             float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
-            //log::info("rate {}, s {}", reachRate, Scaling.y);
             lines.push_back(ccp(precentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100));
         }
         
@@ -757,7 +728,7 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
     {
         if (i != 0){
             if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
-                return CreateRunGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
+                return CreateRunGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
             }
         }
     }
@@ -831,7 +802,7 @@ CCNode* DTGraphLayer::CreateRunGraph(std::vector<std::tuple<std::string, int, fl
                 !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
                 !gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor))
             ){
-                return CreateRunGraph(origiDS, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
+                return CreateRunGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
             }
         }
     }
@@ -851,38 +822,23 @@ int DTGraphLayer::GetBestRun(NewBests bests){
     return bestRun;
 }
 
-int DTGraphLayer::GetBestRunDeathS(std::vector<std::tuple<std::string, int, float>> selectedPrecentDeathsInfo){
-    if (std::get<0>(selectedPrecentDeathsInfo[0]) == "-1" || std::get<0>(selectedPrecentDeathsInfo[0]) == "No Saved Progress") return -1;
-
+int DTGraphLayer::GetBestRunDeathS(const std::vector<DeathInfo>& selectedPrecentDeathsInfo){
     int bestRun = 0;
 
     for (auto best : selectedPrecentDeathsInfo)
-    {
-        std::string bestString = std::get<0>(best);
-        if (bestString.length() != 0)
-            if (bestString[0] == '<'){
-                if (StatsManager::ContainsAtIndex(1, "nbc>", bestString)){
-                    bestString.erase(0, 5);
-                }
-                if (StatsManager::ContainsAtIndex(1, "sbc>", bestString)){
-                    bestString.erase(0, 5);
-                }
-            }
-        
-        if (std::stoi(bestString) > bestRun) bestRun = std::stoi(bestString);
+    {        
+        if (best.run.end > bestRun) bestRun = best.run.end;
     }
 
     return bestRun;
 }
 
-int DTGraphLayer::GetBestRun(std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo){
-    if (std::get<0>(selectedPrecentRunInfo[0]) == "-1" || std::get<0>(selectedPrecentRunInfo[0]) == "No Saved Progress") return -1;
-
+int DTGraphLayer::GetBestRun(const std::vector<DeathInfo>& selectedPrecentRunInfo){
     int bestRun = 0;
 
     for (auto best : selectedPrecentRunInfo)
     {
-        if (StatsManager::splitRunKey(std::get<0>(best)).end > bestRun) bestRun = StatsManager::splitRunKey(std::get<0>(best)).end;
+        if (best.run.end > bestRun) bestRun = best.run.end;
     }
 
     return bestRun;
@@ -955,20 +911,15 @@ void DTGraphLayer::refreshGraph(){
             m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRunDeathS(m_DTLayer->m_DeathsInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         else{
-            std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
+            std::vector<DeathInfo> selectedPrecentRunInfo;
             for (int i = 0; i < m_DTLayer->m_RunInfo.size(); i++)
             {
-                std::string currentRunString = std::get<0>(m_DTLayer->m_RunInfo[i]);
 
-                if (currentRunString != "-1" && currentRunString != "No Saved Progress")
-                    if (StatsManager::splitRunKey(currentRunString).start == m_SelectedRunPrecent){
-                        selectedPrecentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
-                    }
+                if (m_DTLayer->m_RunInfo[i].run.start == m_SelectedRunPrecent){
+                    selectedPrecentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
+                }
                         
             }
-            
-            if (!selectedPrecentRunInfo.size())
-                selectedPrecentRunInfo.push_back(std::tuple<std::string, int, float>{"No Saved Progress", -1, 0});
 
             m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
@@ -988,19 +939,13 @@ void DTGraphLayer::refreshGraph(){
             m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRunDeathS(m_DTLayer->selectedSessionInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         else{
-            std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo;
+            std::vector<DeathInfo> selectedPrecentRunInfo;
             for (int i = 0; i < m_DTLayer->m_SelectedSessionRunInfo.size(); i++)
             {
-                std::string currentRunString = std::get<0>(m_DTLayer->m_SelectedSessionRunInfo[i]);
-
-                if (currentRunString != "-1" && currentRunString != "No Saved Progress")
-                    if (StatsManager::splitRunKey(currentRunString).start == m_SelectedRunPrecent){
-                        selectedPrecentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
-                    }
+                if (m_DTLayer->m_SelectedSessionRunInfo[i].run.start == m_SelectedRunPrecent){
+                    selectedPrecentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
+                }
             }
-            
-            if (!selectedPrecentRunInfo.size())
-                selectedPrecentRunInfo.push_back(std::tuple<std::string, int, float>{"No Saved Progress", -1, 0});
 
             m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }

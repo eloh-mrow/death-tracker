@@ -3,7 +3,7 @@
 
 DTLinkLayer* DTLinkLayer::create(DTLayer* const& layer) {
     auto ret = new DTLinkLayer();
-    if (ret && ret->init(540, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->initAnchored(540, 280, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -32,8 +32,14 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
-    m_AllLevels = StatsManager::getAllLevels();
-    log::info("{}", m_AllLevels.size());
+    auto AllLevelsRes = StatsManager::getAllLevels();
+
+    if (AllLevelsRes.isOk()){
+        m_AllLevels = AllLevelsRes.unwrap();
+    }
+    else{
+        geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+    }
 
     auto levelsMoveRightS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
     levelsMoveRightS->setScale(0.5f);
@@ -60,8 +66,8 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     refreshLists();
 
-    seartchInput = InputNode::create(225, "Search");
-    seartchInput->getInput()->setDelegate(this);
+    seartchInput = TextInput::create(225, "Search");
+    seartchInput->getInputNode()->setDelegate(this);
     seartchInput->setPosition({0, 116});
     seartchInput->setScale(0.6f);
     alighmentNode->addChild(seartchInput);
@@ -110,7 +116,9 @@ void DTLinkLayer::refreshLists(){
 
     auto linkedLevelsListItems = CCArray::create();
 
-    auto myKey = StatsManager::getLevelKey(m_DTLayer->m_Level);
+    auto myKey = StatsManager::getLevelKey(m_DTLayer->m_Level).unwrapOr("-1");
+    if (myKey == "-1")
+        return;
 
     std::vector<std::pair<std::string, LevelStats>> AllLevelsSearch{};
 
@@ -205,6 +213,12 @@ void DTLinkLayer::refreshLists(){
 }
 
 void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool erase){
+    auto levelStats = StatsManager::getLevelKey(m_DTLayer->m_Level).unwrapOr("-1");
+    if (levelStats == "-1"){
+        Notification::create("failed to move linked level!", nullptr)->show();
+        return;
+    }
+
     if (erase){
         for (int i = 0; i < m_DTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
         {
@@ -217,7 +231,7 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
 
         for (int i = 0; i < stats.LinkedLevels.size(); i++)
         {
-            if (stats.LinkedLevels[i] == StatsManager::getLevelKey(m_DTLayer->m_Level))
+            if (stats.LinkedLevels[i] == levelStats)
             {
                 stats.LinkedLevels.erase(std::next(stats.LinkedLevels.begin(), i));
                 break;
@@ -227,7 +241,7 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
     else{
         m_DTLayer->m_MyLevelStats.LinkedLevels.push_back(levelKey);
 
-        stats.LinkedLevels.push_back(StatsManager::getLevelKey(m_DTLayer->m_Level));
+        stats.LinkedLevels.push_back(levelStats);
     }
 
     refreshLists();
@@ -280,7 +294,7 @@ void DTLinkLayer::update(float delta){
 
 void DTLinkLayer::textChanged(CCTextInputNode* input){
     levelPage = 1;
-    if (seartchInput->getInput() == input){
+    if (seartchInput->getInputNode() == input){
         std::string filterText = "";
         if (input->getString() != "")
             filterText = input->getString();

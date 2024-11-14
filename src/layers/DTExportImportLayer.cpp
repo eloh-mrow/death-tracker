@@ -4,7 +4,7 @@
 
 DTExportImportLayer* DTExportImportLayer::create(DTLayer* layer) {
     auto ret = new DTExportImportLayer();
-    if (ret && ret->init(226, 137, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->initAnchored(226, 137, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -176,56 +176,58 @@ void DTExportImportLayer::onExportClicked(CCObject*){
     options.filters = filters;
 
     file::pick(file::PickMode::SaveFile, options).listen([this](Result<std::filesystem::path>* path) {
-            if (path->isOk()) {
-                std::string ToWrite = "";
+        auto currPath = path->unwrapOrDefault();
 
-                if (Save::getExportWOutLabels()){
-                    std::string s = m_DTLayer->deathsString;
-                    for (int i = 0; i < s.length(); i++)
-                    {
-                        if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
-                            s = s.erase(i, 5);
-                        }
-                    }
-                    s += "\n\n" + m_DTLayer->RunString;
-                    ToWrite += s;
+        if (currPath.empty()){
+            return;
+        }
+
+        std::string ToWrite = "";
+
+        if (Save::getExportWOutLabels()){
+            std::string s = m_DTLayer->deathsString;
+            for (int i = 0; i < s.length(); i++)
+            {
+                if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
+                    s = s.erase(i, 5);
                 }
-                else{
-                    std::map<int, std::string> text;
-                    auto currLayout = Save::getLayout();
-                    for (int i = 0; i < currLayout.size(); i++)
-                    {
-                        std::string s = m_DTLayer->modifyString(currLayout[i].text);
-                        for (int i = 0; i < s.length(); i++)
-                        {
-                            if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
-                                s = s.erase(i, 5);
-                                
-                            }
-                        }
-
-                        text[currLayout[i].line] += s + "\n";
-                    }
-
-                    for (auto t : text)
-                    {
-                        ToWrite += t.second;
-                        ToWrite += "\n";
-                    }
-                    ToWrite = ToWrite.substr(0, ToWrite.size() - 1);
-                    
-                }
-
-                auto currPath = path->unwrap();
-
-                if (currPath.extension() != ".txt")
-                    currPath.replace_extension(".txt");
-
-
-                auto _ = file::writeString(currPath, ToWrite);
-
-                FLAlertLayer::create("Success!", fmt::format("<cy>Your text file {} has been created!</c>\n\n Location: {}", currPath.stem().string(), currPath.string()), "OK")->show();
             }
+            s += "\n\n" + m_DTLayer->RunString;
+            ToWrite += s;
+        }
+        else{
+            std::map<int, std::string> text;
+            auto currLayout = Save::getLayout();
+            for (int i = 0; i < currLayout.size(); i++)
+            {
+                std::string s = m_DTLayer->modifyString(currLayout[i].text);
+                for (int i = 0; i < s.length(); i++)
+                {
+                    if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
+                        s = s.erase(i, 5);
+                        
+                    }
+                }
+
+                text[currLayout[i].line] += s + "\n";
+            }
+
+            for (auto t : text)
+            {
+                ToWrite += t.second;
+                ToWrite += "\n";
+            }
+            ToWrite = ToWrite.substr(0, ToWrite.size() - 1);
+            
+        }
+
+        if (currPath.extension() != ".txt")
+            currPath.replace_extension(".txt");
+
+
+        auto _ = file::writeString(currPath, ToWrite);
+
+        FLAlertLayer::create("Success!", fmt::format("<cy>Your text file {} has been created!</c>\n\n Location: {}", currPath.stem().string(), currPath.string()), "OK")->show();
         },
         [] (auto progress) {},
         [] () {}
@@ -258,116 +260,113 @@ void DTExportImportLayer::onImportClicked(CCObject*){
 
     openFileLocListener.bind([this](Task<Result<std::filesystem::path>>::Event* e){
         if (auto* pathPacked = e->getValue()){
-            if (pathPacked->isOk()) {
-                std::filesystem::path path = pathPacked->unwrap();
+            std::filesystem::path path = pathPacked->unwrapOrDefault();
 
-                auto fileTextRes = file::readString(path);
-                if (fileTextRes.isOk()){
-                    std::string fileText = fileTextRes.value();
-
-                    
-
-                    Deaths deathDetected{};
-                    Runs runsDetected{};
-
-                    int searchPhase = 0;
-                    std::string num = "";
-                    std::string num2 = "";
-
-                    bool isRun = false;
-
-                    std::string amount = "";
-
-                    for (int i = 0; i < fileText.length(); i++)
-                    {
-                        //log::info("before 1 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                        if (std::isdigit(fileText[i]) && (searchPhase == 0 || searchPhase == 1)){
-                            if (searchPhase == 0)
-                                searchPhase = 1;
-                            if (!isRun)
-                                num += fileText[i];
-                            else
-                                num2 += fileText[i];
-                        }
-                        else if (fileText[i] == '-' && searchPhase == 1){
-                            isRun = true;
-                        }
-                        else if (!std::isdigit(fileText[i]) && fileText[i] != ' ' && fileText[i] != '%' && searchPhase == 1 && fileText[i] != '-'){
-                            searchPhase = 2;
-                        }
-                        else if (searchPhase == 0 || searchPhase == 1 && fileText[i] != ' ' && fileText[i] != '%') {
-                            searchPhase = 0;
-                            num = "";
-                            isRun = false;
-                        }
-
-                        if (searchPhase == 3 && std::isdigit(fileText[i])){
-                            amount += fileText[i];
-                        }
-                        else if (fileText[i] != ' ' && searchPhase == 3){
-                            searchPhase = 4;
-                        }
-
-                        //log::info("before 2 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                        if (searchPhase == 2 && fileText[i] != '\r' && fileText[i] != '\n'){
-
-                            if (tolower(fileText[i]) != 'x' && fileText[i] != ' '){
-                                num = "";
-                                num2 = "";
-                                isRun = false;
-                                amount = "";
-                                searchPhase = 0;
-                            }
-                            else if (tolower(fileText[i]) == 'x'){
-                                searchPhase = 3;
-                            }
-
-                        }
-
-                        //log::info("before 3 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                        if (fileText[i] == '\n' || fileText[i] == ',' || fileText.length() - 1 == i){
-                            if (num != "" && amount == ""){
-                                amount = "1";
-                            }
-
-                            if (searchPhase >= 1 && num != ""){
-                                if (!isRun)
-                                    deathDetected[num] += std::stoi(amount);
-                                else
-                                    runsDetected[fmt::format("{}-{}", num, num2)] += std::stoi(amount);
-                            }
-
-                            num = "";
-                            num2 = "";
-                            isRun = false;
-                            amount = "";
-                            searchPhase = 0;
-                        }
-
-                        //log::info("num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-                    }
-
-                    loading->setVisible(false);
-                    importing = false;
-
-                    auto CILayer = confirmImportLayer::create(m_DTLayer, deathDetected, runsDetected);
-                    CILayer->setZOrder(100);
-                    this->addChild(CILayer);
-                }
-                else{
-                    geode::Notification::create("Error reading file! :(", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
-                    loading->setVisible(false);
-                    importing = false;
-                }
-            }
-            else{
+            if (path.empty()){
                 importing = false;
                 loading->setVisible(false);
                 geode::Notification::create("Failed opening the file!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+                return;
             }
+
+            auto fileText = file::readString(path).unwrapOr("-1");
+
+            if (fileText == "-1"){
+                geode::Notification::create("Error reading file! :(", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+                loading->setVisible(false);
+                importing = false;
+                return;
+            }
+
+            Deaths deathDetected{};
+            Runs runsDetected{};
+
+            int searchPhase = 0;
+            std::string num = "";
+            std::string num2 = "";
+
+            bool isRun = false;
+
+            std::string amount = "";
+
+            for (int i = 0; i < fileText.length(); i++)
+            {
+                //log::info("before 1 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
+
+                if (std::isdigit(fileText[i]) && (searchPhase == 0 || searchPhase == 1)){
+                    if (searchPhase == 0)
+                        searchPhase = 1;
+                    if (!isRun)
+                        num += fileText[i];
+                    else
+                        num2 += fileText[i];
+                }
+                else if (fileText[i] == '-' && searchPhase == 1){
+                    isRun = true;
+                }
+                else if (!std::isdigit(fileText[i]) && fileText[i] != ' ' && fileText[i] != '%' && searchPhase == 1 && fileText[i] != '-'){
+                    searchPhase = 2;
+                }
+                else if (searchPhase == 0 || searchPhase == 1 && fileText[i] != ' ' && fileText[i] != '%') {
+                    searchPhase = 0;
+                    num = "";
+                    isRun = false;
+                }
+
+                if (searchPhase == 3 && std::isdigit(fileText[i])){
+                    amount += fileText[i];
+                }
+                else if (fileText[i] != ' ' && searchPhase == 3){
+                    searchPhase = 4;
+                }
+
+                //log::info("before 2 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
+
+                if (searchPhase == 2 && fileText[i] != '\r' && fileText[i] != '\n'){
+
+                    if (tolower(fileText[i]) != 'x' && fileText[i] != ' '){
+                        num = "";
+                        num2 = "";
+                        isRun = false;
+                        amount = "";
+                        searchPhase = 0;
+                    }
+                    else if (tolower(fileText[i]) == 'x'){
+                        searchPhase = 3;
+                    }
+
+                }
+
+                //log::info("before 3 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
+
+                if (fileText[i] == '\n' || fileText[i] == ',' || fileText.length() - 1 == i){
+                    if (num != "" && amount == ""){
+                        amount = "1";
+                    }
+
+                    if (searchPhase >= 1 && num != ""){
+                        if (!isRun)
+                            deathDetected[num] += geode::utils::numFromString<int>(amount).unwrapOr(0);
+                        else
+                            runsDetected[fmt::format("{}-{}", num, num2)] += geode::utils::numFromString<int>(amount).unwrapOr(0);
+                    }
+
+                    num = "";
+                    num2 = "";
+                    isRun = false;
+                    amount = "";
+                    searchPhase = 0;
+                }
+
+                //log::info("num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
+            }
+
+            loading->setVisible(false);
+            importing = false;
+
+            auto CILayer = confirmImportLayer::create(m_DTLayer, deathDetected, runsDetected);
+            CILayer->setZOrder(100);
+            this->addChild(CILayer);
         }
     });
 

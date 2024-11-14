@@ -64,7 +64,7 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     auto levelKey = StatsManager::getLevelKey(level);
     auto sessionLength = Settings::getMaxSessionLength();
 
-    if (!session) return true;
+    if (session == nullptr) return true;
 
     // schedule create a new session
     // based on the session length setting

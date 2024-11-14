@@ -33,7 +33,7 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         int levelPage = 1;
         GJListLayer* m_LinkedLevelsList = nullptr;
 
-        InputNode* seartchInput;
+        TextInput* seartchInput;
         std::string m_filterText;
         void textChanged(CCTextInputNode* input);
 

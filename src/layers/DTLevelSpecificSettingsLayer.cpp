@@ -423,11 +423,10 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
 
     int startPrecent = -1;
     if (m_AddRunAllowedInput->getString() != ""){
-            auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
-            if (res.isOk()){
-                startPrecent = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
+        startPrecent = res.unwrapOr(-1);
+    }
+
     if (startPrecent == -1) return;
 
     bool doesExist = false;
@@ -446,7 +445,11 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
 
         for (int i = 0; i < mainDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
         {
-            auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
+            auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+            if (currStats.levelName == "Unknown name"){
+                Notification::create("Failed syncing data with linked level - " + mainDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                continue;
+            }
 
             bool doesExist2 = false;
             for (int r = 0; r < currStats.RunsToSave.size(); r++)
@@ -495,9 +498,12 @@ void DTLevelSpecificSettingsLayer::removeRunAllowed(int precent, CCNode* cell){
         return a < b; // true --> A before B
     });
 
-    for (int i = 0; i < myStats.LinkedLevels.size(); i++)
-        {
-        auto currStats = StatsManager::getLevelStats(myStats.LinkedLevels[i]);
+    for (int i = 0; i < myStats.LinkedLevels.size(); i++){
+        auto currStats = StatsManager::getLevelStats(myStats.LinkedLevels[i]).unwrapOrDefault();
+        if (currStats.levelName == "Unknown name"){
+            Notification::create("Failed syncing data with linked level - " + myStats.LinkedLevels[i])->show();
+            continue;
+        }
 
         bool doesExist2 = false;
         for (int r = 0; r < currStats.RunsToSave.size(); r++)
@@ -542,7 +548,11 @@ void DTLevelSpecificSettingsLayer::OnToggleAllRuns(CCObject*){
 
                 for (int i = 0; i < mainDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
                 {
-                    auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
+                    auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+                    if (currStats.levelName == "Unknown name"){
+                        Notification::create("Failed syncing data with linked level - " + mainDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                        continue;
+                    }
 
                     if (currStats.RunsToSave.size() != 0 && currStats.currentBest != -1){
                         if (currStats.RunsToSave[0] == -1){
@@ -650,19 +660,15 @@ void DTLevelSpecificSettingsLayer::onAddedFZRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != ""){
-            auto res = utils::numFromString<int>(runsAmountInput->getString());
-            if (res.isOk()){
-                amount = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(runsAmountInput->getString());
+        amount = res.unwrapOr(1);
+    }
 
     int precent = 0;
     if (addFZRunInput->getString() != ""){
-            auto res = utils::numFromString<int>(addFZRunInput->getString());
-            if (res.isOk()){
-                precent = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(addFZRunInput->getString());
+        precent = res.unwrapOr(0);
+    }
     
     mainDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] += amount;
 
@@ -679,19 +685,15 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != ""){
-            auto res = utils::numFromString<int>(runsAmountInput->getString());
-            if (res.isOk()){
-                amount = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(runsAmountInput->getString());
+        amount = res.unwrapOr(1);
+    }
         
     int precent = 0;
     if (addFZRunInput->getString() != ""){
-            auto res = utils::numFromString<int>(addFZRunInput->getString());
-            if (res.isOk()){
-                precent = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(addFZRunInput->getString());
+        precent = res.unwrapOr(0);
+    }
         
     if (mainDTLayer->m_MyLevelStats.deaths.contains(std::to_string(precent))){
         mainDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
@@ -704,7 +706,11 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
     else{
         for (int i = 0; i < mainDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
         {
-            auto lStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
+            auto lStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+            if (lStats.levelName == "Unknown name"){
+                Notification::create("Failed syncing data with linked level - " + mainDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                continue;
+            }
 
             if (lStats.deaths.contains(std::to_string(precent))){
                 lStats.deaths[std::to_string(precent)] -= amount;
@@ -731,32 +737,25 @@ void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
 
     int amount = 1;
     if (runsAmountInput->getString() != ""){
-            auto res = utils::numFromString<int>(runsAmountInput->getString());
-            if (res.isOk()){
-                amount = res.value();
-            }
-        }
-        
-    
+        auto res = utils::numFromString<int>(runsAmountInput->getString());
+        amount = res.unwrapOr(1);
+    }
+
     Run r{
         0,
         0
     };
 
     if (addRunStartInput->getString() != ""){
-            auto res = utils::numFromString<int>(addRunStartInput->getString());
-            if (res.isOk()){
-                r.start = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(addRunStartInput->getString());
+        r.start = res.unwrapOr(0);
+    }
         
 
     if (addRunEndInput->getString() != ""){
-            auto res = utils::numFromString<int>(addRunEndInput->getString());
-            if (res.isOk()){
-                r.end = res.value();
-            }
-        }
+        auto res = utils::numFromString<int>(addRunEndInput->getString());
+        r.end = res.unwrapOr(0);
+    }
     
     if (r.start > r.end) return;
 
@@ -778,9 +777,7 @@ void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
     int amount = 1;
     if (runsAmountInput->getString() != ""){
             auto res = utils::numFromString<int>(runsAmountInput->getString());
-            if (res.isOk()){
-                amount = res.value();
-            }
+            amount = res.unwrapOr(1);
         }
     
     Run r{
@@ -790,16 +787,12 @@ void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
 
     if (addRunStartInput->getString() != ""){
             auto res = utils::numFromString<int>(addRunStartInput->getString());
-            if (res.isOk()){
-                r.start = res.value();
-            }
+            r.start = res.unwrapOr(0);
         }
 
     if (addRunEndInput->getString() != ""){
             auto res = utils::numFromString<int>(addRunEndInput->getString());
-            if (res.isOk()){
-                r.end = res.value();
-            }
+            r.end = res.unwrapOr(0);
         }
         
 
@@ -818,7 +811,11 @@ void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
     else{
         for (int i = 0; i < mainDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
         {
-            auto lStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
+            auto lStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+            if (lStats.levelName == "Unknown name"){
+                Notification::create("Failed syncing data with linked level - " + mainDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                continue;
+            }
 
             if (lStats.runs.contains(runKey)){
                 lStats.runs[runKey] -= amount;
@@ -904,7 +901,12 @@ void DTLevelSpecificSettingsLayer::FLAlert_Clicked(FLAlertLayer* layer, bool sel
     }
 
     if (currDeleteAlert == layer && selected){
-        std::filesystem::remove(StatsManager::getLevelSaveFilePath(mainDTLayer->m_Level));
+        auto path = StatsManager::getLevelSaveFilePath(mainDTLayer->m_Level).unwrapOrDefault();
+        if (path.empty()){
+            Notification::create("Failed to delete level data! (invalid level path!)")->show();
+            return;
+        }
+        std::filesystem::remove(path);
 
         LevelStats stats;
 
@@ -930,7 +932,11 @@ void DTLevelSpecificSettingsLayer::FLAlert_Clicked(FLAlertLayer* layer, bool sel
     }
 
     if (revertAlert == layer && selected){
-        auto stats = StatsManager::getBackupStats(mainDTLayer->m_Level);
+        auto stats = StatsManager::getBackupStats(mainDTLayer->m_Level).unwrapOrDefault();
+        if (stats.levelName == "Unknown name"){
+            Notification::create("Failed to get backup stats! (" + std::to_string(mainDTLayer->m_Level->m_levelID.value()) + ")")->show();
+            return;
+        }
 
         if (stats.currentBest == -1){
             auto alert = FLAlertLayer::create("Failed", "No valid backup found :(\n\nIf your data doesn't load then it is probably corrupt, and in that case it is best to <cr>delete the current level using the delete button.</c>", "Ok");
@@ -983,9 +989,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
 
         if (res > 100){
@@ -1000,9 +1004,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
 
         if (res > 100){
@@ -1012,7 +1014,11 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
         for (int i = 0; i < mainDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
         {
-            auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
+            auto currStats = StatsManager::getLevelStats(mainDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+            if (currStats.levelName == "Unknown name"){
+                Notification::create("Failed syncing data with linked level - " + mainDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                return;
+            }
 
             currStats.hideUpto = res;
             StatsManager::saveData(currStats, mainDTLayer->m_MyLevelStats.LinkedLevels[i]);
@@ -1029,9 +1035,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
 
         if (res > 100){
@@ -1046,9 +1050,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
             
         
@@ -1063,9 +1065,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
         
         if (res > 100){
@@ -1079,9 +1079,7 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         int res = 0;
         if (input->getString() != ""){
             auto resNum = utils::numFromString<int>(input->getString());
-            if (resNum.isOk()){
-                res = resNum.value();
-            }
+            res = resNum.unwrapOr(0);
         }
 
         if (res == 0){

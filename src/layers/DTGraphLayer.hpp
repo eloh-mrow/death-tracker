@@ -27,11 +27,11 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         GraphType currentType = GraphType::PassRate;
 
-        CCNode* CreateGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
-        CCNode* CreateRunGraph(std::vector<std::tuple<std::string, int, float>> deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
+        CCNode* CreateGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
+        CCNode* CreateRunGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
         static int GetBestRun(NewBests bests);
-        static int GetBestRunDeathS(std::vector<std::tuple<std::string, int, float>> selectedPrecentDeathsInfo);
-        static int GetBestRun(std::vector<std::tuple<std::string, int, float>> selectedPrecentRunInfo);
+        static int GetBestRunDeathS(const std::vector<DeathInfo>& selectedPrecentDeathsInfo);
+        static int GetBestRun(const std::vector<DeathInfo>& selectedPrecentRunInfo);
 
         std::vector<GraphPoint*> pointToDisplay;
         CCLabelBMFont* npsLabel;
@@ -43,7 +43,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         void switchedSessionRight(CCObject*);
         void switchedSessionLeft(CCObject*);
-        InputNode* m_SessionSelectionInput;
+        TextInput* m_SessionSelectionInput;
         void textChanged(CCTextInputNode* input);
         void textInputClosed(CCTextInputNode* input);
         void textInputOpened(CCTextInputNode* input);
@@ -63,7 +63,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         CCNode* m_graph = nullptr;
         CCLabelBMFont* noGraphLabel;
 
-        InputNode* m_RunSelectInput;
+        TextInput* m_RunSelectInput;
         int m_SelectedRunPrecent;
         GJListLayer* m_RunsList;
         void RunChosen(int run);

@@ -11,7 +11,7 @@
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
-    if (ret && ret->init(368, 280, Level, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+    if (ret && ret->initAnchored(368, 280, Level, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
         return ret;
     }
@@ -40,30 +40,32 @@ bool DTLayer::setup(GJGameLevel* const& level) {
 
     this->setZOrder(100);
     this->m_buttonMenu->setZOrder(1);
+    m_buttonMenu->setPosition(m_size);
+    m_closeBtn->setPosition(m_closeBtn->getPosition() - m_size / 2);
     m_mainLayer->setZOrder(1);
 
-    alighmentNode = CCNode::create();
-    alighmentNode->setPosition(m_buttonMenu->getPosition());
-    alighmentNode->setZOrder(2);
-    m_mainLayer->addChild(alighmentNode);
+    alignmentNode = CCNode::create();
+    alignmentNode->setPosition(m_size / 2);
+    alignmentNode->setZOrder(2);
+    m_mainLayer->addChild(alignmentNode);
 
     auto sideBG = CCScale9Sprite::create("square01_001.png", {0,0, 94, 94});
     sideBG->setContentSize({154, 145});
-    sideBG->setPosition(alighmentNode->getPosition() + ccp(233.5f, 10));
+    sideBG->setPosition(alignmentNode->getPosition() + ccp(233.5f, 10));
     sideBG->setScale(0.65f);
     m_mainLayer->addChild(sideBG);
 
     //texts bg
     m_TextBG = CCScale9Sprite::create("GJ_square05.png", {0,0, 80, 80});
     m_TextBG->setContentSize({520 / 1.6f, m_size.height / 1.15f});
-    m_TextBG->setPosition({winSize.width / 2, winSize.height / 2});
+    m_TextBG->setPosition({m_size.width / 2, m_size.height / 2});
     m_TextBG->setOpacity(100);
     m_TextBG->setZOrder(10);
     m_mainLayer->addChild(m_TextBG);
 
     //create a scroll layer for the text
     m_ScrollLayer = ScrollLayer::create({520 / 1.6f, m_size.height / 1.15f});
-    m_ScrollLayer->setPosition(CCSize{winSize.width / 2, winSize.height / 2} - m_TextBG->getContentSize() / 2);
+    m_ScrollLayer->setPosition(m_TextBG->getPosition() - m_ScrollLayer->getContentSize() / 2);
     m_ScrollLayer->setZOrder(11);
     m_mainLayer->addChild(m_ScrollLayer);
 
@@ -71,7 +73,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_ScrollBar->setScale(0.95f);
     m_ScrollBar->setZOrder(11);
     m_ScrollBar->setPosition({154, 0});
-    alighmentNode->addChild(m_ScrollBar);
+    alignmentNode->addChild(m_ScrollBar);
 
     auto editLayoutBtnS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto editLayoutBtnSS = CCSprite::create("layout_button.png"_spr);
@@ -133,6 +135,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_EditLayoutMenu = CCMenu::create();
     m_EditLayoutMenu->setVisible(false);
     m_EditLayoutMenu->setZOrder(12);
+    m_EditLayoutMenu->setPosition(m_buttonMenu->getPosition() / 2);
     m_mainLayer->addChild(m_EditLayoutMenu);
 
     m_BlackSquare = CCSprite::create("square02_001.png");
@@ -141,7 +144,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_BlackSquare->setPosition(winSize / 2);
     m_BlackSquare->setScale(100);
     m_BlackSquare->setOpacity(150);
-    alighmentNode->addChild(m_BlackSquare);
+    alignmentNode->addChild(m_BlackSquare);
 
     auto editLayoutApplyBtnS = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto editLayoutApplyBtnSS = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
@@ -238,7 +241,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     SessionSelectCont->setID("Session-Select-Container");
     SessionSelectCont->setPosition({233, 24});
     SessionSelectCont->setZOrder(1);
-    alighmentNode->addChild(SessionSelectCont);
+    alignmentNode->addChild(SessionSelectCont);
 
     m_SessionSelectMenu = CCMenu::create();
     m_SessionSelectMenu->setPosition({0, 0});
@@ -247,13 +250,14 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     m_SessionsAmount = m_SharedLevelStats.sessions.size();
     m_SessionSelected = 1;
 
-    m_SessionSelectionInput = InputNode::create(120, "Session");
+    m_SessionSelectionInput = TextInput::create(120, "Session");
     if (m_SessionsAmount == 0)
         m_SessionSelectionInput->setString("No sessions.");
     else
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
-    m_SessionSelectionInput->getInput()->setDelegate(this);
-    m_SessionSelectionInput->getInput()->setAllowedChars("1234567890");
+
+    m_SessionSelectionInput->getInputNode()->setDelegate(this);
+    m_SessionSelectionInput->setCommonFilter(CommonFilter::Uint);
     m_SessionSelectionInput->setScale(0.45f);
     SessionSelectCont->addChild(m_SessionSelectionInput);
 
@@ -350,13 +354,11 @@ void DTLayer::onEditLayout(CCObject* sender){
 }
 
 void DTLayer::textChanged(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
         int selected = 1;
         if (input->getString() != ""){
             auto res = utils::numFromString<int>(input->getString());
-            if (res.isOk()){
-                selected = res.value();
-            }
+            selected = res.unwrapOr(1);
         }
         
         if (selected > m_SessionsAmount){
@@ -376,7 +378,7 @@ void DTLayer::textChanged(CCTextInputNode* input){
 }
 
 void DTLayer::textInputOpened(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
         input->setString(fmt::format("{}", m_SessionSelected));
         m_SessionSelectionInputSelected = true;
     }
@@ -385,7 +387,7 @@ void DTLayer::textInputOpened(CCTextInputNode* input){
 }
 
 void DTLayer::textInputClosed(CCTextInputNode* input){
-    if (input == m_SessionSelectionInput->getInput() && m_SessionsAmount > 0){
+    if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
         input->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
         m_SessionSelectionInputSelected = false;
     }
@@ -396,47 +398,34 @@ void DTLayer::updateSessionString(int session){
 
     Session currentSession = m_SharedLevelStats.sessions[session - 1];
 
-    selectedSessionInfo = CreateDeathsString(currentSession.deaths, currentSession.newBests, "<sbc>");
-    m_SelectedSessionRunInfo = CreateRunsString(currentSession.runs);
+    auto selectedSessionInfoRes = CreateDeathsString(currentSession.deaths, currentSession.newBests);
+
+    if (!selectedSessionInfoRes.isOk()) return;
+
+    selectedSessionInfo = selectedSessionInfoRes.unwrap();
 
     std::string mergedString = "";
-    for (int i = 0; i < selectedSessionInfo.size(); i++)
+    for (const auto& SDeathI : selectedSessionInfo)
     {
-        if (std::get<0>(selectedSessionInfo[0]) != "-1" && std::get<0>(selectedSessionInfo[0]) != "No Saved Progress"){
-            std::string fixedPrecent = std::get<0>(m_DeathsInfo[i]);
-            if (fixedPrecent.length() > 0)
-                if (fixedPrecent[0] == '<' && fixedPrecent.length() > 1){
-                    if (isKeyInIndex(fixedPrecent, 1, "nbc>")){
-                        fixedPrecent = fixedPrecent.erase(0, 5);
-                    }
-                    if (isKeyInIndex(fixedPrecent, 1, "sbc>")){
-                        fixedPrecent = fixedPrecent.erase(0, 5);
-                    }
-                }
-
-            auto res = utils::numFromString<int>(fixedPrecent);
-            if (res.isOk()){
-                if (res.value() < m_MyLevelStats.hideUpto) continue;
-            }
-            else
-                log::info("{}", fixedPrecent);
-
-            mergedString += fmt::format("{}% x{}", std::get<0>(selectedSessionInfo[i]), std::get<1>(selectedSessionInfo[i]));
-            if (i != selectedSessionInfo.size() - 1) mergedString += '\n';
-        }
+        if (SDeathI.isNewBest)
+            mergedString += "<sbc>";
+        mergedString += fmt::format("{}% x{}\n", SDeathI.run.end, SDeathI.deaths);
     }
+    mergedString = mergedString.substr(0, mergedString.size() - 1);
     selectedSessionString = mergedString;
 
-    mergedString = "";
-    for (int i = 0; i < m_SelectedSessionRunInfo.size(); i++)
-    {
-        if (std::get<0>(m_SelectedSessionRunInfo[0]) != "-1" && std::get<0>(m_SelectedSessionRunInfo[0]) != "No Saved Progress"){
-            Run SplittedKey = StatsManager::splitRunKey(std::get<0>(m_SelectedSessionRunInfo[i]));
+    auto SelectedSessionRunInfoRes = CreateRunsString(currentSession.runs);
 
-            mergedString += fmt::format("{}% - {}% x{}", SplittedKey.start, SplittedKey.end, std::get<1>(m_SelectedSessionRunInfo[i]));
-            if (i != m_SelectedSessionRunInfo.size() - 1) mergedString += '\n';
-        }
+    if (!SelectedSessionRunInfoRes.isOk()) return;
+
+    m_SelectedSessionRunInfo = SelectedSessionRunInfoRes.unwrap();
+
+    mergedString = "";
+    for (const auto& SRunI : m_SelectedSessionRunInfo)
+    {
+        mergedString += fmt::format("{}% - {}% x{}\n", SRunI.run.start, SRunI.run.end, SRunI.deaths);
     }
+    mergedString = mergedString.substr(0, mergedString.size() - 1);
     selectedSessionRunString = mergedString;
 }
 
@@ -541,6 +530,7 @@ void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
     LabelLayoutWindow* PrevLine = nullptr;
 
     std::vector<LabelLayoutWindow*> sortedLayoutLines;
+    sortedLayoutLines.reserve(m_LayoutLines.size());
     for (int i = 0; i < m_LayoutLines.size(); i++)
         sortedLayoutLines.push_back(static_cast<LabelLayoutWindow*>(m_LayoutLines[i]));
     
@@ -550,8 +540,6 @@ void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
 
     for (int i = 0; i < sortedLayoutLines.size(); i++)
     {
-        //hight += m_LayoutLines[i]->getContentSize().height;
-
         if (PrevLine){
             float calH = abs(sortedLayoutLines[i]->getPositionY() - PrevLine->getPositionY());
             hight += calH;
@@ -592,6 +580,7 @@ void DTLayer::createLayoutBlocks(){
     m_ScrollLayer->m_contentLayer->addChild(m_LayoutStuffCont);
 
     m_LayoutLines.clear();
+    m_LayoutLines.reserve(m_CurretLayout.size());
 
     for (int i = 0; i < m_CurretLayout.size(); i++)
     {
@@ -620,7 +609,7 @@ void DTLayer::RefreshText(bool moveToTop){
 
     std::vector<std::tuple<SimpleTextArea*, int, int>> lables;
 
-    std::vector<std::pair<int, float>> positioning;
+    std::map<int, float> positioning;
     std::map<int, bool> twoLabelLines;
 
     for (const auto& labelSettings : layout)
@@ -633,7 +622,7 @@ void DTLayer::RefreshText(bool moveToTop){
         label->setWrappingMode(WrappingMode::WORD_WRAP);
         label->setColor(labelSettings.color);
         label->setScale(labelSettings.fontSize);
-        lables.push_back(std::tuple<SimpleTextArea*, int, int>{label, labelSettings.line, labelSettings.position});
+        lables.push_back(std::make_tuple(label, labelSettings.line, labelSettings.position));
         m_TextCont->addChild(label);
 
         float contentSize = 0;
@@ -643,28 +632,15 @@ void DTLayer::RefreshText(bool moveToTop){
             contentSize += line->getScaledContentSize().height + label->getLinePadding();
         }
 
-        bool notAdded = true;
-
-        for (int i = 0; i < positioning.size(); i++)
-        {
-            if (positioning[i].first == labelSettings.line){
-                notAdded = false;
-                twoLabelLines.insert(std::pair<int, bool>{labelSettings.line, true});
-                if (positioning[i].second < contentSize){
-                    positioning[i].second = contentSize;
-                }
+        if (positioning.contains(labelSettings.line)){
+            twoLabelLines.insert(std::make_pair(labelSettings.line, true));
+            if (positioning[labelSettings.line] < contentSize){
+                positioning[labelSettings.line] = contentSize;
             }
         }
-
-        if (notAdded)
-            positioning.push_back(std::pair<int, float>{labelSettings.line, contentSize});
+        else
+            positioning.insert(std::make_pair(labelSettings.line, contentSize));
     }
-
-    std::ranges::sort(positioning, [](const std::pair<int, float> a, const std::pair<int, float> b) {
-        auto posA = std::get<0>(a);
-        auto posB = std::get<0>(b);
-        return posA < posB;
-    });
 
     for (int i = 0; i < lables.size(); i++)
     {
@@ -680,10 +656,10 @@ void DTLayer::RefreshText(bool moveToTop){
             }
             currentArea->setFont(currentArea->getFont());
         }
-        for (int p = 0; p < positioning.size(); p++)
+        for (const auto& posI : positioning)
         {
-            if (std::get<1>(lables[i]) > positioning[p].first){
-                std::get<0>(lables[i])->setPositionY(std::get<0>(lables[i])->getPositionY() - positioning[p].second);
+            if (std::get<1>(lables[i]) > posI.first){
+                std::get<0>(lables[i])->setPositionY(std::get<0>(lables[i])->getPositionY() - posI.second);
             }
             else{
                 break;
@@ -735,9 +711,9 @@ void DTLayer::RefreshText(bool moveToTop){
         }
     }
 
-    for (int i = 0; i < positioning.size(); i++)
+    for (const auto& posI : positioning)
     {
-        overallHight += positioning[i].second;
+        overallHight += posI.second;
     }
 
     if (overallHight < m_ScrollLayer->getContentSize().height){
@@ -756,7 +732,7 @@ void DTLayer::RefreshText(bool moveToTop){
     create labels by settings
 
     know how high every line
-        get the highest if the who in the same line
+        get the highest if the two are in the same line
     
     place the labels at the bottom of the previewse line postions added up
     
@@ -787,194 +763,205 @@ std::string DTLayer::modifyString(std::string ToModify){
     {sst}
     
     */
-    
-    for (int i = 0; i < ToModify.length(); i++)
+
+    int overallOffset = 0;
+
+    auto inctences = StatsManager::KMPSearch("{", ToModify);
+    for (int i = 0; i < inctences.size(); i++)
     {
-        if (i + 1 < ToModify.length() - 1){
-            if (ToModify[i] == '{'){
-                if (isKeyInIndex(ToModify, i + 1, "f0}")){
-                    ToModify.erase(i, 4);
-                    ToModify.insert(i, deathsString);
-                }
-                if (isKeyInIndex(ToModify, i + 1, "runs}")){
-                    ToModify.erase(i, 6);
-                    ToModify.insert(i, RunString);
-                }
-                if (isKeyInIndex(ToModify, i + 1, "lvln}")){
-                    ToModify.erase(i, 6);
-                    ToModify.insert(i, m_SharedLevelStats.levelName);
-                }
-                if (isKeyInIndex(ToModify, i + 1, "att}")){
-                    ToModify.erase(i, 5);
-                    ToModify.insert(i, std::to_string(m_SharedLevelStats.attempts));
-                }
-                if (isKeyInIndex(ToModify, i + 1, "s0}")){
-                    ToModify.erase(i, 4);
-                    ToModify.insert(i, selectedSessionString);
-                }
-                if (isKeyInIndex(ToModify, i + 1, "sruns}")){
-                    ToModify.erase(i, 7);
-                    ToModify.insert(i, selectedSessionRunString);
-                }
-                if (isKeyInIndex(ToModify, i + 1, "nl}")){
-                    ToModify.erase(i, 4);
-                    ToModify.insert(i, "\n");
-                }
-                if (isKeyInIndex(ToModify, i + 1, "ssd}")){
-                    ToModify.erase(i, 5);
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "f0}")){
+            ToModify.erase(inctences[i], 4);
+            ToModify.insert(inctences[i], deathsString);
+            overallOffset -= 4;
+            overallOffset += deathsString.length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "runs}")){
+            ToModify.erase(inctences[i], 6);
+            ToModify.insert(inctences[i], RunString);
+            overallOffset -= 6;
+            overallOffset += RunString.length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "lvln}")){
+            ToModify.erase(inctences[i], 6);
+            ToModify.insert(inctences[i], m_SharedLevelStats.levelName);
+            overallOffset -= 6;
+            overallOffset += m_SharedLevelStats.levelName.length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "att}")){
+            ToModify.erase(inctences[i], 5);
+            ToModify.insert(inctences[i], std::to_string(m_SharedLevelStats.attempts));
+            overallOffset -= 5;
+            overallOffset += std::to_string(m_SharedLevelStats.attempts).length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "s0}")){
+            ToModify.erase(inctences[i], 4);
+            ToModify.insert(inctences[i], selectedSessionString);
+            overallOffset -= 4;
+            overallOffset += selectedSessionString.length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "sruns}")){
+            ToModify.erase(inctences[i], 7);
+            ToModify.insert(inctences[i], selectedSessionRunString);
+            overallOffset -= 7;
+            overallOffset += selectedSessionRunString.length();
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "nl}")){
+            ToModify.erase(inctences[i], 4);
+            ToModify.insert(inctences[i], "\n");
+            overallOffset -= 4;
+            overallOffset += 1;
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "ssd}")){
+            ToModify.erase(inctences[i], 5);
+            overallOffset -= 5;
 
-                    if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
-                        ToModify.insert(i, "(Unknown date)");
-                    }
-                    else{
-                        time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
-                        auto tm = std::localtime(&time);
-
-                        ToModify.insert(i, fmt::format("{}/{}/{}", tm->tm_mon + 1, tm->tm_mday, tm->tm_year + 1900));
-                    }
-                }
-                if (isKeyInIndex(ToModify, i + 1, "sst}")){
-                    ToModify.erase(i, 5);
-
-                    if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
-                        ToModify.insert(i, "(Unknown time)");
-                    }
-                    else{
-                        time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
-                        auto tm = std::localtime(&time);
-
-                        std::string clock12Time = "AM";
-
-                        if (tm->tm_hour > 12){
-                            tm->tm_hour -= 12;
-                            clock12Time = "PM";
-                        }
-
-                        ToModify.insert(i, fmt::format("{}:{}{}", tm->tm_hour, tm->tm_min, clock12Time));
-                    }
-                }
+            if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
+                std::string toAdd = "(Unknown date)";
+                ToModify.insert(inctences[i], toAdd);
+                overallOffset += toAdd.length();
             }
+            else{
+                time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
+                auto tm = std::localtime(&time);
+
+                ToModify.insert(inctences[i], fmt::format("{}/{}/{}", tm->tm_mon + 1, tm->tm_mday, tm->tm_year + 1900));
+                overallOffset += fmt::format("{}/{}/{}", tm->tm_mon + 1, tm->tm_mday, tm->tm_year + 1900).length();
+            }
+        }
+        if (isKeyInIndex(ToModify, inctences[i] + 1, "sst}")){
+            ToModify.erase(inctences[i], 5);
+            overallOffset -= 5;
+
+            if (!m_SharedLevelStats.sessions.size()) continue;
+
+            if (m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate == -1){
+                std::string toAdd = "(Unknown time)";
+                ToModify.insert(inctences[i], toAdd);
+                overallOffset += toAdd.length();
+            }
+            else{
+                time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
+                auto tm = std::localtime(&time);
+
+                std::string clock12Time = "AM";
+
+                if (tm->tm_hour > 12){
+                    tm->tm_hour -= 12;
+                    clock12Time = "PM";
+                }
+
+                ToModify.insert(inctences[i], fmt::format("{}:{}{}", tm->tm_hour, tm->tm_min, clock12Time));
+                overallOffset += fmt::format("{}:{}{}", tm->tm_hour, tm->tm_min, clock12Time).length();
+            }
+        }
+
+        if (i + 1 < inctences.size()){
+            inctences[i + 1] += overallOffset;
         }
     }
     
     return ToModify;
 }
 
-bool DTLayer::isKeyInIndex(std::string s, int Index, std::string key){
-    if (Index + key.length() > s.length()) false;
+bool DTLayer::isKeyInIndex(const std::string& s, int index, const std::string& key) {
+    if (index + key.length() > s.length()) return false;
 
-    bool toReturn = true;
-
-    for (int i = 0; i < key.length(); i++)
-    {
-        if (s[Index + i] != key[i])
-            toReturn = false;
-    }
-    
-    return toReturn;
+    return s.substr(index, key.length()) == key;
 }
 
 void DTLayer::refreshStrings(){
-    m_DeathsInfo = CreateDeathsString(m_SharedLevelStats.deaths, m_SharedLevelStats.newBests, "<nbc>");
-    m_RunInfo = CreateRunsString(m_SharedLevelStats.runs);
+    auto DeathsInfoRes = CreateDeathsString(m_SharedLevelStats.deaths, m_SharedLevelStats.newBests);
+
+    if (!DeathsInfoRes.isOk()) return;
+
+    m_DeathsInfo = DeathsInfoRes.unwrap();
 
     std::string mergedString = "";
-    for (int i = 0; i < m_DeathsInfo.size(); i++)
+    for (const auto& deathI : m_DeathsInfo)
     {
-        if (std::get<0>(m_DeathsInfo[0]) != "-1" && std::get<0>(m_DeathsInfo[0]) != "No Saved Progress"){
-            std::string fixedPrecent = std::get<0>(m_DeathsInfo[i]);
-            if (fixedPrecent.length() > 0)
-                if (fixedPrecent[0] == '<' && fixedPrecent.length() > 1){
-                    if (isKeyInIndex(fixedPrecent, 1, "nbc>")){
-                        fixedPrecent = fixedPrecent.erase(0, 5);
-                    }
-                    if (isKeyInIndex(fixedPrecent, 1, "sbc>")){
-                        fixedPrecent = fixedPrecent.erase(0, 5);
-                    }
-                }
-            
-            if (std::stoi(fixedPrecent) < m_MyLevelStats.hideUpto) continue;
-
-            mergedString += fmt::format("{}% x{}", std::get<0>(m_DeathsInfo[i]), std::get<1>(m_DeathsInfo[i]));
-            if (i != m_DeathsInfo.size() - 1) mergedString += '\n';
-        }
+        if (deathI.isNewBest)
+            mergedString += "<nbc>";
+        mergedString += fmt::format("{}% x{}\n", deathI.run.end, deathI.deaths);
     }
+    mergedString = mergedString.substr(0, mergedString.size() - 1);
     deathsString = mergedString;
 
-    mergedString = "";
-    for (int i = 0; i < m_RunInfo.size(); i++)
-    {
-        if (std::get<0>(m_RunInfo[0]) != "-1" && std::get<0>(m_RunInfo[0]) != "No Saved Progress"){
-            Run SplittedKey = StatsManager::splitRunKey(std::get<0>(m_RunInfo[i]));
+    auto RunInfoRes = CreateRunsString(m_SharedLevelStats.runs);
 
-            mergedString += fmt::format("{}% - {}% x{}", SplittedKey.start, SplittedKey.end, std::get<1>(m_RunInfo[i]));
-            if (i != m_RunInfo.size() - 1) mergedString += '\n';
-        }
+    if (!RunInfoRes.isOk()) return;
+
+    m_RunInfo = RunInfoRes.unwrap();
+
+    mergedString = "";
+    for (const auto& runI : m_RunInfo)
+    {
+        mergedString += fmt::format("{}% - {}% x{}\n", runI.run.start, runI.run.end, runI.deaths);
     }
+    mergedString = mergedString.substr(0, mergedString.size() - 1);
     RunString = mergedString;
 
     updateSessionString(m_SessionSelected);
 }
 
-std::vector<std::tuple<std::string, int, float>> DTLayer::CreateDeathsString(Deaths deaths, NewBests newBests, std::string NewBestsColorString){
-    if (!m_Level) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("-1", 0, 0)};
-    if (deaths.size() == 0) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("No Saved Progress", 0, 0)};
+Result<std::vector<DeathInfo>> DTLayer::CreateDeathsString(const Deaths& deaths, const NewBests& newBests){
+    if (!m_Level) return Err("invalid level");
+    if (deaths.size() == 0) return Err("No Saved Progress");
 
     int totalDeaths = 0;
     int bestRun = 0;
-    std::vector<std::tuple<std::string, int>> sortedDeaths{};
+    std::map<int, int> sortedDeaths{};
 
     // sort the deaths
-    for (const auto [percentKey, count] : deaths) {
-        sortedDeaths.push_back(std::make_tuple(percentKey, count));
+    for (const auto& [percentKey, count] : deaths) {
+        GEODE_UNWRAP_INTO(auto precentInt, geode::utils::numFromString<int>(percentKey));
+
+        if (precentInt < m_MyLevelStats.hideUpto) continue;
+
+        sortedDeaths.insert(std::make_pair(precentInt, count));
         totalDeaths += count;
-        if (std::stoi(percentKey) > bestRun) bestRun = std::stoi(percentKey);
+        if (precentInt > bestRun) bestRun = precentInt;
     }
 
-    std::ranges::sort(sortedDeaths, [](const std::tuple<std::string, int> a, const std::tuple<std::string, int> b) {
-        auto percentA = std::stof(std::get<0>(a));
-        auto percentB = std::stof(std::get<0>(b));
-        return percentA < percentB; // true --> A before B
-    });
-
     // create output
-	int offset = m_Level->m_normalPercent.value() == 100
-		? 1
-		: 0;
+    int offset = m_Level->m_normalPercent.value() == 100
+        ? 1
+        : 0;
 
-    std::vector<std::tuple<std::string, int, float>> output{};
+    std::vector<DeathInfo> output{};
 
-    for (const auto [percentKey, count] : sortedDeaths) {
+    for (const auto& [percent, count] : sortedDeaths) {
         // calculate pass rate
         totalDeaths -= count;
 
         float passCount = totalDeaths;
         float passRate = (passCount + offset) / (passCount + count + offset) * 100;
 
-        // format output
-        auto labelStr = percentKey;
-
-        if (newBests.contains(std::stoi(percentKey)))
-            labelStr.insert(0, NewBestsColorString);
+        bool nb = newBests.contains(percent);
             
-        if (std::stoi(percentKey) == bestRun)
+        if (percent == bestRun)
             if (bestRun != 100)
                 passRate = 0;
             else
                 passRate = 100;
 
-        output.push_back(std::tuple<std::string, int, float>(labelStr, count, passRate));
+        auto info = DeathInfo(Run(0, percent), nb, count, passRate);
+        output.push_back(info);
     }
 
-    if (output.size() == 0) output.push_back(std::tuple<std::string, int, float>("No Saved Progress", 0, 0));
-    return output;
+    if (output.size() == 0) return Err("No Saved Progress");
+    
+    std::ranges::sort(output, [](const DeathInfo a, const DeathInfo b) {
+        return a.run.end < b.run.end;
+    });
+
+    return Ok(output);
 }
 
-std::vector<std::tuple<std::string, int, float>> DTLayer::CreateRunsString(Runs runs){
-    if (!m_Level) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("-1", 0, 0)};
-    if (!runs.size()) return std::vector<std::tuple<std::string, int, float>>{std::tuple<std::string, int, float>("No Saved Progress", 0, 0)};
+Result<std::vector<DeathInfo>> DTLayer::CreateRunsString(const Runs& runs){
+    if (!m_Level) return Err("invalid level");
+    if (runs.size() == 0) return Err("No Saved Progress");
 
-    std::map<int, int> totalDeaths;
+    std::map<int, int> totalDeaths{};
     std::vector<std::tuple<std::string, int>> sortedRuns{};
 
     for (const auto [runKey, count] : runs){
@@ -994,20 +981,23 @@ std::vector<std::tuple<std::string, int, float>> DTLayer::CreateRunsString(Runs 
     });
 
     // create output
-    std::vector<std::tuple<std::string, int, float>> output{};
-
+    std::vector<DeathInfo> output{};
 
     for (const auto [runKey, count] : sortedRuns) {
 
-        totalDeaths[StatsManager::splitRunKey(runKey).start] -= count;
+        auto splittedRun = StatsManager::splitRunKey(runKey); 
 
-        float passCount = totalDeaths[StatsManager::splitRunKey(runKey).start];
+        totalDeaths[splittedRun.start] -= count;
+
+        float passCount = totalDeaths[splittedRun.start];
         float passRate = (passCount) / (passCount + count) * 100;
 
-        output.push_back(std::tuple<std::string, int, float>(runKey, count, passRate));
+        auto info = DeathInfo(splittedRun, false, count, passRate);
+
+        output.push_back(info);
     }
 
-    return output;
+    return Ok(output);
 }
 
 void DTLayer::SwitchSessionRight(CCObject*){
@@ -1177,7 +1167,7 @@ void DTLayer::openGraphMenu(CCObject*){
 void DTLayer::OnLinkButtonClicked(CCObject*){
     auto lLayer = DTLinkLayer::create(this);
     lLayer->setZOrder(100);
-    m_mainLayer->addChild(lLayer);
+    this->addChild(lLayer);
 }
 
 void DTLayer::UpdateSharedStats(){
@@ -1185,11 +1175,15 @@ void DTLayer::UpdateSharedStats(){
 
     for (int i = 0; i < m_MyLevelStats.LinkedLevels.size(); i++)
     {
-        auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]);
+        auto currStats = StatsManager::getLevelStats(m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+        if (currStats.levelName == "Unknown name"){
+            Notification::create("failed to get data for linked level - " + m_MyLevelStats.LinkedLevels[i])->show();
+            continue;
+        }
 
         m_SharedLevelStats.attempts += currStats.attempts;
 
-        m_SharedLevelStats.sessions.reserve(m_SharedLevelStats.sessions.size() + distance(currStats.sessions.begin(),currStats.sessions.end()));
+        m_SharedLevelStats.sessions.reserve(m_SharedLevelStats.sessions.size() + std::distance(currStats.sessions.begin(),currStats.sessions.end()));
         m_SharedLevelStats.sessions.insert(m_SharedLevelStats.sessions.end(),currStats.sessions.begin(),currStats.sessions.end());
 
         for (int r = 0; r < m_MyLevelStats.RunsToSave.size(); r++)
@@ -1302,15 +1296,15 @@ void DTLayer::clickedWindow(CCNode* nwindow){
     if (isInCopyMenu){
         EditLayoutEnabled(false);
 
-        std::string toCopy = modifyString(window->m_MyLayout.text);
+        std::string toCopy = DTLayer::modifyString(window->m_MyLayout.text);
 
         for (int i = 0; i < toCopy.size(); i++)
         {
             if (toCopy[i] == '<' && toCopy.length() > i + 1){
-                if (isKeyInIndex(toCopy, i + 1, "nbc>")){
+                if (DTLayer::isKeyInIndex(toCopy, i + 1, "nbc>")){
                     toCopy.erase(i, 5);
                 }
-                if (isKeyInIndex(toCopy, i + 1, "sbc>")){
+                if (DTLayer::isKeyInIndex(toCopy, i + 1, "sbc>")){
                     toCopy.erase(i, 5);
                 }
             }
@@ -1329,33 +1323,15 @@ void DTLayer::onResetLayout(CCObject*){
 }
 
 void DTLayer::editnbcColor(CCObject*){
-    colorSelectnb = ColorSelectPopup::create(colorSpritenb->getColor());
+    colorSelectnb = geode::ColorPickPopup::create(colorSpritenb->getColor());
     colorSelectnb->show();
-    colorSelectnb->m_colorPicker->setColorValue(colorSpritenb->getColor());
-    //colorSelectnb->updateColorLabels();
-    static_cast<CCNode*>(colorSelectnb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
-    static_cast<DTColorSelectPopup*>(colorSelectnb)->setCallback(callfunc_selector(DTLayer::setnbcColor), this);
-}
-
-void DTLayer::setnbcColor(){
-    if (!colorSelectnb) return;
-
-    colorSpritenb->setColor(static_cast<CCControlColourPickerBypass*>(colorSelectnb->m_colorPicker)->getPickedColor());
+    colorSelectsb->setColorTarget(colorSpritenb);
 }
 
 void DTLayer::editsbcColor(CCObject*){
-    colorSelectsb = ColorSelectPopup::create(colorSpritesb->getColor());
+    colorSelectsb = geode::ColorPickPopup::create(colorSpritesb->getColor());
     colorSelectsb->show();
-    colorSelectsb->m_colorPicker->setColorValue(colorSpritesb->getColor());
-    //colorSelectsb->updateColorLabels();
-    static_cast<CCNode*>(colorSelectsb->m_buttonMenu->getChildren()->objectAtIndex(3))->setVisible(false);
-    static_cast<DTColorSelectPopup*>(colorSelectsb)->setCallback(callfunc_selector(DTLayer::setsbcColor), this);
-}
-
-void DTLayer::setsbcColor(){
-    if (!colorSelectsb) return;
-
-    colorSpritesb->setColor(static_cast<CCControlColourPickerBypass*>(colorSelectsb->m_colorPicker)->getPickedColor());
+    colorSelectsb->setColorTarget(colorSpritesb);
 }
 
 void DTLayer::onSpecificSettings(CCObject*){
@@ -1377,7 +1353,7 @@ void DTLayer::onSpecificSettings(CCObject*){
 
         LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 0), 2));
         LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(310, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
-        m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(0, 0)), 2), nullptr));
+        m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, winSize / 2), 2), nullptr));
         LevelSpecificSettingsLayer->EnableTouch(false);
 
         return;
@@ -1402,13 +1378,11 @@ void DTLayer::onSpecificSettings(CCObject*){
 
     levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, -0.75f, 0.75f));
 
-    log::info("{}", winSize);
-
     LevelSpecificSettingsLayer->setPosition(104, 159);
     LevelSpecificSettingsLayer->setScale(0);
     LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 1), 2));
     LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
-    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(320 / (winSize.width / 569), 0)), 2), nullptr));
+    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp((320 + m_size.width / 2.35f) / (winSize.width / (569 + m_size.width / 2.35f)), m_mainLayer->getPositionY())), 2), nullptr));
 }
 
 void DTLayer::onMoveTransitionEnded(){

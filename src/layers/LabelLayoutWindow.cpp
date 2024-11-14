@@ -101,8 +101,10 @@ void LabelLayoutWindow::myUpdate(float delta){
                     m_DoubleClickTimer = 0.3f;
                 }
                 else{
-                    auto Settings = LabelSettingsLayer::create(this);
-                    m_DTLayer->addChild(Settings);
+                    //auto Settings = LabelSettingsLayer::create(this);
+                    //m_DTLayer->addChild(Settings);
+                    m_Lock = true;
+                    return;
                 }
 
                 m_DTLayer->m_IsMovingAWindow = true;
@@ -234,12 +236,12 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
         if (IWindow->m_MyLayout.line == lineChosen){
             amountInExistingLine++;
             if (amountInExistingLine == 2){
-                return std::pair<int, int>{-1, -1};
+                return std::make_pair(-1, -1);
             }
         }
     }
     
-    return std::pair<int, int>{lineChosen, positionChosen};
+    return std::make_pair(lineChosen, positionChosen);
 }
 
 void LabelLayoutWindow::updateLine(int line){

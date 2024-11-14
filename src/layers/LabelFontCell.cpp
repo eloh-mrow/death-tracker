@@ -43,5 +43,5 @@ bool LabelFontCell::init(int FontID, std::string FontFNT, std::string FontName, 
 }
 
 void LabelFontCell::Use(CCObject*){
-    static_cast<LabelSettingsLayer*>(m_SettingsLayer)->FontSelected(m_FontID);
+    //static_cast<LabelSettingsLayer*>(m_SettingsLayer)->FontSelected(m_FontID);
 }
