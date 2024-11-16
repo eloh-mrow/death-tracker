@@ -1,6 +1,6 @@
 #include "../layers/GraphPoint.hpp"
 
-GraphPoint* GraphPoint::create(std::string run, float passrate, ccColor3B color) {
+GraphPoint* GraphPoint::create(const std::string& run, const float& passrate, const ccColor3B& color) {
     auto ret = new GraphPoint();
     if (ret && ret->init(run, passrate, color)) {
         ret->autorelease();
@@ -11,7 +11,7 @@ GraphPoint* GraphPoint::create(std::string run, float passrate, ccColor3B color)
     return ret;
 }
 
-bool GraphPoint::init(std::string run, float passrate, ccColor3B color){
+bool GraphPoint::init(const std::string& run, const float& passrate, const ccColor3B& color){
 
     m_Run = run;
     m_Passrate = passrate;

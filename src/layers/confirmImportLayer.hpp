@@ -5,11 +5,11 @@
 
 using namespace geode::prelude;
 
-class confirmImportLayer : public Popup<DTLayer* const&, Deaths, Runs> {
+class confirmImportLayer : public Popup<DTLayer* const&, const Deaths&, const Runs&> {
     protected:
-        bool setup(DTLayer* const& layer, Deaths ds, Runs rs) override;
+        bool setup(DTLayer* const& layer, const Deaths& ds, const Runs& rs) override;
     public:
-        static confirmImportLayer* create(DTLayer* const& layer, Deaths ds, Runs rs);
+        static confirmImportLayer* create(DTLayer* const& layer, const Deaths& ds, const Runs& rs);
 
         DTLayer* m_DTLayer;
         Deaths deaths;

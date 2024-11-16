@@ -12,8 +12,8 @@ private:
 
 public:
     static bool isInfoAlertOpen();
-    static void setInfoAlertOpen(bool open);
+    static void setInfoAlertOpen(const bool& open);
 
     static GJGameLevel* getCurrentLevel();
-    static void setCurrentLevel(GJGameLevel* level);
+    static void setCurrentLevel(GJGameLevel* const& level);
 };

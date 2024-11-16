@@ -7,7 +7,7 @@ bool DTPopupManager::isInfoAlertOpen() {
     return m_infoAlertOpen;
 }
 
-void DTPopupManager::setInfoAlertOpen(bool open) {
+void DTPopupManager::setInfoAlertOpen(const bool& open) {
     m_infoAlertOpen = open;
 }
 
@@ -16,6 +16,6 @@ GJGameLevel* DTPopupManager::getCurrentLevel() {
     return m_level;
 }
 
-void DTPopupManager::setCurrentLevel(GJGameLevel* level){
+void DTPopupManager::setCurrentLevel(GJGameLevel* const& level){
     m_level = level;
 }  

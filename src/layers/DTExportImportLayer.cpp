@@ -2,7 +2,7 @@
 #include "../utils/Save.hpp"
 #include "../layers/confirmImportLayer.hpp"
 
-DTExportImportLayer* DTExportImportLayer::create(DTLayer* layer) {
+DTExportImportLayer* DTExportImportLayer::create(DTLayer* const& layer) {
     auto ret = new DTExportImportLayer();
     if (ret && ret->initAnchored(226, 137, layer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
@@ -12,18 +12,18 @@ DTExportImportLayer* DTExportImportLayer::create(DTLayer* layer) {
     return nullptr;
 }
 
-bool DTExportImportLayer::setup(DTLayer* layer) {
+bool DTExportImportLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
-    auto AlighmentNode = CCNode::create();
-    AlighmentNode->setPosition(m_buttonMenu->getPosition());
-    m_mainLayer->addChild(AlighmentNode);
+    auto AlignmentNode = CCNode::create();
+    AlignmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(AlignmentNode);
 
     //export
     auto exportAlighmentNode = CCNode::create();
     exportAlighmentNode->setPosition({132, -54});
-    AlighmentNode->addChild(exportAlighmentNode);
+    AlignmentNode->addChild(exportAlighmentNode);
 
     auto exportMenu = CCMenu::create();
     exportMenu->setPosition({-180, 47});
@@ -86,7 +86,7 @@ bool DTExportImportLayer::setup(DTLayer* layer) {
 
     auto importAlighmentNode = CCNode::create();
     importAlighmentNode->setPosition({228, -54});
-    AlighmentNode->addChild(importAlighmentNode);
+    AlignmentNode->addChild(importAlighmentNode);
 
     auto importMenu = CCMenu::create();
     importMenu->setPosition({-180, 47});

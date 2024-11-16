@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.4.0
+- updated for geode v4.0.0-beta.1
+- completely revamped the 'LabelSettingsLayer', it is now a lot better and comprehensive
+- reworked/organized some code
+
 ## v2.3.4
 - fixed a crash when opening the link layer (i hope) why are there so many link layer related crashes :sob:
 

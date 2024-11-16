@@ -26,9 +26,9 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
     overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
     this->m_buttonMenu->addChild(overallInfoButton);
 
-    alighmentNode = CCNode::create();
-    alighmentNode->setPosition(m_buttonMenu->getPosition());
-    m_mainLayer->addChild(alighmentNode);
+    alignmentNode = CCNode::create();
+    alignmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alignmentNode);
 
     m_DTLayer = layer;
 
@@ -70,14 +70,14 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
     seartchInput->getInputNode()->setDelegate(this);
     seartchInput->setPosition({0, 116});
     seartchInput->setScale(0.6f);
-    alighmentNode->addChild(seartchInput);
+    alignmentNode->addChild(seartchInput);
     
     scheduleUpdate();
 
     return true;
 }
 
-void DTLinkLayer::SpacialEditList(GJListLayer* list, CCPoint titlePos, float titleSize){
+void DTLinkLayer::SpacialEditList(GJListLayer* const& list, const CCPoint& titlePos, const float& titleSize){
     CCObject* child;
 
     CCARRAY_FOREACH(list->m_listView->m_tableView->m_cellArray, child){
@@ -171,7 +171,7 @@ void DTLinkLayer::refreshLists(){
         for (int s = 0; s < m_DTLayer->m_MyLevelStats.LinkedLevels.size(); s++)
         {
             if (m_DTLayer->m_MyLevelStats.LinkedLevels[s] == AllLevelsSearch[i].first)
-                linkedLevelsListItems->addObject(LinkLevelCell::create(this, AllLevelsSearch[i].first, AllLevelsSearch[i].second, true));
+                linkedLevelsListItems->addObject(LinkLevelCell::create(CellsWidth, AllLevelsSearch[i].first, AllLevelsSearch[i].second, true, std::bind(&DTLinkLayer::ChangeLevelLinked, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)));
         }
     }
     
@@ -191,7 +191,7 @@ void DTLinkLayer::refreshLists(){
         }
             
         if (isValidForList){
-            levelsListItems->addObject(LinkLevelCell::create(this, allLevelsInRange[i].first, allLevelsInRange[i].second, false));
+            levelsListItems->addObject(LinkLevelCell::create(CellsWidth, allLevelsInRange[i].first, allLevelsInRange[i].second, false, std::bind(&DTLinkLayer::ChangeLevelLinked, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)));
         }
     }
 
@@ -199,7 +199,7 @@ void DTLinkLayer::refreshLists(){
 
     m_LevelsList = GJListLayer::create(levelsListView, "Levels", {0,0,0,75}, CellsWidth, 220, 1);
     m_LevelsList->setPosition({-242, -116});
-    alighmentNode->addChild(m_LevelsList);
+    alignmentNode->addChild(m_LevelsList);
 
     SpacialEditList(m_LevelsList, {m_LevelsList->getContentSize().width / 2, 234}, 0.7f);
 
@@ -207,12 +207,12 @@ void DTLinkLayer::refreshLists(){
 
     m_LinkedLevelsList = GJListLayer::create(linkedLevelsListView, "Linked", {0,0,0,75}, CellsWidth, 220, 1);
     m_LinkedLevelsList->setPosition({11, -116});
-    alighmentNode->addChild(m_LinkedLevelsList);
+    alignmentNode->addChild(m_LinkedLevelsList);
 
     SpacialEditList(m_LinkedLevelsList, {m_LinkedLevelsList->getContentSize().width / 2, 234}, 0.7f);
 }
 
-void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool erase){
+void DTLinkLayer::ChangeLevelLinked(const std::string levelKey, LevelStats stats, const bool& erase){
     auto levelStats = StatsManager::getLevelKey(m_DTLayer->m_Level).unwrapOr("-1");
     if (levelStats == "-1"){
         Notification::create("failed to move linked level!", nullptr)->show();
@@ -249,13 +249,13 @@ void DTLinkLayer::ChangeLevelLinked(std::string levelKey, LevelStats stats, bool
     if (!erase){
         m_LevelsList->retain();
         m_LevelsList->removeFromParent();
-        alighmentNode->addChild(m_LevelsList);
+        alignmentNode->addChild(m_LevelsList);
         m_LevelsList->release();
     }
     else{
         m_LinkedLevelsList->retain();
         m_LinkedLevelsList->removeFromParent();
-        alighmentNode->addChild(m_LinkedLevelsList);
+        alignmentNode->addChild(m_LinkedLevelsList);
         m_LinkedLevelsList->release();
     }
 
@@ -278,7 +278,7 @@ void DTLinkLayer::update(float delta){
 
         m_LevelsList->retain();
         m_LevelsList->removeFromParent();
-        alighmentNode->addChild(m_LevelsList);
+        alignmentNode->addChild(m_LevelsList);
         m_LevelsList->release();
     }
 
@@ -287,7 +287,7 @@ void DTLinkLayer::update(float delta){
 
         m_LinkedLevelsList->retain();
         m_LinkedLevelsList->removeFromParent();
-        alighmentNode->addChild(m_LinkedLevelsList);
+        alignmentNode->addChild(m_LinkedLevelsList);
         m_LinkedLevelsList->release();
     }
 }

@@ -1,14 +1,17 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
+#include "DTLayer.hpp"
 
 using namespace geode::prelude;
 
 class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol, public TextInputDelegate {
     protected:
-        bool init(CCSize size, CCNode* _DTLayer);
+        bool init(const CCSize& size, DTLayer* const& _DTLayer);
     public:
-        static DTLevelSpecificSettingsLayer* create(CCSize size, CCNode* _DTLayer);
+        static DTLevelSpecificSettingsLayer* create(const CCSize& size, DTLayer* const& _DTLayer);
+
+        CCSize m_Size;
 
         //runs
         TextInput* m_AddRunAllowedInput;
@@ -18,7 +21,7 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
 
         CCMenu* runsAllowedCellsCont;
         void addRunAllowed(CCObject*);
-        void removeRunAllowed(int precent, CCNode* cell);
+        void removeRunAllowed(const int& precent, CCNode* cell);
 
         void deleteUnused(CCObject*);
         FLAlertLayer* m_RunDeleteAlert;
@@ -56,7 +59,7 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
         CCLabelBMFont* runSeparator;
 
         //overall
-        CCNode* myDTLayer;
+        DTLayer* myDTLayer;
         void EnableTouch(bool b);
         std::vector<CCMenu*> touchMenus{};
 

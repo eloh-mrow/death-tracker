@@ -1,9 +1,8 @@
 #include "../layers/ChooseRunCell.hpp"
-#include "../layers/DTGraphLayer.hpp"
 
-ChooseRunCell* ChooseRunCell::create(int Precent, CCNode* DTGLayer) {
+ChooseRunCell* ChooseRunCell::create(const int& Precent, const std::function<void(const int&)>& callback) {
     auto ret = new ChooseRunCell();
-    if (ret && ret->init(Precent, DTGLayer)) {
+    if (ret && ret->init(Precent, callback)) {
         ret->autorelease();
     } else {
         delete ret;
@@ -12,12 +11,11 @@ ChooseRunCell* ChooseRunCell::create(int Precent, CCNode* DTGLayer) {
     return ret;
 }
 
-bool ChooseRunCell::init(int Precent, CCNode* DTGLayer){
-
+bool ChooseRunCell::init(const int& Precent, const std::function<void(const int&)>& callback){
     m_Precent = Precent;
-    m_DTGraphLayer = DTGLayer;
+    m_Callback = callback;
 
-    auto label = CCLabelBMFont::create((std::to_string(m_Precent) + "%").c_str(), "bigFont.fnt");
+    auto label = CCLabelBMFont::create(fmt::format("{}%", m_Precent).c_str(), "bigFont.fnt");
     label->setScale(0.35f);
     label->setAnchorPoint({0, 0.5f});
     label->setPosition({2, 10});
@@ -42,5 +40,6 @@ bool ChooseRunCell::init(int Precent, CCNode* DTGLayer){
 }
 
 void ChooseRunCell::ChooseMe(CCObject*){
-    static_cast<DTGraphLayer*>(m_DTGraphLayer)->RunChosen(m_Precent);
+    if (m_Callback != NULL)
+        m_Callback(m_Precent);
 }

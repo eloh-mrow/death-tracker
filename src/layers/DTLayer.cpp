@@ -6,8 +6,8 @@
 #include "../layers/DTLinkLayer.hpp"
 #include <Geode/ui/GeodeUI.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
-#include "../hooks/CCControlColourPickerBypass.h"
 #include "../hooks/DTColorSelectPopup.hpp"
+#include "../layers/DTLevelSpecificSettingsLayer.hpp"
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -393,7 +393,7 @@ void DTLayer::textInputClosed(CCTextInputNode* input){
     }
 }
 
-void DTLayer::updateSessionString(int session){
+void DTLayer::updateSessionString(const int& session){
     if (session - 1 < 0 || session - 1 >= m_SharedLevelStats.sessions.size()) return;
 
     Session currentSession = m_SharedLevelStats.sessions[session - 1];
@@ -470,7 +470,7 @@ void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent){
     //ClickPos = pTouch;
 }
 
-void DTLayer::EditLayoutEnabled(bool b){
+void DTLayer::EditLayoutEnabled(const bool& b){
     this->m_buttonMenu->setEnabled(!b);
     m_SessionSelectMenu->setEnabled(!b);
     //m_RunStuffMenu->setEnabled(!b);
@@ -524,7 +524,7 @@ void DTLayer::EditLayoutEnabled(bool b){
     }
 }
 
-void DTLayer::changeScrollSizeByBoxes(bool moveToTop){
+void DTLayer::changeScrollSizeByBoxes(const bool& moveToTop){
     float hight = 0;
     float lineH = 0;
     LabelLayoutWindow* PrevLine = nullptr;
@@ -1323,15 +1323,17 @@ void DTLayer::onResetLayout(CCObject*){
 }
 
 void DTLayer::editnbcColor(CCObject*){
-    colorSelectnb = geode::ColorPickPopup::create(colorSpritenb->getColor());
+    openednbLast = true;
+    colorSelectnb = geode::ColorPickPopup::create({colorSpritenb->getColor().r, colorSpritenb->getColor().g, colorSpritenb->getColor().b, 255});
     colorSelectnb->show();
-    colorSelectsb->setColorTarget(colorSpritenb);
+    colorSelectnb->setDelegate(this);
 }
 
 void DTLayer::editsbcColor(CCObject*){
-    colorSelectsb = geode::ColorPickPopup::create(colorSpritesb->getColor());
+    openednbLast = false;
+    colorSelectsb = geode::ColorPickPopup::create({colorSpritesb->getColor().r, colorSpritesb->getColor().g, colorSpritesb->getColor().b, 255});
     colorSelectsb->show();
-    colorSelectsb->setColorTarget(colorSpritesb);
+    colorSelectsb->setDelegate(this);
 }
 
 void DTLayer::onSpecificSettings(CCObject*){
@@ -1352,17 +1354,17 @@ void DTLayer::onSpecificSettings(CCObject*){
         levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, 0.75f, 0.75f));
 
         LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 0), 2));
-        LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(310, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
+        LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(310, winSize.height / 2)), 2), CCCallFuncO::create(this, callfuncO_selector(DTLayer::onMoveTransitionEnded), LevelSpecificSettingsLayer), nullptr));
         m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, winSize / 2), 2), nullptr));
-        LevelSpecificSettingsLayer->EnableTouch(false);
+        typeinfo_cast<DTLevelSpecificSettingsLayer*>(LevelSpecificSettingsLayer)->EnableTouch(false);
 
         return;
     }
 
 
-    LevelSpecificSettingsLayer = DTLevelSpecificSettingsLayer::create({375, 280}, this);
-    this->addChild(LevelSpecificSettingsLayer);
-    LevelSpecificSettingsLayer->EnableTouch(false);
+    auto SLLS = DTLevelSpecificSettingsLayer::create({375, 280}, this);
+    this->addChild(SLLS);
+    SLLS->EnableTouch(false);
 
     settingsButton->setEnabled(false);
     settingsButton->runAction(CCFadeOut::create(0.3f));
@@ -1378,18 +1380,22 @@ void DTLayer::onSpecificSettings(CCObject*){
 
     levelSettingsBSArrow->runAction(CCScaleTo::create(0.3f, -0.75f, 0.75f));
 
-    LevelSpecificSettingsLayer->setPosition(104, 159);
-    LevelSpecificSettingsLayer->setScale(0);
-    LevelSpecificSettingsLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 1), 2));
-    LevelSpecificSettingsLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205, winSize.height / 2)), 2), CCCallFunc::create(this, callfunc_selector(DTLayer::onMoveTransitionEnded)), nullptr));
-    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp((320 + m_size.width / 2.35f) / (winSize.width / (569 + m_size.width / 2.35f)), m_mainLayer->getPositionY())), 2), nullptr));
+    SLLS->setPosition(104, 159);
+    SLLS->setScale(0);
+    SLLS->runAction(CCEaseInOut::create(CCScaleTo::create(0.3f, 1), 2));
+    SLLS->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205, winSize.height / 2)), 2), CCCallFuncO::create(this, callfuncO_selector(DTLayer::onMoveTransitionEnded), SLLS), nullptr));
+    m_mainLayer->runAction(CCSequence::create(CCEaseInOut::create(CCMoveTo::create(0.3f, ccp(205 + SLLS->m_Size.width / 2 + m_size.width / 2 + 24, m_mainLayer->getPositionY())), 2), nullptr));
+
+    LevelSpecificSettingsLayer = SLLS;
 }
 
-void DTLayer::onMoveTransitionEnded(){
+void DTLayer::onMoveTransitionEnded(CCObject* LSSL){
+    auto tempLSSL = typeinfo_cast<DTLevelSpecificSettingsLayer*>(LSSL);
+
     runningMoveTransition = false;
     if (isExitingSSLayer){
         isExitingSSLayer = false;
-        LevelSpecificSettingsLayer->removeMeAndCleanup();
+        tempLSSL->removeMeAndCleanup();
         LevelSpecificSettingsLayer = nullptr;
         settingsButton->setEnabled(true);
         LinkLevelsButton->setEnabled(true);
@@ -1398,6 +1404,16 @@ void DTLayer::onMoveTransitionEnded(){
         m_EditLayoutBtn->setEnabled(true);
     }
     else{
-        LevelSpecificSettingsLayer->EnableTouch(true);
+        tempLSSL->EnableTouch(true);
+    }
+}
+
+void DTLayer::updateColor(cocos2d::ccColor4B const& color){
+    ccColor3B col3b = {color.r, color.g, color.b};
+    if (openednbLast){
+        colorSpritenb->setColor(col3b);
+    }
+    else{
+        colorSpritesb->setColor(col3b);
     }
 }

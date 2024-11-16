@@ -5,11 +5,11 @@
 
 using namespace geode::prelude;
 
-class DTExportImportLayer : public Popup<DTLayer*> {
+class DTExportImportLayer : public Popup<DTLayer* const&> {
     protected:
-        bool setup(DTLayer* layer) override;
+        bool setup(DTLayer* const& layer) override;
     public:
-        static DTExportImportLayer* create(DTLayer* layer);
+        static DTExportImportLayer* create(DTLayer* const& layer);
 
         DTLayer* m_DTLayer;
 

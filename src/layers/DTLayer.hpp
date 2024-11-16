@@ -4,15 +4,16 @@
 #include "Geode/ui/TextArea.hpp"
 #include "../managers/StatsManager.hpp"
 #include "../utils/Save.hpp"
-#include "../layers/DTLevelSpecificSettingsLayer.hpp"
 
 using namespace geode::prelude;
 
-class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol, public ColorPickerDelegate {
+class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol, public ColorPickPopupDelegate {
     protected:
         bool setup(GJGameLevel* const& Level) override;
 
         void update(float delta) override;
+
+        void updateColor(cocos2d::ccColor4B const& color) override;
     public:
         static DTLayer* create(GJGameLevel* const& Level);
 
@@ -56,7 +57,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         int m_SessionsAmount;
         int m_SessionSelected;
         bool m_SessionSelectionInputSelected;
-        void updateSessionString(int session);
+        void updateSessionString(const int& session);
         void SwitchSessionRight(CCObject*);
         void SwitchSessionLeft(CCObject*);
 
@@ -71,12 +72,12 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         CCMenu* m_EditLayoutMenu;
         CCSprite* m_BlackSquare;
         void onEditLayoutApply(CCObject*);
-        void EditLayoutEnabled(bool b);
+        void EditLayoutEnabled(const bool& b);
         std::vector<CCNode*> m_LayoutLines;
         CCNode* m_LayoutStuffCont = nullptr;
         void createLayoutBlocks();
         bool m_IsMovingAWindow;
-        void changeScrollSizeByBoxes(bool moveToTop = false);
+        void changeScrollSizeByBoxes(const bool& moveToTop = false);
         void addBox(CCObject*);
         CCMenuItemSpriteExtra* editLayoutApplyBtn;
         CCMenuItemSpriteExtra* addWindowButton;
@@ -91,6 +92,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         ColorChannelSprite* colorSpritesb;
         geode::ColorPickPopup* colorSelectsb;
         void editsbcColor(CCObject*);
+        bool openednbLast;
 
         //general
         bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
@@ -129,9 +131,9 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
 
         //specific settings
         void onSpecificSettings(CCObject*);
-        DTLevelSpecificSettingsLayer* LevelSpecificSettingsLayer = nullptr;
+        CCNode* LevelSpecificSettingsLayer = nullptr;
         bool runningMoveTransition = false;
-        void onMoveTransitionEnded();
+        void onMoveTransitionEnded(CCObject* LSSL);
         bool isExitingSSLayer = false;
         CCSprite* levelSettingsBSArrow;
 };

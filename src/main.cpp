@@ -79,4 +79,15 @@ $execute {
     }
 
     StatsManager::m_savesFolderPath = Settings::getSavePath();
+
+    //load fonts
+    auto allFonts = StatsManager::getAllFonts();
+
+    for (int i = 0; i < allFonts.size(); i++)
+    {
+        auto label = CCLabelBMFont::create("abcdefghijclmnopqrstuvwxyz{}-", allFonts[i].c_str());
+        CCScene::get()->addChild(label);
+        label->removeMeAndCleanup();
+    }
+    
 };

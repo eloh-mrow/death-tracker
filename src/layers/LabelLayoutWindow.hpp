@@ -7,9 +7,9 @@
 
 class LabelLayoutWindow : public cocos2d::CCNode {
 protected:
-    bool init(LabelLayout MyLayout, DTLayer* DTLayer);
+    bool init(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
 public:
-    static LabelLayoutWindow* create(LabelLayout MyLayout, DTLayer* DTLayer);
+    static LabelLayoutWindow* create(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
 
     void myUpdate(float delta);
 
@@ -23,17 +23,17 @@ public:
 
     DTLayer* m_DTLayer;
 
-    CCPoint mousePosToNode(CCNode* node);
-    bool isMouseTouching(CCNode* node);
-    void setPositionBasedOnLayout(LabelLayout layout, int d = 0);
+    CCPoint mousePosToNode(CCNode* const& node);
+    bool isMouseTouching(CCNode* const& node);
+    void setPositionBasedOnLayout(const LabelLayout& layout, int d = 0);
     //first: line, second: position
     std::pair<int, int> getLineByPos(CCPoint pos);
-    void updateLine(int line);
+    void updateLine(const int& line);
     float m_DoubleClickTimer;
-
+    bool isNextToAnother();
 
     bool MoveEnabled = true;
-    void setMoveEnabled(bool b);
+    void setMoveEnabled(const bool& b);
     bool oneTimeClickDetect;
 
     void setOpacity(GLubyte opacity);

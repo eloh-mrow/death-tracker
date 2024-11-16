@@ -1,6 +1,6 @@
 #include "../hooks/DTColorSelectPopup.hpp"
 
-void DTColorSelectPopup::setCallback(SEL_CallFunc _callback, CCObject* _target){
+void DTColorSelectPopup::setCallback(const SEL_CallFunc& _callback, CCObject* const& _target){
     m_fields->callback = _callback;
     m_fields->target = _target;
 }

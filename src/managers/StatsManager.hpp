@@ -102,7 +102,7 @@ struct matjson::Serialize<LevelStats> {
         }
 
         if (value.contains("LinkedLevels")){
-            GEODE_UNWRAP_INTO(stats.RunsToSave, value["RunsToSave"].as<std::vector<int>>());
+            GEODE_UNWRAP_INTO(stats.LinkedLevels, value["LinkedLevels"].as<std::vector<std::string>>());
         }
         else
             stats.LinkedLevels = value["LinkedLevels"].as<std::vector<std::string>>().unwrapOr(std::vector<std::string>{});
@@ -190,8 +190,8 @@ private:
 
     // internal functions
     static void saveData();
-    static Result<LevelStats> loadData(GJGameLevel* level);
-    static Result<std::tuple<NewBests, int>> calcNewBests(GJGameLevel* level);
+    static Result<LevelStats> loadData(GJGameLevel* const& level);
+    static Result<std::tuple<NewBests, int>> calcNewBests(GJGameLevel* const& level);
     static std::array<std::string, 62> m_AllFontsMap;
 
 public:
@@ -202,41 +202,41 @@ public:
     static std::filesystem::path m_savesFolderPath;
 
     // main functions
-    static void loadLevelStats(GJGameLevel* level);
-    static LevelStats getLevelStats(GJGameLevel* level);
+    static void loadLevelStats(GJGameLevel* const& level);
+    static LevelStats getLevelStats(GJGameLevel* const& level);
     static Result<LevelStats> getLevelStats(const std::filesystem::path& level);
     static Result<LevelStats> getLevelStats(const std::string& levelKey);
-    static void logDeath(int percent);
+    static void logDeath(const int& percent);
     static void logDeaths(const std::vector<int>& percents);
-    static void logRun(const Run run);
+    static void logRun(const Run& run);
     static void logRuns(const std::vector<Run>& runs);
 
     // utility functions
     static long long getNowSeconds();
-    static Result<std::string> getLevelKey(GJGameLevel* level = m_level);
+    static Result<std::string> getLevelKey(GJGameLevel* const& level = m_level);
     static Run splitRunKey(const std::string& runKey);
     static Session* getSession();
-    static void updateSessionLastPlayed(bool save = false);
-    static void scheduleCreateNewSession(bool scheduled);
+    static void updateSessionLastPlayed(const bool& save = false);
+    static void scheduleCreateNewSession(const bool& scheduled);
     static bool hasPlayedLevel();
-    static Result<std::filesystem::path> getLevelSaveFilePath(GJGameLevel* level = m_level);
-    static bool ContainsAtIndex(int startIndex, const std::string& check, const std::string& str);
-    static ccColor3B inverseColor(ccColor3B color);
-    static std::string getFont(int fontID);
-    static std::string getFontName(int fontID);
-    static std::array<std::string, 62> getAllFont();
-    static void saveData(const LevelStats& stats, GJGameLevel* level);
+    static Result<std::filesystem::path> getLevelSaveFilePath(GJGameLevel* const& level = m_level);
+    static bool ContainsAtIndex(const int& startIndex, const std::string& check, const std::string& str);
+    static ccColor3B inverseColor(const ccColor3B& color);
+    static std::string getFont(const int& fontID);
+    static std::string getFontName(const int& fontID);
+    static std::array<std::string, 62> getAllFonts();
+    static void saveData(const LevelStats& stats, GJGameLevel* const& level);
     static void saveData(const LevelStats& stats, const std::string& levelKey);
     static Result<std::vector<std::pair<std::string, LevelStats>>> getAllLevels();
     static std::pair<std::string, std::string> splitLevelKey(const std::string& levelKey);
-    static void saveBackup(const LevelStats& stats, GJGameLevel* level);
-    static Result<LevelStats> getBackupStats(GJGameLevel* level);
+    static void saveBackup(const LevelStats& stats, GJGameLevel* const& level);
+    static Result<LevelStats> getBackupStats(GJGameLevel* const& level);
     /*
     -1 = auto, 0 = NA, 1 = Easy, 2 = Normal
     3 = Hard, 4 = Harder, 5 = Insane, 6 = Hard Demon
     7 = Easy Demon, 8 = Medium Demon, 9 = Insane Demon, 10 = Extreme Demon
     */
-    static int getDifficulty(GJGameLevel* level);
+    static int getDifficulty(GJGameLevel* const& level);
 
     static void setPath(const std::filesystem::path& path);
 
@@ -245,4 +245,6 @@ public:
     static void computeLPSArray(const std::string& pat, int M, std::vector<int>& lps);
 
     static std::vector<int> KMPSearch(const std::string& pat, const std::string& txt);
+
+    static int getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor);
 };

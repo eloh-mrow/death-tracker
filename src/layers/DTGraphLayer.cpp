@@ -26,15 +26,15 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     overallInfoButton->setPosition(m_size.width - 8.5f, m_size.height - 8.5f);
     this->m_buttonMenu->addChild(overallInfoButton);
 
-    alighmentNode = CCNode::create();
-    alighmentNode->setPosition(m_buttonMenu->getPosition());
-    m_mainLayer->addChild(alighmentNode);
+    alignmentNode = CCNode::create();
+    alignmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(alignmentNode);
 
     noGraphLabel = CCLabelBMFont::create("No Progress\nFor Graph", "bigFont.fnt");
     noGraphLabel->setZOrder(1);
     noGraphLabel->setVisible(false);
     noGraphLabel->setPosition({46, 3});
-    alighmentNode->addChild(noGraphLabel);
+    alignmentNode->addChild(noGraphLabel);
 
     refreshGraph();
 
@@ -43,19 +43,19 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     FontTextDisplayBG->setContentSize({430, 256});
     FontTextDisplayBG->setColor({0,0,0});
     FontTextDisplayBG->setOpacity(125);
-    alighmentNode->addChild(FontTextDisplayBG);
+    alignmentNode->addChild(FontTextDisplayBG);
 
     CCScale9Sprite* InfoBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
     InfoBG->setPosition({-215, -85});
     InfoBG->setContentSize({65, 83});
     InfoBG->setColor({ 113, 167, 255 });
     InfoBG->setOpacity(78);
-    alighmentNode->addChild(InfoBG);
+    alignmentNode->addChild(InfoBG);
 
     auto InfoLabel = CCLabelBMFont::create("Point Info", "bigFont.fnt");
     InfoLabel->setPosition({-215, -36});
     InfoLabel->setScale(0.35f);
-    alighmentNode->addChild(InfoLabel);
+    alignmentNode->addChild(InfoLabel);
 
     npsLabel = CCLabelBMFont::create("No\nPoint\nSelected", "bigFont.fnt");
     npsLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -64,7 +64,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     npsLabel->setZOrder(1);
     npsLabel->setVisible(false);
     npsLabel->setPositionY(npsLabel->getPositionY());
-    alighmentNode->addChild(npsLabel);
+    alignmentNode->addChild(npsLabel);
 
     std::string typeText = "Passrate";
 
@@ -77,13 +77,13 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     PointInfoLabel->setZOrder(1);
     PointInfoLabel->setVisible(false);
     PointInfoLabel->setScale(0.35f);
-    alighmentNode->addChild(PointInfoLabel);
+    alignmentNode->addChild(PointInfoLabel);
 
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
     SessionSelectCont->setPosition({-215, 50});
     SessionSelectCont->setScale(0.85f);
-    alighmentNode->addChild(SessionSelectCont);
+    alignmentNode->addChild(SessionSelectCont);
 
     auto m_SessionSelectMenu = CCMenu::create();
     m_SessionSelectMenu->setPosition({0, 0});
@@ -137,7 +137,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     viewModeLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     viewModeLabel->setScale(0.35f);
     viewModeLabel->setPosition({-215, 120});
-    alighmentNode->addChild(viewModeLabel);
+    alignmentNode->addChild(viewModeLabel);
 
     viewModeButtonS = ButtonSprite::create("Normal");
     viewModeButtonS->setScale(0.45f);
@@ -178,21 +178,21 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     m_RunSelectInput->setCommonFilter(CommonFilter::Uint);
     m_RunSelectInput->setScale(0.45f);
     m_RunSelectInput->setPosition({-215, 34});
-    alighmentNode->addChild(m_RunSelectInput);
+    alignmentNode->addChild(m_RunSelectInput);
 
     CCArray* runsAllowed = CCArray::create();
 
     for (int i = 0; i < m_DTLayer->m_MyLevelStats.RunsToSave.size(); i++)
     {
         if (m_DTLayer->m_MyLevelStats.RunsToSave[i] != -1)
-            runsAllowed->addObject(ChooseRunCell::create(m_DTLayer->m_MyLevelStats.RunsToSave[i], this));
+            runsAllowed->addObject(ChooseRunCell::create(m_DTLayer->m_MyLevelStats.RunsToSave[i], std::bind(&DTGraphLayer::RunChosen, this, std::placeholders::_1)));
     }
     
     auto runsAllowedView = ListView::create(runsAllowed, 20, 65, 55);
 
     m_RunsList = GJListLayer::create(runsAllowedView, "", {0,0,0,75}, 65, 55, 1);
     m_RunsList->setPosition({-247, -30});
-    alighmentNode->addChild(m_RunsList);
+    alignmentNode->addChild(m_RunsList);
 
     CCObject* child;
 
@@ -352,7 +352,11 @@ void DTGraphLayer::textInputClosed(CCTextInputNode* input){
     change the scaling to change the space between the points on the x and y
     //
 */
-CCNode* DTGraphLayer::CreateGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
+CCNode* DTGraphLayer::CreateGraph(
+        const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
+        const CCPoint& Scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+        const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
+    ){
     if (!deathsString.size()) return nullptr;
     auto toReturnNode = CCNode::create();
 
@@ -587,7 +591,11 @@ CCNode* DTGraphLayer::CreateGraph(const std::vector<DeathInfo>& deathsString, in
     return toReturnNode;
 }
 
-CCNode* DTGraphLayer::CreateRunGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type){
+CCNode* DTGraphLayer::CreateRunGraph(
+        const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
+        const CCPoint& Scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+        const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
+    ){
     if (!deathsString.size()) return nullptr;
 
     auto toReturnNode = CCNode::create();
@@ -811,7 +819,7 @@ CCNode* DTGraphLayer::CreateRunGraph(const std::vector<DeathInfo>& deathsString,
     return toReturnNode;
 }
 
-int DTGraphLayer::GetBestRun(NewBests bests){
+int DTGraphLayer::GetBestRun(const NewBests& bests){
     int bestRun = 0;
 
     for (auto best : bests)
@@ -927,7 +935,7 @@ void DTGraphLayer::refreshGraph(){
         if (m_graph){
             m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
-            alighmentNode->addChild(m_graph);
+            alignmentNode->addChild(m_graph);
             noGraphLabel->setVisible(false);
         }
         else{
@@ -953,7 +961,7 @@ void DTGraphLayer::refreshGraph(){
         if (m_graph){
             m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
-            alighmentNode->addChild(m_graph);
+            alignmentNode->addChild(m_graph);
             noGraphLabel->setVisible(false);
         }
         else{
@@ -963,7 +971,7 @@ void DTGraphLayer::refreshGraph(){
     
 }
 
-void DTGraphLayer::RunChosen(int run){
+void DTGraphLayer::RunChosen(const int& run){
     m_RunSelectInput->setString(std::to_string(run));
     m_SelectedRunPrecent = run;
     if (!RunViewModeFromZero)

@@ -4,7 +4,6 @@
 #include "../layers/DTLayer.hpp"
 #include "../layers/GraphPoint.hpp"
 #include "Geode/ui/TextArea.hpp"
-#include "../layers/GraphPointDelegate.hpp"
 
 using namespace geode::prelude;
 
@@ -18,7 +17,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         DTLayer* m_DTLayer;
 
-        CCNode* alighmentNode;
+        CCNode* alignmentNode;
 
         enum GraphType{
             PassRate,
@@ -27,9 +26,17 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         GraphType currentType = GraphType::PassRate;
 
-        CCNode* CreateGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
-        CCNode* CreateRunGraph(const std::vector<DeathInfo>& deathsString, int bestRun, ccColor3B color, CCPoint Scaling, ccColor4B graphBoxOutlineColor, ccColor4B graphBoxFillColor, float graphBoxOutlineThickness, ccColor4B labelLineColor, ccColor4B labelColor, int labelEvery, ccColor4B gridColor, int gridLineEvery, GraphType type);
-        static int GetBestRun(NewBests bests);
+        CCNode* CreateGraph(
+            const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
+            const CCPoint& Scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+            const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
+        );
+        CCNode* CreateRunGraph(
+            const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
+            const CCPoint& Scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+            const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
+        );
+        static int GetBestRun(const NewBests& bests);
         static int GetBestRunDeathS(const std::vector<DeathInfo>& selectedPrecentDeathsInfo);
         static int GetBestRun(const std::vector<DeathInfo>& selectedPrecentRunInfo);
 
@@ -66,7 +73,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         TextInput* m_RunSelectInput;
         int m_SelectedRunPrecent;
         GJListLayer* m_RunsList;
-        void RunChosen(int run);
+        void RunChosen(const int& run);
 
         //info
         void onOverallInfo(CCObject*);

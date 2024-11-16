@@ -2,7 +2,7 @@
 #include "../utils/Save.hpp"
 #include "Geode/ui/TextArea.hpp"
 
-confirmImportLayer* confirmImportLayer::create(DTLayer* const& layer, Deaths ds, Runs rs) {
+confirmImportLayer* confirmImportLayer::create(DTLayer* const& layer, const Deaths& ds, const Runs& rs) {
     auto ret = new confirmImportLayer();
     if (ret && ret->initAnchored(270, 230, layer, ds, rs, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
         ret->autorelease();
@@ -12,19 +12,19 @@ confirmImportLayer* confirmImportLayer::create(DTLayer* const& layer, Deaths ds,
     return nullptr;
 }
 
-bool confirmImportLayer::setup(DTLayer* const& layer, Deaths ds, Runs rs) {
+bool confirmImportLayer::setup(DTLayer* const& layer, const Deaths& ds, const Runs& rs) {
 
     m_DTLayer = layer;
     deaths = ds;
     runs = rs;
 
-    auto AlighmentNode = CCNode::create();
-    AlighmentNode->setPosition(m_buttonMenu->getPosition());
-    m_mainLayer->addChild(AlighmentNode);
+    auto AlignmentNode = CCNode::create();
+    AlignmentNode->setPosition(m_buttonMenu->getPosition());
+    m_mainLayer->addChild(AlignmentNode);
 
     auto prevewCont = CCNode::create();
     prevewCont->setPositionX(-46);
-    AlighmentNode->addChild(prevewCont);
+    AlignmentNode->addChild(prevewCont);
 
     auto exportBG = CCScale9Sprite::create("geode.loader/black-square.png", {0,0, 40, 40});
     exportBG->setContentSize({135, 195});
@@ -77,13 +77,13 @@ bool confirmImportLayer::setup(DTLayer* const& layer, Deaths ds, Runs rs) {
     auto infoText = SimpleTextArea::create("Are the runs\ndetected\naccurate?", "bigFont.fnt", 0.425f);
     infoText->setPosition({74, 76});
     infoText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    AlighmentNode->addChild(infoText);
+    AlignmentNode->addChild(infoText);
 
     auto infoText2 = SimpleTextArea::create("Doing this\nwill add\nthese runs\nonto your\nsave!", "bigFont.fnt", 0.5f);
     infoText2->setColor({ 255, 255, 0, 255 });
     infoText2->setPosition({73, 0});
     infoText2->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    AlighmentNode->addChild(infoText2);
+    AlignmentNode->addChild(infoText2);
 
     auto yesBS = ButtonSprite::create("Yes");
     yesBS->setScale(0.7f);
@@ -93,7 +93,7 @@ bool confirmImportLayer::setup(DTLayer* const& layer, Deaths ds, Runs rs) {
         this,
         menu_selector(confirmImportLayer::yesClicked)
     );
-    yesButton->setPosition({51, -79});
+    yesButton->setPosition(ccp(51, -79) + m_size / 2);
     m_buttonMenu->addChild(yesButton);
 
     auto noBS = ButtonSprite::create("No");
@@ -104,7 +104,7 @@ bool confirmImportLayer::setup(DTLayer* const& layer, Deaths ds, Runs rs) {
         this,
         menu_selector(confirmImportLayer::onClose)
     );
-    noButton->setPosition({99, -79});
+    noButton->setPosition(ccp(99, -79) + m_size / 2);
     m_buttonMenu->addChild(noButton);
 
     m_closeBtn->setVisible(false);

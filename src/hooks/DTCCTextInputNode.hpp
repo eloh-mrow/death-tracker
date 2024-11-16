@@ -11,7 +11,7 @@ class $modify(DTCCTextInputNode, CCTextInputNode) {
     };
 
     public:
-        void setCallback(SEL_CallFunc _callback, CCObject* _target);
+        void setCallback(const SEL_CallFunc& _callback, CCObject* const& _target);
 
         bool onTextFieldInsertText(cocos2d::CCTextFieldTTF* pSender, char const* text, int nLen, cocos2d::enumKeyCodes keyCodes);
 };

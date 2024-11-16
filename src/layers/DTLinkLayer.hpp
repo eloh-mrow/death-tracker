@@ -15,15 +15,15 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
     public:
         static DTLinkLayer* create(DTLayer* const& layer);
 
-        CCNode* alighmentNode;
+        CCNode* alignmentNode;
 
         DTLayer* m_DTLayer;
 
-        void SpacialEditList(GJListLayer* list, CCPoint titlePos, float titleSize);
+        void SpacialEditList(GJListLayer* const& list, const CCPoint& titlePos, const float& titleSize);
 
         void refreshLists();
 
-        void ChangeLevelLinked(std::string levelKey, LevelStats stats, bool erase);
+        void ChangeLevelLinked(const std::string levelKey, LevelStats stats, const bool& erase);
 
         float CellsWidth = 230;
 

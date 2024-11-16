@@ -7,14 +7,12 @@ using namespace geode;
 
 class LabelFontCell : public CCNode {
 protected:
-    bool init(int FontID, std::string FontFNT, std::string FontName, CCNode* SettingsLayer);
+    bool init(const int& FontID, const std::string& FontFNT, const std::string& FontName, const std::function<void(const int&)>& callback);
 public:
-    static LabelFontCell* create(int FontID, std::string FontFNT, std::string FontName, CCNode* SettingsLayer);
+    static LabelFontCell* create(const int& FontID, const std::string& FontFNT, const std::string& FontName, const std::function<void(const int&)>& callback = NULL);
 
     int m_FontID;
-    std::string m_FontFNT;
-    std::string m_FontName;
-    CCNode* m_SettingsLayer;
+    std::function<void(const int&)> m_Callback;
 
     void Use(CCObject*);
 };

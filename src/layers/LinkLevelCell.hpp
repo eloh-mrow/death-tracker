@@ -9,14 +9,14 @@ using namespace geode;
 
 class LinkLevelCell : public CCNode {
 protected:
-    bool init(CCNode* l, std::string levelKey, LevelStats stats, bool linked);
+    bool init(const float& cellW, const std::string& levelKey, const LevelStats& stats, const bool& linked, const std::function<void(const std::string, LevelStats, const bool&)>& callback);
 public:
-    static LinkLevelCell* create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked);
+    static LinkLevelCell* create(const float& cellW, const std::string& levelKey, const LevelStats& stats, const bool& linked, const std::function<void(const std::string, LevelStats, const bool&)>& callback = NULL);
 
     std::string m_LevelKey;
     LevelStats m_Stats;
     bool m_Linked;
-    DTLinkLayer* m_DTLinkLayer;
+    std::function<void(const std::string, LevelStats, const bool&)> m_Callback;
 
     void MoveMe(CCObject*);
 };

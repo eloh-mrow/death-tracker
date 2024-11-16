@@ -51,17 +51,17 @@ struct matjson::Serialize<LabelLayout> {
 class Save {
     public:
         static std::vector<LabelLayout> getLayout();
-        static void setLayout(std::vector<LabelLayout> layout);
+        static void setLayout(const std::vector<LabelLayout>& layout);
 
         static ccColor3B getNewBestColor();
-        static void setNewBestColor(ccColor3B color);
+        static void setNewBestColor(const ccColor3B& color);
 
         static ccColor3B getSessionBestColor();
-        static void setSessionBestColor(ccColor3B color);
+        static void setSessionBestColor(const ccColor3B& color);
 
         static bool getExportWOutLabels();
-        static void setExportWOutLabels(bool b);
+        static void setExportWOutLabels(const bool& b);
 
         static std::string getLastOpenedVersion();
-        static void setLastOpenedVersion(std::string verion);
+        static void setLastOpenedVersion(const std::string& verion);
 };

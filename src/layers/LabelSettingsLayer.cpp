@@ -1,713 +1,571 @@
-// #include "../layers/LabelSettingsLayer.hpp"
-// #include "../managers/StatsManager.hpp"
-// #include "../hooks/CCControlColourPickerBypass.h"
+#include "../layers/LabelSettingsLayer.hpp"
+#include "../managers/StatsManager.hpp"
+#include "../layers/SpecialTextKeyCell.hpp"
 
-// LabelSettingsLayer* LabelSettingsLayer::create(LabelLayoutWindow* const& labelWin) {
-//     auto ret = new LabelSettingsLayer();
-//     if (ret && ret->init(280, 280, labelWin, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
-//         ret->autorelease();
-//         return ret;
-//     }
-//     CC_SAFE_DELETE(ret);
-//     return nullptr;
-// }
+LabelSettingsLayer* LabelSettingsLayer::create(LabelLayoutWindow* const& labelWin, DTLayer* const& dtLayer) {
+    auto ret = new LabelSettingsLayer();
+    if (ret && ret->initAnchored(325, 230, labelWin, dtLayer, "square01_001.png", {0.f, 0.f, 94.f, 94.f})) {
+        ret->autorelease();
+        return ret;
+    }
+    CC_SAFE_DELETE(ret);
+    return nullptr;
+}
 
-// bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin) {
-//     auto winSize = CCDirector::sharedDirector()->getWinSize();
+bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin, DTLayer* const& dtLayer) {
 
-//     m_LabelWin = labelWin;
+    m_LabelWin = labelWin;
+    m_DTLayer = dtLayer;
 
-//     this->setZOrder(100);
+    this->setTitle("settings");
 
-//     this->setTitle("Label Settings");
+    m_closeBtn->setPositionX(m_size.width - 3.f);
 
-//     auto overallInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-//     overallInfoBS->setScale(0.8f);
-//     auto overallInfoButton = CCMenuItemSpriteExtra::create(
-//         overallInfoBS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::onOverallInfo)
-//     );
-//     overallInfoButton->setPosition({111, 118});
-//     this->m_buttonMenu->addChild(overallInfoButton);
+    textPreviewWindow = CCScale9Sprite::create("square01_001.png");
+    textPreviewWindow->setContentSize({200, 230});
+    this->addChild(textPreviewWindow);
 
-//     auto specialInfoBS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-//     specialInfoBS->setScale(0.55f);
-//     auto specialInfoButton = CCMenuItemSpriteExtra::create(
-//         specialInfoBS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::onSpecialInfo)
-//     );
-//     specialInfoButton->setPosition({29, 46});
-//     this->m_buttonMenu->addChild(specialInfoButton);
+    labelWinPreview = CCScale9Sprite::create("GJ_squareB_01.png");
+    labelWinPreview->setScale(0.5f);
+    labelWinPreview->setContentSize(labelWin->s->getContentSize());
+    if (labelWin->isNextToAnother())
+        labelWinPreview->setContentWidth(labelWinPreview->getContentWidth() * 2);
+    this->addChild(labelWinPreview);
 
-//     alighmentNode = CCNode::create();
-//     alighmentNode->setPosition(m_buttonMenu->getPosition());
-//     m_mainLayer->addChild(alighmentNode);
+    labelWinPreview->setColor({labelWin->m_MyLayout.color.r, labelWin->m_MyLayout.color.g, labelWin->m_MyLayout.color.b});
+    labelWinPreview->setOpacity(labelWin->m_MyLayout.color.a);
 
-//     auto allCont = CCNode::create();
-//     allCont->setPosition({-286, -157});
-//     alighmentNode->addChild(allCont);
-    
-//     // -- settings that need changing -- 
+    auto DeleteWinS = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
+    auto DeleteWin = CCMenuItemSpriteExtra::create(
+            DeleteWinS,
+            nullptr,
+            this,
+            menu_selector(LabelSettingsLayer::ConfirmDeletLabel)
+    );
+    DeleteWin->setPosition(m_size.width - 3.f, 3.f);
+    this->m_buttonMenu->addChild(DeleteWin);
 
-//     // - label name
-//     // - text
-//     // - color
-//     // - alignment
-//     // - font
-//     // - font size X
+    auto infoButtonS = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    auto infoButton = CCMenuItemSpriteExtra::create(
+            infoButtonS,
+            nullptr,
+            this,
+            menu_selector(LabelSettingsLayer::OnInfo)
+    );
+    infoButton->setPosition(6.f, m_size.height - 6.f);
+    this->m_buttonMenu->addChild(infoButton);
 
-//     // -- other --
+    //-- text preview --
 
-//     // - text preview X
+    previewScroll = geode::ScrollLayer::create(textPreviewWindow->getContentSize() - ccp(20, 20));
+    previewScroll->setPosition({10, 10});
+    textPreviewWindow->addChild(previewScroll);
 
-//    auto DeleteWinS = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-//    auto DeleteWin = CCMenuItemSpriteExtra::create(
-//         DeleteWinS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::deleteLabel)
-//    );
-//    DeleteWin->setPosition(m_size.width / 2 + 3.f, m_size.height / 2 - 3.f);
-//    this->m_buttonMenu->addChild(DeleteWin);
+    previewText = SimpleTextArea::create("", StatsManager::getFont(labelWin->m_MyLayout.font), labelWin->m_MyLayout.fontSize / 1.8f);
+    previewText->setAnchorPoint({.5f, 1});
+    previewText->setWidth(previewScroll->getContentWidth());
+    previewText->setWrappingMode(WrappingMode::NO_WRAP);
+    previewScroll->m_contentLayer->addChild(previewText);
 
-//     //label name
+    previewText->setAlignment(m_LabelWin->m_MyLayout.alignment);
+    previewText->setColor(m_LabelWin->m_MyLayout.color);
+    LabelSettingsLayer::updatePreviewText();
+    LabelSettingsLayer::updatePreviewTextPosition();
 
-//     CCNode* LabelNameCont = CCNode::create();
-//     LabelNameCont->setID("Label-Name-Container");
-//     LabelNameCont->setPosition({228, 228});
-//     allCont->addChild(LabelNameCont);
+    previewScroll->moveToTop();
 
-//     auto LabelNameInputLabel = CCLabelBMFont::create("Label Name", "bigFont.fnt");
-//     LabelNameInputLabel->setPosition({0, 23});
-//     LabelNameInputLabel->setScale(.55f);
-//     LabelNameCont->addChild(LabelNameInputLabel);
+    //-- text input --
 
-//     m_LabelNameInput = InputNode::create(150, "");
-//     m_LabelNameInput->setPosition({0, 0});
-//     m_LabelNameInput->setScale(0.8f);
-//     m_LabelNameInput->setString(m_LabelWin->m_MyLayout.labelName);
-//     m_LabelNameInput->getInput()->setDelegate(this);
-//     m_LabelNameInput->getInput()->setAllowedChars("abcdefghijkmlnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@#$%^&*(){}[]\"\"/-_=+'?;:><,.`~|");
-//     LabelNameCont->addChild(m_LabelNameInput);
+    auto TextInputLabel = CCLabelBMFont::create("Text:", "bigFont.fnt");
+    TextInputLabel->setPosition({125, 182});
+    TextInputLabel->setScale(.5f);
+    m_mainLayer->addChild(TextInputLabel);
 
-//     //alighment
+    labelTextInput = TextInput::create(210, "label text");
+    labelTextInput->setPosition({125, 155});
+    labelTextInput->setString(m_LabelWin->m_MyLayout.text);
+    labelTextInput->setCallback([&](const std::string& text){
+        m_LabelWin->m_MyLayout.text = text;
 
-//     CCNode* AlighmentCont = CCNode::create();
-//     AlighmentCont->setID("Alighment-Container");
-//     AlighmentCont->setPosition({351, 231});
-//     AlighmentCont->setScale(1.3f);
-//     allCont->addChild(AlighmentCont);
+        LabelSettingsLayer::updatePreviewText();
+    });
+    labelTextInput->setCommonFilter(CommonFilter::Any);
+    m_mainLayer->addChild(labelTextInput);
 
-//     auto AlighmentMenu = CCMenu::create();
-//     AlighmentMenu->setPosition({-5,-1});
-//     AlighmentCont->addChild(AlighmentMenu);
+    //-- transition --
 
-//     m_Alighment = CCLabelBMFont::create(AlignmentToSring(m_LabelWin->m_MyLayout.alignment).c_str(), "bigFont.fnt");
-//     m_Alighment->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-//     m_Alighment->setPosition({0, -1});
-//     m_Alighment->setScale(0.475f);
-//     m_Alighment->setZOrder(1);
-//     AlighmentCont->addChild(m_Alighment);
+    LabelSettingsLayer::updateInputFields(StatsManager::getFont(m_LabelWin->m_MyLayout.font));
 
-//     CCLabelBMFont* aligmentLabel = CCLabelBMFont::create("Text Alignment", "bigFont.fnt");
-//     aligmentLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-//     aligmentLabel->setPosition({0, 14});
-//     aligmentLabel->setScale(0.3f);
-//     AlighmentCont->addChild(aligmentLabel);
+    LabelSettingsLayer::playEntryAnimation(m_LabelWin->getParent()->convertToWorldSpace(m_LabelWin->getPosition()) + m_LabelWin->getContentSize() / 2);
 
-//     CCScale9Sprite* aligmentTABG = CCScale9Sprite::create("square02_small.png", {0,0, 40, 40});
-//     aligmentTABG->setPosition({0, -2});
-//     aligmentTABG->setScale(0.525f);
-//     aligmentTABG->setContentSize({114, 27});
-//     aligmentTABG->setOpacity(100);
-//     AlighmentCont->addChild(aligmentTABG);
+    //-- alignment --
 
-//     auto changeAlignmentRightS = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-//     changeAlignmentRightS->setScaleX(0.35f);
-//     changeAlignmentRightS->setScaleY(0.2f);
-//     auto changeAlignmentRight = CCMenuItemSpriteExtra::create(
-//         changeAlignmentRightS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::ChangeAlignmentRight)
-//     );
-//     changeAlignmentRight->setPosition({42, -0.5f});
-//     AlighmentMenu->addChild(changeAlignmentRight);
+    auto alignmentBG = CCScale9Sprite::create("square02_small.png");
+    alignmentBG->setOpacity(100);
+    alignmentBG->setPosition({122, 60});
+    alignmentBG->setContentSize({175, 40});
+    m_mainLayer->addChild(alignmentBG);
 
-//     auto changeAlignmentLeftS = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
-//     changeAlignmentLeftS->setScaleX(0.35f);
-//     changeAlignmentLeftS->setScaleY(0.2f);
-//     auto changeAlignmentLeft = CCMenuItemSpriteExtra::create(
-//         changeAlignmentLeftS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::ChangeAlignmentLeft)
-//     );
-//     changeAlignmentLeft->setPosition({-32, -0.5f});
-//     changeAlignmentLeft->setRotation(180);
-//     AlighmentMenu->addChild(changeAlignmentLeft);
+    auto alignLeftButtonSprite = CCSprite::create("alignLeft.png"_spr);
+    alignLeftButton = CCMenuItemSpriteExtra::create(
+        alignLeftButtonSprite,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::onAlign)
+    );
+    alignLeftButton->setPosition({60, 60});
+    m_buttonMenu->addChild(alignLeftButton);
 
-//     //color
+    auto alignCenterButtonSprite = CCSprite::create("alignCenter.png"_spr);
+    alignCenterButton = CCMenuItemSpriteExtra::create(
+        alignCenterButtonSprite,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::onAlign)
+    );
+    alignCenterButton->setPosition({122, 60});
+    m_buttonMenu->addChild(alignCenterButton);
 
-//     CCNode* ColorCont = CCNode::create();
-//     ColorCont->setID("Color-Container");
-//     ColorCont->setPosition({229, 134});
-//     allCont->addChild(ColorCont);
+    auto alignRightButtonSprite = CCSprite::create("alignRight.png"_spr);
+    alignRightButton = CCMenuItemSpriteExtra::create(
+        alignRightButtonSprite,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::onAlign)
+    );
+    alignRightButton->setPosition({184, 60});
+    m_buttonMenu->addChild(alignRightButton);
 
-//     ccColor3B currentColor = {m_LabelWin->m_MyLayout.color.r, m_LabelWin->m_MyLayout.color.g, m_LabelWin->m_MyLayout.color.b};
+    onAlign(nullptr);
 
-//     m_ColorPicker = CCControlColourPicker::colourPicker();
-//     m_ColorPicker->setAnchorPoint({0,0});
-//     m_ColorPicker->setPosition({-22, -7});
-//     m_ColorPicker->setScale(0.425f);
-//     m_ColorPicker->setColorValue(currentColor);
-//     m_ColorPicker->setID("Color-Picker");
-//     m_ColorPicker->setDelegate(this);
-//     ColorCont->addChild(m_ColorPicker);
+    //-- font size --
 
-//     m_OpacitySlider = Slider::create(this, menu_selector(LabelSettingsLayer::OnOpacitySliderChanged));
-//     m_OpacitySlider->setPosition({-106, -153});
-//     m_OpacitySlider->setScale(0.6f);
-//     float valFloat = (static_cast<float>(m_LabelWin->m_MyLayout.color.a)) / 255;
-//     m_OpacitySlider->setValue(valFloat);
-//     m_OpacitySlider->setID("Opacity-Slider");
-//     ColorCont->addChild(m_OpacitySlider);
+    auto FontSizeInputLabel = CCLabelBMFont::create("Font size:", "bigFont.fnt");
+    FontSizeInputLabel->setPosition({125, 130});
+    FontSizeInputLabel->setScale(.5f);
+    m_mainLayer->addChild(FontSizeInputLabel);
 
-//     m_ColorInputR = InputNode::create(95, "Red");
-//     m_ColorInputR->setPosition({50, 18});
-//     m_ColorInputR->setScale(0.6f);
-//     m_ColorInputR->getInput()->setAllowedChars("1234567890");
-//     m_ColorInputR->getInput()->setMaxLabelLength(3);
-//     m_ColorInputR->setString(std::to_string(currentColor.r));
-//     m_ColorInputR->setID("R-Input");
-//     m_ColorInputR->getInput()->setDelegate(this);
-//     ColorCont->addChild(m_ColorInputR);
+    FontSizeInput = TextInput::create(90, "FSize");
+    FontSizeInput->setPosition({125, 110});
+    FontSizeInput->setScale(.75f);
+    FontSizeInput->setString(fmt::format("{:.2f}", m_LabelWin->m_MyLayout.fontSize));
+    FontSizeInput->setCallback([&](const std::string& text){
+        auto fSize = geode::utils::numFromString<float>(text).unwrapOr(0);
 
-//     m_ColorInputG = InputNode::create(95, "Green");
-//     m_ColorInputG->setPosition({50, -9});
-//     m_ColorInputG->setScale(0.6f);
-//     m_ColorInputG->getInput()->setAllowedChars("1234567890");
-//     m_ColorInputG->getInput()->setMaxLabelLength(3);
-//     m_ColorInputG->setString(std::to_string(currentColor.g));
-//     m_ColorInputG->setID("G-Input");
-//     m_ColorInputG->getInput()->setDelegate(this);
-//     ColorCont->addChild(m_ColorInputG);
+        if (fSize < 0){
+            fSize = 0;
+            FontSizeInput->setString("0");
+        }
 
-//     m_ColorInputB = InputNode::create(95, "Blue");
-//     m_ColorInputB->setPosition({50, -36});
-//     m_ColorInputB->setScale(0.6f);
-//     m_ColorInputB->getInput()->setAllowedChars("1234567890");
-//     m_ColorInputB->getInput()->setMaxLabelLength(3);
-//     m_ColorInputB->setString(std::to_string(currentColor.b));
-//     m_ColorInputB->setID("B-Input");
-//     m_ColorInputB->getInput()->setDelegate(this);
-//     ColorCont->addChild(m_ColorInputB);
+        if (fSize > 2){
+            fSize = 2;
+            FontSizeInput->setString("2");
+        }
 
-//     m_ColorInputA = InputNode::create(95, "Alpha");
-//     m_ColorInputA->setPosition({68, -60});
-//     m_ColorInputA->setScale(0.6f);
-//     m_ColorInputA->getInput()->setAllowedChars("1234567890");
-//     m_ColorInputA->getInput()->setMaxLabelLength(3);
-//     m_ColorInputA->setString(std::to_string(m_LabelWin->m_MyLayout.color.a));
-//     m_ColorInputA->setID("Alpha-Input");
-//     m_ColorInputA->getInput()->setDelegate(this);
-//     ColorCont->addChild(m_ColorInputA);
+        m_LabelWin->m_MyLayout.fontSize = fSize;
+        FontSizeSlider->setValue(fSize / 2);
+        FontSizeSlider->updateBar();
 
-//     m_ColorInputHex = InputNode::create(150, "Hex");
-//     m_ColorInputHex->setPosition({-11, -60});
-//     m_ColorInputHex->setScale(0.6f);
-//     m_ColorInputHex->getInput()->setAllowedChars("1234567890AaBbCcDdEeFf");
-//     m_ColorInputHex->getInput()->setMaxLabelLength(6);
-//     m_ColorInputHex->setString(cc3bToHexString(currentColor));
-//     m_ColorInputHex->setID("Hex-Input");
-//     m_ColorInputHex->getInput()->setDelegate(this);
-//     ColorCont->addChild(m_ColorInputHex);
+        previewText->setScale(m_LabelWin->m_MyLayout.fontSize / 1.8f);
+        LabelSettingsLayer::updatePreviewTextPosition();
 
-//     //text
+        previewScroll->moveToTop();
+    });
+    FontSizeInput->setCommonFilter(CommonFilter::Float);
+    m_mainLayer->addChild(FontSizeInput);
 
-//     CCNode* TextCont = CCNode::create();
-//     TextCont->setID("Text-Container");
-//     TextCont->setPosition({284, 182});
-//     allCont->addChild(TextCont);
+    FontSizeSlider = Slider::create(this, menu_selector(LabelSettingsLayer::OnFontSizeSliderChanged));
+    FontSizeSlider->setValue(m_LabelWin->m_MyLayout.fontSize / 2);
+    FontSizeSlider->updateBar();
+    FontSizeSlider->setScale(.7f);
+    FontSizeSlider->setPosition(ccp(38, 40));
+    m_mainLayer->addChild(FontSizeSlider);
 
-//     auto TextInputLabel = CCLabelBMFont::create("Text", "bigFont.fnt");
-//     TextInputLabel->setPosition({0, 23});
-//     TextInputLabel->setScale(.55f);
-//     TextCont->addChild(TextInputLabel);
+    //-- color --
 
-//     m_TextInput = InputNode::create(300, "");
-//     m_TextInput->setPosition({0, 0});
-//     m_TextInput->setScale(0.8f);
-//     m_TextInput->setString(m_LabelWin->m_MyLayout.text);
-//     m_TextInput->getInput()->setDelegate(this);
-//     m_TextInput->getInput()->setAllowedChars("abcdefghijkmlnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@#$%^&*(){}[]\"\"/-_=+'?;:><,.`~|");
-//     TextCont->addChild(m_TextInput);
+    auto colorBG = CCScale9Sprite::create("square02_small.png");
+    colorBG->setOpacity(100);
+    colorBG->setScale(0.75f);
+    colorBG->setPosition({117, 27});
+    colorBG->setContentSize({128, 31});
+    m_mainLayer->addChild(colorBG);
 
-//     //font
+    auto ColorLabel = CCLabelBMFont::create("Color:", "bigFont.fnt");
+    ColorLabel->setPosition({100, 27});
+    ColorLabel->setScale(.5f);
+    m_mainLayer->addChild(ColorLabel);
 
-//     m_FontCont = CCNode::create();
-//     m_FontCont->setID("Font-Container");
-//     m_FontCont->setPosition({318, 88});
-//     allCont->addChild(m_FontCont);
+    ColorSprite = ColorChannelSprite::create();
+    ColorSprite->setColor({m_LabelWin->m_MyLayout.color.r, m_LabelWin->m_MyLayout.color.g, m_LabelWin->m_MyLayout.color.b});
+    ColorSprite->setScale(0.65f);
+    auto ColorPickerButton = CCMenuItemSpriteExtra::create(
+        ColorSprite,
+        nullptr,
+        this,
+        menu_selector(LabelSettingsLayer::OnColorClicked)
+    );
+    ColorPickerButton->setPosition({150, 27});
+    m_buttonMenu->addChild(ColorPickerButton);
 
-//     m_FontOuterCont = CCNode::create();
-//     m_FontOuterCont->setID("Font-Outer-Container");
-//     m_FontOuterCont->setPosition({38, 46});
-//     m_FontCont->addChild(m_FontOuterCont);
+    //-- special text keys --
 
-//     auto FontOuterContMenu = CCMenu::create();
-//     FontOuterContMenu->setPosition({0,0});
-//     m_FontOuterCont->addChild(FontOuterContMenu);
+    auto STKLabel = CCLabelBMFont::create("Special text\nkeys:", "bigFont.fnt");
+    STKLabel->setPosition({273.5f, 203});
+    STKLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    STKLabel->setScale(.3f);
+    m_mainLayer->addChild(STKLabel);
 
-//     m_FontTextDisplay = SimpleTextArea::create(StatsManager::getFontName(m_LabelWin->m_MyLayout.font), StatsManager::getFont(m_LabelWin->m_MyLayout.font));
-//     m_FontTextDisplay->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-//     m_FontTextDisplay->setPosition({0, -2});
-//     m_FontTextDisplay->setScale(0.35f);
-//     m_FontTextDisplay->setZOrder(1);
-//     m_FontOuterCont->addChild(m_FontTextDisplay);
+    std::map<std::string, std::string> stks{
+        {"{f0}", "will include <cg>all runs from 0%</c>."},
+        {"{runs}", "will include <cg>all</c> runs from <cl>practice</c> and <cy>startpos</c>."},
+        {"{lvln}", "inserts the <cg>levels name</c>."},
+        {"{att}", "will display your <cg>attempts</c> on the level, this will also combine all attempts from your <cy>linked</c> levels."},
+        {"{s0}", "will include <co>all runs from 0</c> that are within your <cy>selected session</c>."},
+        {"{sruns}", "will include <co>all</c> runs from <cl>practice</c> and <cg>startpos</c> that are within your <cy>selected session</c>."},
+        {"{nl}", "inserts a <cg>new line</c> into the text."},
+        {"{ssd}", "will display the <co>date</c> in which your <cy>selected session</c> accrued.\n<cj>[month/day/year]</c>"},
+        {"{sst}", "will display the <co>time</c> in which your <cy>selected session</c> accrued.\n<cj>[AM/PM]</c>"}
+    };
 
-//     CCScale9Sprite* FontTextDisplayBG = CCScale9Sprite::create("square02_small.png", {0,0, 40, 40});
-//     FontTextDisplayBG->setPosition({0, -2});
-//     FontTextDisplayBG->setScale(0.525f);
-//     FontTextDisplayBG->setContentSize({145, 30});
-//     FontTextDisplayBG->setOpacity(100);
-//     m_FontOuterCont->addChild(FontTextDisplayBG);
+    CCArray* specialTextKeys = CCArray::create();
 
-//     auto FontLabel = CCLabelBMFont::create("Font", "bigFont.fnt");
-//     FontLabel->setPosition({0, 15});
-//     FontLabel->setScale(.475f);
-//     m_FontOuterCont->addChild(FontLabel);
+    for (auto const& stk : stks)
+    {
+        specialTextKeys->addObject(SpecialTextKeyCell::create(stk.first, stk.second, std::bind(&LabelSettingsLayer::useSTK, this, std::placeholders::_1)));
+    }
 
-//     auto SelectFontBS = ButtonSprite::create("Change");
-//     SelectFontBS->setScale(0.5f);
-//     auto SelectFontB = CCMenuItemSpriteExtra::create(
-//         SelectFontBS,
-//         nullptr,
-//         this,
-//         menu_selector(LabelSettingsLayer::ChangeFont)
-//     );
-//     SelectFontB->setPosition({0, -21});
-//     FontOuterContMenu->addChild(SelectFontB);
+    auto STKListView = ListView::create(specialTextKeys, 20, 75, 80);
+    STKListView->setPosition({236, 108});
+    STKListView->setCellOpacity(40);
+    m_mainLayer->addChild(STKListView);
 
-//     //font size
+    auto STKListOutline = CCScale9Sprite::create("GJ_square07.png");
+    STKListOutline->setPosition(STKListView->getPosition() + STKListView->getContentSize() / 2);
+    STKListOutline->setContentSize(STKListView->getContentSize() + ccp(5, 5));
+    m_mainLayer->addChild(STKListOutline);
 
-//     CCNode* FontSizeCont = CCNode::create();
-//     FontSizeCont->setID("Font-Size-Container");
-//     FontSizeCont->setPosition({229, 134});
-//     allCont->addChild(FontSizeCont);
+    //-- font --
 
-//     auto FontSLabel = CCLabelBMFont::create("Font Size", "bigFont.fnt");
-//     FontSLabel->setPosition({139, -59});
-//     FontSLabel->setScale(.45f);
-//     FontSizeCont->addChild(FontSLabel);
+    auto FontListLabel = CCLabelBMFont::create("Font:", "bigFont.fnt");
+    FontListLabel->setPosition({259.5f, 97});
+    FontListLabel->setScale(.4f);
+    m_mainLayer->addChild(FontListLabel);
 
-//     m_FontSizeInput = InputNode::create(95, "Alpha");
-//     m_FontSizeInput->setPosition({138, -78});
-//     m_FontSizeInput->setScale(0.6f);
-//     m_FontSizeInput->getInput()->setAllowedChars("1234567890.");
-//     m_FontSizeInput->getInput()->setMaxLabelLength(5);
-//     m_FontSizeInput->setString(fmt::format("{:.3f}", m_LabelWin->m_MyLayout.fontSize));
-//     m_FontSizeInput->setID("Font-Size-Input");
-//     m_FontSizeInput->getInput()->setDelegate(this);
-//     FontSizeCont->addChild(m_FontSizeInput);
+    CCArray* Fonts = CCArray::create();
 
-//     m_FontSizeSlider = Slider::create(this, menu_selector(LabelSettingsLayer::OnFontSizeSliderChanged));
-//     m_FontSizeSlider->setPosition({-33, -190});
-//     m_FontSizeSlider->setScale(0.4f);
-//     float valFloatFontSize = (static_cast<float>(m_LabelWin->m_MyLayout.fontSize)) / 2;
-//     m_FontSizeSlider->setValue(valFloatFontSize);
-//     m_FontSizeSlider->setID("Font-Size-Slider");
-//     FontSizeCont->addChild(m_FontSizeSlider);
+    auto AllFonts = StatsManager::getAllFonts();
 
-//     return true;
-// }
+    for (int i = 0; i < AllFonts.size(); i++)
+    {
+        std::string fontName = "";
 
-// std::string LabelSettingsLayer::AlignmentToSring(CCTextAlignment alignment){
-//     switch (alignment)
-//     {
-//         case CCTextAlignment::kCCTextAlignmentLeft:
-//             return "Left";
-//         case CCTextAlignment::kCCTextAlignmentCenter:
-//             return "Center";
-//         case CCTextAlignment::kCCTextAlignmentRight:
-//             return "Right";
-//         default:
-//             return "Center";
-//     }
-// }
+        if (i == 0)
+            fontName = "Big Font";
+        else if (i == 1)
+            fontName = "Chat Font";
+        else if (i == 2)
+            fontName = "Gold Font";
+        else{
+            fontName = "Font " + std::to_string(i - 2);
+        }
 
-// void LabelSettingsLayer::ChangeAlignmentLeft(CCObject* object){
-//     switch (m_LabelWin->m_MyLayout.alignment)
-//     {
-//         case CCTextAlignment::kCCTextAlignmentLeft:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentRight;
-//             break;
-//         case CCTextAlignment::kCCTextAlignmentCenter:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentLeft;
-//             break;
-//         case CCTextAlignment::kCCTextAlignmentRight:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentCenter;
-//             break;
-        
-//         default:
-//             break;
-//     }
-//     m_Alighment->setString(AlignmentToSring(m_LabelWin->m_MyLayout.alignment).c_str());
-// }
+        Fonts->addObject(LabelFontCell::create(i, AllFonts[i], fontName, std::bind(&LabelSettingsLayer::setFont, this, std::placeholders::_1)));
+    }
 
-// void LabelSettingsLayer::ChangeAlignmentRight(CCObject* object){
-//     switch (m_LabelWin->m_MyLayout.alignment)
-//     {
-//         case CCTextAlignment::kCCTextAlignmentLeft:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentCenter;
-//             break;
-//         case CCTextAlignment::kCCTextAlignmentCenter:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentRight;
-//             break;
-//         case CCTextAlignment::kCCTextAlignmentRight:
-//             m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentLeft;
-//             break;
-        
-//         default:
-//             break;
-//     }
-//     m_Alighment->setString(AlignmentToSring(m_LabelWin->m_MyLayout.alignment).c_str());
-// }
+    auto FontListView = ListView::create(Fonts, 20, 85, 70);
+    FontListView->setPosition({217, 17});
+    FontListView->setCellOpacity(40);
+    m_mainLayer->addChild(FontListView);
 
-// void LabelSettingsLayer::OnOpacitySliderChanged(CCObject* object){
-//     m_LabelWin->s->setOpacity(m_OpacitySlider->getThumb()->getValue() * 255);
-//     m_ColorInputA->setString(std::to_string(static_cast<int>(m_OpacitySlider->getThumb()->getValue() * 255)));
-//     m_LabelWin->m_MyLayout.color.a = static_cast<GLubyte>(m_OpacitySlider->getThumb()->getValue() * 255);
-// }
+    auto fontListOutline = CCScale9Sprite::create("GJ_square07.png");
+    fontListOutline->setPosition(FontListView->getPosition() + FontListView->getContentSize() / 2);
+    fontListOutline->setContentSize(FontListView->getContentSize() + ccp(5, 5));
+    m_mainLayer->addChild(fontListOutline);
 
-// void LabelSettingsLayer::textChanged(CCTextInputNode* input){
-//     if (m_BlockSelfCall > 0){
-//         m_BlockSelfCall--;
-//         return;
-//     }
-//     int value;
-//     ccColor3B currentColorPickerColor = static_cast<CCControlColourPickerBypass*>(m_ColorPicker)->getPickedColor();
+    LabelSettingsLayer::removeTextBestColoring();
+    scheduleUpdate();
 
-//     //alpha changed
-//     if (input == m_ColorInputA->getInput()){
-//         if (input->getString() == "")
-//             value = 0;
-//         else
-//             value = std::stoi(input->getString());
+    return true;
+}
+
+void LabelSettingsLayer::playEntryAnimation(const CCPoint& startingPoint){
+    isTransitioning = true;
+
+    auto winSize = CCDirector::get()->getWinSize();
+
+    float transitionDuration = 0.2f;
+
+    m_mainLayer->setPosition(startingPoint);
+    textPreviewWindow->setPosition(startingPoint);
+    labelWinPreview->setPosition(startingPoint);
+    labelWinPreview->setOpacity(0);
+    m_mainLayer->setScale(0);
+    textPreviewWindow->setScale(0);
+    this->setOpacity(0);
+    windowTitleInput->getBGSprite()->setOpacity(0);
+    GLubyte labelOpacityTo = windowTitleInput->getInputNode()->getPlaceholderLabel()->getOpacity();
+    windowTitleInput->getInputNode()->getPlaceholderLabel()->setOpacity(0);
+
+    this->runAction(CCSequence::create(CCEaseInOut::create(CCFadeTo::create(transitionDuration * 1.3f, 105), 2), CCCallFuncO::create(this, callfuncO_selector(LabelSettingsLayer::OnTransitionEnded), CCBool::create(true)), nullptr));
+    labelWinPreview->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, m_LabelWin->m_MyLayout.color.a), 2));
+    windowTitleInput->getBGSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, 90), 2));
+    windowTitleInput->getInputNode()->getPlaceholderLabel()->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, labelOpacityTo), 2));
+
+    m_mainLayer->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 1), 2));
+    textPreviewWindow->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 1), 2));
+
+    m_mainLayer->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {384, 185}), 2));
+    textPreviewWindow->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {110, 185}), 2));
+    labelWinPreview->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {winSize.width / 2, 35}), 2));
+}
+
+void LabelSettingsLayer::onClose(cocos2d::CCObject*){
+    if (!isTransitioning)
+        LabelSettingsLayer::playColsingAnimation(m_LabelWin->getParent()->convertToWorldSpace(m_LabelWin->getPosition()) + m_LabelWin->getContentSize() / 2);
+}
+
+void LabelSettingsLayer::playColsingAnimation(const CCPoint& endPoint){
+    isTransitioning = true;
+
+    float transitionDuration = 0.2f;
+
+    this->runAction(CCSequence::create(CCEaseInOut::create(CCFadeTo::create(transitionDuration * 1.3f, 0), 2), CCCallFuncO::create(this, callfuncO_selector(LabelSettingsLayer::OnTransitionEnded), CCBool::create(false)), nullptr));
+    labelWinPreview->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, 0), 2));
+    windowTitleInput->getBGSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, 0), 2));
+    windowTitleInput->getInputNode()->getPlaceholderLabel()->runAction(CCEaseInOut::create(CCFadeTo::create(transitionDuration, 0), 2));
+
+    m_mainLayer->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 0), 2));
+    textPreviewWindow->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 0), 2));
+
+    m_mainLayer->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, endPoint), 2));
+    textPreviewWindow->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, endPoint), 2));
+    labelWinPreview->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, endPoint), 2));
+
+
+}
+
+void LabelSettingsLayer::OnTransitionEnded(CCObject* transitionType){
+    auto isEnter = static_cast<CCBool*>(transitionType);
+
+    isTransitioning = false;
+
+    if (!isEnter->getValue()){
+        if (deleteOnExit){
+            m_LabelWin->removeMeAndCleanup();
+
+            m_LabelWin->m_DTLayer->changeScrollSizeByBoxes();
+        }
+
+        Popup<LabelLayoutWindow* const&, DTLayer* const&>::onClose(nullptr);
+    }
+}
+
+void LabelSettingsLayer::updateInputFields(const std::string& font){
+    if (windowTitleInput)
+        windowTitleInput->removeMeAndCleanup();
+
+    windowTitleInput = TextInput::create(labelWinPreview->getContentWidth() / 2  - 50, "Label name", font);
+    windowTitleInput->setString(m_LabelWin->m_MyLayout.labelName);
+    windowTitleInput->setZOrder(2);
+    windowTitleInput->setScale(2);
+    windowTitleInput->setPosition(labelWinPreview->getContentSize() / 2);
+    windowTitleInput->setCallback([&](const std::string& text){
+        m_LabelWin->m_MyLayout.labelName = text;
+        m_LabelWin->m_Label->setText(text);
+    });
+    labelWinPreview->addChild(windowTitleInput);
+}
+
+void LabelSettingsLayer::onAlign(CCObject* sender){
+    if (sender == alignLeftButton){
+        m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentLeft;
+    }
+    else if (sender == alignRightButton){
+        m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentRight;
+    }
+    else if (sender == alignCenterButton){
+        m_LabelWin->m_MyLayout.alignment = CCTextAlignment::kCCTextAlignmentCenter;
+    }
+
+    alignLeftButton->setEnabled(true);
+    alignLeftButton->setColor({255, 255, 255});
+    alignRightButton->setEnabled(true);
+    alignRightButton->setColor({255, 255, 255});
+    alignCenterButton->setEnabled(true);
+    alignCenterButton->setColor({255, 255, 255});
+
+    switch (m_LabelWin->m_MyLayout.alignment)
+    {
+        case CCTextAlignment::kCCTextAlignmentLeft:
+            alignLeftButton->setEnabled(false);
+            alignLeftButton->setColor({140, 140, 140});
+            break;
             
-//         if (value > 255){
-//             value = 255;
-//             input->setString("255");
-//         }
+        case CCTextAlignment::kCCTextAlignmentRight:
+            alignRightButton->setEnabled(false);
+            alignRightButton->setColor({140, 140, 140});
+            break;
 
-//         float valFloat = (static_cast<float>(value)) / 255;
-//         m_OpacitySlider->setValue(valFloat);
+        case CCTextAlignment::kCCTextAlignmentCenter:
+            alignCenterButton->setEnabled(false);
+            alignCenterButton->setColor({140, 140, 140});
+            break;
+    }
 
-//         m_LabelWin->s->setOpacity(value);
-            
-//         m_LabelWin->m_MyLayout.color.a = static_cast<GLubyte>(value);
-//     }
+    previewText->setAlignment(m_LabelWin->m_MyLayout.alignment);
+    LabelSettingsLayer::removeTextBestColoring();
+}
 
-//     //red changed
-//     if (input == m_ColorInputR->getInput()){
-//         if (input->getString() == "")
-//             value = 0;
-//         else
-//             value = std::stoi(input->getString());
-            
-//         if (value > 255){
-//             value = 255;
-//             input->setString("255");
-//         }
+void LabelSettingsLayer::OnFontSizeSliderChanged(CCObject*){
+    FontSizeInput->setString(fmt::format("{:.2f}", FontSizeSlider->getValue() * 2));
+    m_LabelWin->m_MyLayout.fontSize = FontSizeSlider->getValue() * 2;
 
-//         ccColor3B colorCreated = {static_cast<GLubyte>(value), currentColorPickerColor.g, currentColorPickerColor.b};
+    previewText->setScale(m_LabelWin->m_MyLayout.fontSize / 1.8f);
+    LabelSettingsLayer::updatePreviewTextPosition();
 
-//         m_BlockSelfCall += 2;
-//         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
-//         m_BlockSelfCall += 1;
-//         m_ColorPicker->setColorValue(colorCreated);
-                
-//         m_LabelWin->m_MyLayout.color.r = static_cast<GLubyte>(value);
-//     }
+    previewScroll->moveToTop();
+}
 
-//     //green changed
-//     if (input == m_ColorInputG->getInput()){
-//         if (input->getString() == "")
-//             value = 0;
-//         else
-//             value = std::stoi(input->getString());
-            
-//         if (value > 255){
-//             value = 255;
-//             input->setString("255");
-//         }
+void LabelSettingsLayer::OnColorClicked(CCObject*){
+    auto colorPick = geode::ColorPickPopup::create(m_LabelWin->m_MyLayout.color);
+    colorPick->show();
+    colorPick->setColorTarget(ColorSprite);
+    colorPick->setDelegate(this);
+}
 
-//         ccColor3B colorCreated = {currentColorPickerColor.r, static_cast<GLubyte>(value), currentColorPickerColor.b};
+void LabelSettingsLayer::updateColor(cocos2d::ccColor4B const& color){
+    m_LabelWin->m_MyLayout.color = color;
+    m_LabelWin->s->setColor({color.r, color.g, color.b});
+    m_LabelWin->s->setOpacity(color.a);
+    labelWinPreview->setColor({color.r, color.g, color.b});
+    labelWinPreview->setOpacity(color.a);
 
-//         m_BlockSelfCall += 2;
-//         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
-//         m_BlockSelfCall += 1;
-//         m_ColorPicker->setColorValue(colorCreated);
-                
-//         m_LabelWin->m_MyLayout.color.g = static_cast<GLubyte>(value);
-//     }
+    previewText->setColor(m_LabelWin->m_MyLayout.color);
+    LabelSettingsLayer::removeTextBestColoring();
+}
 
-//     //blue changed
-//     if (input == m_ColorInputB->getInput()){
-//         if (input->getString() == "")
-//             value = 0;
-//         else
-//             value = std::stoi(input->getString());
-            
-//         if (value > 255){
-//             value = 255;
-//             input->setString("255");
-//         }
+void LabelSettingsLayer::setFont(const int& fontID){
+    m_LabelWin->m_MyLayout.font = fontID;
+    std::string font = StatsManager::getFont(fontID);
 
-//         ccColor3B colorCreated = {currentColorPickerColor.r, currentColorPickerColor.g, static_cast<GLubyte>(value)};
+    LabelSettingsLayer::updateInputFields(font);
 
-//         m_BlockSelfCall += 2;
-//         m_ColorInputHex->setString(cc3bToHexString(colorCreated));
-//         m_BlockSelfCall += 1;
-//         m_ColorPicker->setColorValue(colorCreated);
-                
-//         m_LabelWin->m_MyLayout.color.b = static_cast<GLubyte>(value);
-//     }
+    if (m_LabelWin->m_Label->getFont() != font)
+        m_LabelWin->m_Label->setFont(font);
 
-//     //HEX changed
-//     if (input == m_ColorInputHex->getInput()){
-//         std::string hexValue;
+    previewText->setFont(StatsManager::getFont(m_LabelWin->m_MyLayout.font));
+    LabelSettingsLayer::updatePreviewTextPosition();
+}
 
-//         if (input->getString() == "")
-//             hexValue = "000000";
-//         else
-//             hexValue = input->getString();
+void LabelSettingsLayer::useSTK(const std::string& stk){
+    labelTextInput->focus();
 
-//         while (hexValue.length() < 6){
-//             hexValue.push_back('0');
-//         }
+    std::string labelText = "";
+    if (labelTextInput->getString() != "")
+        labelText = labelTextInput->getString();
 
-//         auto reshex = cc3bFromHexString(hexValue);
-
-//         if (reshex.isOk()){
-//             ccColor3B hexColor = reshex.value();
-
-//             m_BlockSelfCall += 1;
-//             m_ColorPicker->setColorValue(hexColor);
-
-//             m_BlockSelfCall += 2;
-//             m_ColorInputR->setString(std::to_string(hexColor.r));
-//             m_BlockSelfCall += 2;
-//             m_ColorInputG->setString(std::to_string(hexColor.g));
-//             m_BlockSelfCall += 2;
-//             m_ColorInputB->setString(std::to_string(hexColor.b));
-                    
-//             m_LabelWin->m_MyLayout.color = {hexColor.r, hexColor.g, hexColor.b, m_LabelWin->m_MyLayout.color.a};
-//         }
-//     }
-
-//     if (input == m_LabelNameInput->getInput()){
-//         if (input->getString() == ""){
-//             m_LabelWin->m_MyLayout.labelName = "";
-//             m_LabelWin->m_Label->setText("");
-//         }
-//         else{
-//             m_LabelWin->m_MyLayout.labelName = input->getString();
-//             m_LabelWin->m_Label->setText(input->getString().c_str());
-//         }
-//     }
-
-//     if (input == m_TextInput->getInput()){
-//         if (input->getString() == ""){
-//             m_LabelWin->m_MyLayout.text = "";
-//         }
-//         else{
-//             m_LabelWin->m_MyLayout.text = input->getString();
-//         }
+    int index = StatsManager::getCursorPosition(labelTextInput->getInputNode()->getPlaceholderLabel(), labelTextInput->getInputNode()->m_cursor);
     
-//     }
+    if (index < labelText.length())
+        labelText.insert(index, stk);
+    else if (index == labelText.length())
+        labelText += stk;
 
-//     //Font Size changed
-//     if (input == m_FontSizeInput->getInput()){
-//         float fvalue = 0;
-//         if (input->getString() == "")
-//             fvalue = 0;
-//         else{
-//             if (input->getString()[0] == '.'){
-//                 fvalue = 0;
-//             }
-//             else{
-//                 fvalue = std::stof(input->getString());
-//             }
-//         }
-            
-//         if (fvalue > 2){
-//             fvalue = 2;
-//             input->setString("2");
-//         }
+    m_LabelWin->m_MyLayout.text = labelText;
 
-//         float valFloat = fvalue / 2;
-//         m_FontSizeSlider->setValue(valFloat);
+    labelTextInput->setString(labelText);
 
-//         m_LabelWin->m_MyLayout.fontSize = fvalue;
-//     }
-// }
+    LabelSettingsLayer::updatePreviewText();
+}
 
-// void LabelSettingsLayer::colorValueChanged(ccColor3B color){
-//     m_LabelWin->s->setColor(color);
-
-//     if (m_BlockSelfCall > 0){
-//         m_BlockSelfCall--;
-//         return;
-//     }
-//     m_BlockSelfCall += 2;
-//     m_ColorInputR->setString(std::to_string(color.r));
-//     m_BlockSelfCall += 2;
-//     m_ColorInputG->setString(std::to_string(color.g));
-//     m_BlockSelfCall += 2;
-//     m_ColorInputB->setString(std::to_string(color.b));
-//     m_BlockSelfCall += 2;
-//     m_ColorInputHex->setString(cc3bToHexString(color));
-
-//     m_LabelWin->m_MyLayout.color = {color.r, color.g, color.b, m_LabelWin->m_MyLayout.color.a};
-// }
-
-// void LabelSettingsLayer::ChangeFont(CCObject*){
-
-//     m_FontOuterCont->setVisible(false);
-
-//     if (!m_FontList){
-//         CCArray* Fonts = CCArray::create();
-
-//         auto AllFonts = StatsManager::getAllFont();
-
-//         for (int i = 0; i < AllFonts.size(); i++)
-//         {
-//             std::string fontName = "";
-
-//             if (i == 0)
-//                 fontName = "Big Font";
-//             else if (i == 1)
-//                 fontName = "Chat Font";
-//             else if (i == 2)
-//                 fontName = "Gold Font";
-//             else{
-//                 fontName = "Font " + std::to_string(i - 2);
-//             }
-
-//             Fonts->addObject(LabelFontCell::create(i, AllFonts[i], fontName, this));
-//         }
-
-//         auto FontListView = ListView::create(Fonts, 20, 85, 70);
-
-//         m_FontList = GJListLayer::create(FontListView, "Fonts", {0,0,0,75}, 85, 70, 1);
-//         m_FontCont->addChild(m_FontList);
-
-//         CCObject* child;
-
-//         CCARRAY_FOREACH(m_FontList->m_listView->m_tableView->m_cellArray, child){
-//             auto childCell = dynamic_cast<GenericListCell*>(child);
-//             if (childCell)
-//                 childCell->m_backgroundLayer->setOpacity(30);
-//         }
-
-//         std::vector<CCSprite*> spritesToRemove;
-//         CCLabelBMFont* title;
-
-//         CCARRAY_FOREACH(m_FontList->getChildren(), child){
-//             auto childSprite = dynamic_cast<CCSprite*>(child);
-//             auto childLabel = dynamic_cast<CCLabelBMFont*>(child);
-//             if (childSprite)
-//                 spritesToRemove.push_back(childSprite);
-//             if (childLabel)
-//                 title = childLabel;
-//         }
-
-//         for (int i = 0; i < spritesToRemove.size(); i++)
-//         {
-//             spritesToRemove[i]->removeMeAndCleanup();
-//         }
-
-//         title->setScale(0.4f);
-//         title->setPosition({42.5f, 76});
-//     }
-//     else{
-//         m_FontList->setVisible(true);
-//     }
+void LabelSettingsLayer::updatePreviewText(){
     
-// }
-
-// void LabelSettingsLayer::FontSelected(int FontID){
-//     m_FontList->setVisible(false);
-//     m_FontOuterCont->setVisible(true);
-//     m_LabelWin->m_MyLayout.font = FontID;
-//     std::string selectedFont = StatsManager::getFont(FontID);
-//     m_FontTextDisplay->setFont(selectedFont);
-//     m_FontTextDisplay->setText(StatsManager::getFontName(FontID));
-//     m_LabelWin->m_Label->setFont(selectedFont);
-// }
-
-// void LabelSettingsLayer::OnFontSizeSliderChanged(CCObject* object){
-//     m_FontSizeInput->setString(fmt::format("{:.3f}", m_FontSizeSlider->getThumb()->getValue() * 2));
-//     m_LabelWin->m_MyLayout.fontSize = m_FontSizeSlider->getThumb()->getValue() * 2;
-// }
-
-// void LabelSettingsLayer::deleteLabel(CCObject*){
-//     for (int i = 0; i < m_LabelWin->m_DTLayer->m_LayoutLines.size(); i++)
-//     {
-//         if (m_LabelWin->m_DTLayer->m_LayoutLines[i] == m_LabelWin){
-//             m_LabelWin->m_DTLayer->m_LayoutLines.erase(std::next(m_LabelWin->m_DTLayer->m_LayoutLines.begin(), i));
-//             break;
-//         }
-//     }
-//     for (int i = 0; i < m_LabelWin->m_DTLayer->m_LayoutLines.size(); i++)
-//     {
-//         LabelLayoutWindow* curWin = dynamic_cast<LabelLayoutWindow*>(m_LabelWin->m_DTLayer->m_LayoutLines[i]);
-//         if (curWin){
-//             curWin->setPositionBasedOnLayout(curWin->m_MyLayout);
-//         }
-//     }
+    auto modifiedText = m_DTLayer->modifyString(m_LabelWin->m_MyLayout.text);
     
-//     m_LabelWin->removeMeAndCleanup();
+    previewText->setText(modifiedText);
 
-//     m_LabelWin->m_DTLayer->changeScrollSizeByBoxes();
+    LabelSettingsLayer::updatePreviewTextPosition();
+}
 
-//     keyBackClicked();
-// }
+void LabelSettingsLayer::update(float delta){
+    previewText->setVisible(true);
+}
 
-// void LabelSettingsLayer::onOverallInfo(CCObject*){
-//     auto alert = FLAlertLayer::create("Help", "<cg>Label Name</c> - change this labels name\n<cy>Text Alighnment</c> - change the alighnment of this label\n<cj>Text</c> - the text displayed by this label\n<cr>Color picker</c> - change the texts color\n<cb>Font</c> - change the font of the text\n<ca>Font Size</c> - change the texts size", "Ok");
-//     alert->setZOrder(150);
-//     this->addChild(alert);
-// }
+void LabelSettingsLayer::updatePreviewTextPosition(){
+    int height = previewText->getScaledContentHeight();
 
+    if (previewScroll->getContentHeight() > height){
+        previewScroll->m_contentLayer->setContentHeight(previewScroll->getContentHeight());
+    }
+    else{
+        previewScroll->m_contentLayer->setContentHeight(height);
+    }
 
-//     // keys to check for
+    previewText->setPosition({previewScroll->m_contentLayer->getContentWidth() / 2, previewScroll->m_contentLayer->getContentHeight()});
+    LabelSettingsLayer::removeTextBestColoring();
+}
 
-//     // {f0} - runs from 0
+void LabelSettingsLayer::removeTextBestColoring(){
+    for (int i = 0; i < previewText->getLines().size(); i++)
+    {
+        std::string s = previewText->getLines()[i]->getString();
+        if (s != "<" && s.length() > 1){
+            if (m_DTLayer->isKeyInIndex(s, 1, "nbc>")){
+                s.erase(0, 5);
+                previewText->getLines()[i]->setString(s.c_str());
+                previewText->getLines()[i]->setColor(m_DTLayer->colorSpritenb->getColor());
+            }
+            if (m_DTLayer->isKeyInIndex(s, 1, "sbc>")){
+                s.erase(0, 5);
+                previewText->getLines()[i]->setString(s.c_str());
+                previewText->getLines()[i]->setColor(m_DTLayer->colorSpritesb->getColor()); 
+            }
+        }
+    }
+}
 
-//     // {runs} - runs
+void LabelSettingsLayer::ConfirmDeletLabel(CCObject*){
+    deleteConfPopup = FLAlertLayer::create(this, "WARNING!", "are you sure you want to <cr>delete</c> this label?", "No", "Yes");
+    deleteConfPopup->show();
+}
 
-//     // {lvln} - levels name
-    
-//     // {att} - level attempts (with linked levels attempts)
+void LabelSettingsLayer::FLAlert_Clicked(FLAlertLayer* p0, bool p1){
+    if (deleteConfPopup == p0 && p1){
+        LabelSettingsLayer::deleteLabel();
+    }
+}
 
-//     // {s0} - selected session runs from 0
-    
-//     // {sruns} - selected session runs
+void LabelSettingsLayer::deleteLabel(){
+    for (int i = 0; i < m_LabelWin->m_DTLayer->m_LayoutLines.size(); i++)
+    {
+        if (m_LabelWin->m_DTLayer->m_LayoutLines[i] == m_LabelWin){
+            m_LabelWin->m_DTLayer->m_LayoutLines.erase(std::next(m_LabelWin->m_DTLayer->m_LayoutLines.begin(), i));
+            break;
+        }
+    }
+    for (int i = 0; i < m_LabelWin->m_DTLayer->m_LayoutLines.size(); i++)
+    {
+        LabelLayoutWindow* curWin = dynamic_cast<LabelLayoutWindow*>(m_LabelWin->m_DTLayer->m_LayoutLines[i]);
+        if (curWin){
+            curWin->setPositionBasedOnLayout(curWin->m_MyLayout);
+        }
+    }
 
-//     // {nl} - new line
+    deleteOnExit = true;
 
-//     // {ssd} - session start date
+    LabelSettingsLayer::onClose(nullptr);
+}
 
-//     // {sst} - session start time
-
-// void LabelSettingsLayer::onSpecialInfo(CCObject*){
-//     auto alert = FLAlertLayer::create("Special Text Keys:", "{f0} - runs from 0\n{runs} - runs\n{lvln} - the levels name\n{att} - level attempts (with linked levels attempts)\n{s0} - selected session runs from 0\n{sruns} - selected session runs\n{ssd} - selected sessions start date\n{sst} - selected sessions start time\n{nl} - new line", "Ok");
-//     alert->setZOrder(150);
-//     this->addChild(alert);
-// }
+void LabelSettingsLayer::OnInfo(CCObject*){
+    auto alert = FLAlertLayer::create(nullptr, "Help", fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+    "<cy>Text</c> - determines the text that will be displayed.",
+    "<cg>Font size</c> - change the size of the text.",
+    "<cs>Alignment</c> - change the text alignment [left, center, right].",
+    "<cj>Color</c> - change the texts color. (new best colors are unaffected)",
+    "<cr>Font</c> - change the font of the text.",
+    "<cc>Special text keys</c> - allows you to add special things into your text! an explanation is available in each key.",
+    "<ca>Text preview</c> - displays how the text should look in action :D",
+    "<cl>Label preview</c> - this is the small box fond at the bottom. displays how the label will look and allow you to change the labels name."
+    ).c_str(), "Ok", nullptr, 450);
+    alert->show();
+}

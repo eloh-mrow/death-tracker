@@ -9,7 +9,7 @@ class $modify(DTColorSelectPopup, ColorSelectPopup) {
     };
 
     public:
-        void setCallback(SEL_CallFunc _callback, CCObject* _target);
+        void setCallback(const SEL_CallFunc& _callback, CCObject* const& _target);
 
         void colorValueChanged(cocos2d::ccColor3B newColor);
 };

@@ -7,13 +7,12 @@ using namespace geode;
 
 class RunAllowedCell : public CCMenuItemSpriteExtra {
 protected:
-    bool init(int Precent, float scale, CCNode* DTLayer, CCNode* DTSSLayer);
+    bool init(const int& Precent, const float& scale, const std::function<void(const int&, cocos2d::CCNode*)>& callback);
 public:
-    static RunAllowedCell* create(int Precent, float scale, CCNode* DTLayer, CCNode* DTSSLayer);
+    static RunAllowedCell* create(const int& Precent, const float& scale, const std::function<void(const int&, cocos2d::CCNode*)>& callback = NULL);
 
     int m_Precent;
-    CCNode* m_DTLayer;
-    CCNode* m_DTSSLayer;
+    std::function<void(int, cocos2d::CCNode*)> m_Callback;
     ButtonSprite* buttonSprite;
 
     void DeleteMe(CCObject*);

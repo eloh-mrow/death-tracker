@@ -1,9 +1,8 @@
 #include "../layers/LabelFontCell.hpp"
-#include "../layers/LabelSettingsLayer.hpp"
 
-LabelFontCell* LabelFontCell::create(int FontID, std::string FontFNT, std::string FontName, CCNode* SettingsLayer) {
+LabelFontCell* LabelFontCell::create(const int& FontID, const std::string& FontFNT, const std::string& FontName, const std::function<void(const int&)>& callback) {
     auto ret = new LabelFontCell();
-    if (ret && ret->init(FontID, FontFNT, FontName, SettingsLayer)) {
+    if (ret && ret->init(FontID, FontFNT, FontName, callback)) {
         ret->autorelease();
     } else {
         delete ret;
@@ -12,13 +11,11 @@ LabelFontCell* LabelFontCell::create(int FontID, std::string FontFNT, std::strin
     return ret;
 }
 
-bool LabelFontCell::init(int FontID, std::string FontFNT, std::string FontName, CCNode* SettingsLayer){
+bool LabelFontCell::init(const int& FontID, const std::string& FontFNT, const std::string& FontName, const std::function<void(const int&)>& callback){
     m_FontID = FontID;
-    m_FontFNT = FontFNT;
-    m_FontName = FontName;
-    m_SettingsLayer = SettingsLayer;
+    m_Callback = callback;
 
-    auto label = CCLabelBMFont::create(m_FontName.c_str(), m_FontFNT.c_str());
+    auto label = CCLabelBMFont::create(FontName.c_str(), FontFNT.c_str());
     label->setScale(0.35f);
     label->setAnchorPoint({0, 0.5f});
     label->setPosition({2, 10});
@@ -43,5 +40,6 @@ bool LabelFontCell::init(int FontID, std::string FontFNT, std::string FontName, 
 }
 
 void LabelFontCell::Use(CCObject*){
-    //static_cast<LabelSettingsLayer*>(m_SettingsLayer)->FontSelected(m_FontID);
+    if (m_Callback != NULL)
+        m_Callback(m_FontID);
 }

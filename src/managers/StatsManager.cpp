@@ -105,7 +105,7 @@ std::array<std::string, 62> StatsManager::m_AllFontsMap{
 
 /* main functions
 ================== */
-void StatsManager::loadLevelStats(GJGameLevel* level) {
+void StatsManager::loadLevelStats(GJGameLevel* const& level) {
     if (m_level == level) return;
 
     auto levelStatsRes = StatsManager::loadData(level);
@@ -118,7 +118,7 @@ void StatsManager::loadLevelStats(GJGameLevel* level) {
     m_level = level;
 }
 
-LevelStats StatsManager::getLevelStats(GJGameLevel* level) {
+LevelStats StatsManager::getLevelStats(GJGameLevel* const& level) {
     StatsManager::loadLevelStats(level);
     return m_levelStats;
 }
@@ -149,7 +149,7 @@ Result<LevelStats> StatsManager::getLevelStats(const std::string& levelKey){
     return Err("deaths json does not exist!");
 }
 
-Result<LevelStats> StatsManager::getBackupStats(GJGameLevel* level){
+Result<LevelStats> StatsManager::getBackupStats(GJGameLevel* const& level){
     auto levelKeyRes = StatsManager::getLevelKey(level);
 
     GEODE_UNWRAP_INTO(std::string levelKey, levelKeyRes);
@@ -166,7 +166,7 @@ Result<LevelStats> StatsManager::getBackupStats(GJGameLevel* level){
     return Err("deaths json does not exist!");
 }
 
-void StatsManager::logDeath(int percent) {
+void StatsManager::logDeath(const int& percent) {
     auto session = StatsManager::getSession();
     if (!session) return;
 
@@ -215,7 +215,7 @@ void StatsManager::logDeaths(const std::vector<int>& percents) {
     StatsManager::saveData();
 }
 
-void StatsManager::logRun(Run run) {
+void StatsManager::logRun(const Run& run) {
     bool TrackRun = false;
     if (m_levelStats.RunsToSave.size())
         if (m_levelStats.RunsToSave[0] == -1){
@@ -292,7 +292,7 @@ long long StatsManager::getNowSeconds() {
     return time_point_cast<seconds>(now).time_since_epoch().count();
 }
 
-Result<std::string> StatsManager::getLevelKey(GJGameLevel* level) {
+Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 	if (!level) return Err("invalid level!");
 
 	std::string levelId = "";
@@ -369,7 +369,7 @@ Session* StatsManager::getSession() {
     return &m_levelStats.sessions[m_levelStats.sessions.size() - 1];
 }
 
-void StatsManager::updateSessionLastPlayed(bool save) {
+void StatsManager::updateSessionLastPlayed(const bool& save) {
     auto now = StatsManager::getNowSeconds();
     auto session = StatsManager::getSession();
 
@@ -379,7 +379,7 @@ void StatsManager::updateSessionLastPlayed(bool save) {
         StatsManager::saveData();
 }
 
-void StatsManager::scheduleCreateNewSession(bool scheduled) {
+void StatsManager::scheduleCreateNewSession(const bool& scheduled) {
     if (m_levelStats.currentBest != -1)
         m_scheduleCreateNewSession = scheduled;
 }
@@ -425,7 +425,7 @@ void StatsManager::saveData() {
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-void StatsManager::saveData(const LevelStats& stats, GJGameLevel* level) {
+void StatsManager::saveData(const LevelStats& stats, GJGameLevel* const& level) {
     std::string levelKey = StatsManager::getLevelKey(level).unwrapOr("-1");
     if (levelKey == "-1") return;
     
@@ -446,11 +446,13 @@ void StatsManager::saveData(const LevelStats& stats, GJGameLevel* level) {
         ? matjson::NO_INDENTATION
         : 4;
 
+    log::info("writing {}", levelSaveFilePath.string(), levelKey);
+
     auto jsonStr = matjson::Value(stats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-void StatsManager::saveBackup(const LevelStats& stats, GJGameLevel* level) {
+void StatsManager::saveBackup(const LevelStats& stats, GJGameLevel* const& level) {
     std::string levelKey = StatsManager::getLevelKey(level).unwrapOr("-1");
     if (levelKey == "-1") return;
 
@@ -488,11 +490,13 @@ void StatsManager::saveData(const LevelStats& stats, const std::string& levelKey
         ? matjson::NO_INDENTATION
         : 4;
 
+    log::info("writing {}", levelSaveFilePath.string(), levelKey);
+
     auto jsonStr = matjson::Value(stats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
 
-Result<LevelStats> StatsManager::loadData(GJGameLevel* level) {
+Result<LevelStats> StatsManager::loadData(GJGameLevel* const& level) {
     GEODE_UNWRAP_INTO(auto levelSaveFilePath, StatsManager::getLevelSaveFilePath(level));
 
     if (std::filesystem::exists(levelSaveFilePath)){
@@ -589,7 +593,7 @@ Result<LevelStats> StatsManager::loadData(GJGameLevel* level) {
     return Ok(levelStats);
 }
 
-Result<std::tuple<NewBests, int>> StatsManager::calcNewBests(GJGameLevel* level) {
+Result<std::tuple<NewBests, int>> StatsManager::calcNewBests(GJGameLevel* const& level) {
     NewBests newBests{};
     std::stringstream bestsStream(level->m_personalBests);
     std::string currentBest;
@@ -605,7 +609,7 @@ Result<std::tuple<NewBests, int>> StatsManager::calcNewBests(GJGameLevel* level)
     return Ok(std::make_tuple(newBests, currentPercent));
 }
 
-Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* level) {
+Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* const& level) {
     std::filesystem::path filePath{};
     GEODE_UNWRAP_INTO(auto levelKey, StatsManager::getLevelKey(level));
 
@@ -613,7 +617,7 @@ Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* le
     return Ok(filePath);
 }
 
-bool StatsManager::ContainsAtIndex(int startIndex, const std::string& check, const std::string& str){
+bool StatsManager::ContainsAtIndex(const int& startIndex, const std::string& check, const std::string& str){
     if (startIndex + check.length() >= str.length()) return false;
     bool toReturn = true;
 
@@ -625,11 +629,11 @@ bool StatsManager::ContainsAtIndex(int startIndex, const std::string& check, con
     return toReturn;
 }
 
-ccColor3B StatsManager::inverseColor(ccColor3B color){
+ccColor3B StatsManager::inverseColor(const ccColor3B& color){
     return {static_cast<GLubyte>(abs(color.r - 255)), static_cast<GLubyte>(abs(color.g - 255)), static_cast<GLubyte>(abs(color.b - 255))};
 }
 
-std::string StatsManager::getFont(int fontID){
+std::string StatsManager::getFont(const int& fontID){
     for (int i = 0; i < m_AllFontsMap.size(); i++)
     {
         if (i == fontID)
@@ -638,7 +642,7 @@ std::string StatsManager::getFont(int fontID){
     return m_AllFontsMap[1];
 }
 
-std::string StatsManager::getFontName(int fontID){
+std::string StatsManager::getFontName(const int& fontID){
     for (int i = 0; i < m_AllFontsMap.size(); i++)
     {
         if (i == fontID){
@@ -660,7 +664,7 @@ std::string StatsManager::getFontName(int fontID){
     return "Chat Font";
 }
 
-std::array<std::string, 62> StatsManager::getAllFont(){
+std::array<std::string, 62> StatsManager::getAllFonts(){
     return m_AllFontsMap;
 }
 
@@ -699,7 +703,7 @@ std::pair<std::string, std::string> StatsManager::splitLevelKey(const std::strin
     return toReturn;
 }
 
-int StatsManager::getDifficulty(GJGameLevel* level){
+int StatsManager::getDifficulty(GJGameLevel* const& level){
     if (level->m_autoLevel)
         return -1;
 
@@ -780,3 +784,26 @@ std::vector<int> StatsManager::KMPSearch(const std::string& pat, const std::stri
     return toReturn;
 }
 
+int StatsManager::getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor){
+    if (text->getString() == "") return -1;
+
+    std::string tempS = text->getString();
+    if (tempS == " ") return 0;
+
+    int index = -1;
+
+    CCObject* child;
+
+    CCARRAY_FOREACH(text->getChildren(), child){
+        if (auto node = typeinfo_cast<CCNode*>(child)){
+            if (node->isVisible()){
+                index++;
+
+                if (node->getParent()->convertToWorldSpace(node->getPosition()).x > cursor->getParent()->convertToWorldSpace(cursor->getPosition()).x)
+                    return index;
+            }
+        }
+    }
+    
+    return index + 1;
+}

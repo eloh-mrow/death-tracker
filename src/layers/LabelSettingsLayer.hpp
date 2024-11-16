@@ -1,62 +1,68 @@
-// #pragma once
+#pragma once
 
-// #include <Geode/Geode.hpp>
-// #include "../layers/LabelLayoutWindow.hpp"
-// #include <Geode/ui/TextArea.hpp>
-// #include "../layers/LabelFontCell.hpp"
+#include <Geode/Geode.hpp>
+#include "../layers/LabelLayoutWindow.hpp"
+#include <Geode/ui/TextArea.hpp>
+#include "../layers/LabelFontCell.hpp"
+#include "../layers/DTLayer.hpp"
 
-// using namespace geode::prelude;
+using namespace geode::prelude;
 
-// class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&>, public TextInputDelegate, public ColorPickerDelegate {
-//     protected:
-//         bool setup(LabelLayoutWindow* const& labelWin) override;
-//     public:
-//         static LabelSettingsLayer* create(LabelLayoutWindow* const& labelWin);
+class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&, DTLayer* const&>, public ColorPickPopupDelegate, public FLAlertLayerProtocol {
+    protected:
+        bool setup(LabelLayoutWindow* const& labelWin, DTLayer* const& dtLayer) override;
 
-//     LabelLayoutWindow* m_LabelWin;
-//     void deleteLabel(CCObject*);
+        void onClose(cocos2d::CCObject*) override;
 
-//     CCNode* alighmentNode;
+        void update(float delta);
 
-//     //label name
-//     InputNode* m_LabelNameInput;
+        void updateColor(cocos2d::ccColor4B const& color) override;
 
-//     //alighment
-//     std::string AlignmentToSring(CCTextAlignment alignment);
-//     void ChangeAlignmentLeft(CCObject* object);
-//     void ChangeAlignmentRight(CCObject* object);
-//     CCLabelBMFont* m_Alighment;
+        void FLAlert_Clicked(FLAlertLayer* p0, bool p1) override;
+    public:
+        static LabelSettingsLayer* create(LabelLayoutWindow* const& labelWin, DTLayer* const& dtLayer);
 
-//     //color
-//     CCControlColourPicker* m_ColorPicker;
-//     void colorValueChanged(ccColor3B color) override;
-//     Slider* m_OpacitySlider;
-//     void OnOpacitySliderChanged(CCObject* object);
-//     InputNode* m_ColorInputR;
-//     InputNode* m_ColorInputG;
-//     InputNode* m_ColorInputB;
-//     InputNode* m_ColorInputA;
-//     InputNode* m_ColorInputHex;
-//     void textChanged(CCTextInputNode* input) override;
-//     int m_BlockSelfCall;
+        LabelLayoutWindow* m_LabelWin;
+        DTLayer* m_DTLayer;
 
-//     //text
-//     InputNode* m_TextInput;
+        void ConfirmDeletLabel(CCObject*);
+        FLAlertLayer* deleteConfPopup;
+        void deleteLabel();
+        bool deleteOnExit;
 
-//     //font
-//     SimpleTextArea* m_FontTextDisplay;
-//     GJListLayer* m_FontList = nullptr;
-//     CCNode* m_FontCont;
-//     CCNode* m_FontOuterCont;
-//     void ChangeFont(CCObject*);
-//     void FontSelected(int FontID);
+        SimpleTextArea* previewText;
+        geode::ScrollLayer* previewScroll;
+        void updatePreviewText();
+        void updatePreviewTextPosition();
+        void removeTextBestColoring();
 
-//     //font size
-//     InputNode* m_FontSizeInput;
-//     Slider* m_FontSizeSlider;
-//     void OnFontSizeSliderChanged(CCObject* object);
+        CCScale9Sprite* textPreviewWindow;
+        CCScale9Sprite* labelWinPreview;
+        void playEntryAnimation(const CCPoint& startingPoint);
+        void playColsingAnimation(const CCPoint& endPoint);
+        bool isTransitioning;
 
-//     //info
-//     void onOverallInfo(CCObject*);
-//     void onSpecialInfo(CCObject*);
-// };
+        void OnTransitionEnded(CCObject* transitionType);
+
+        TextInput* windowTitleInput;
+        void updateInputFields(const std::string& font);
+
+        CCMenuItemSpriteExtra* alignLeftButton;
+        CCMenuItemSpriteExtra* alignRightButton;
+        CCMenuItemSpriteExtra* alignCenterButton;
+        void onAlign(CCObject* sender);
+
+        TextInput* FontSizeInput;
+        Slider* FontSizeSlider;
+        void OnFontSizeSliderChanged(CCObject*);
+
+        ColorChannelSprite* ColorSprite;
+        void OnColorClicked(CCObject*);
+
+        void setFont(const int& fontID);
+
+        void useSTK(const std::string& stk);
+        TextInput* labelTextInput;
+
+        void OnInfo(CCObject*);
+};

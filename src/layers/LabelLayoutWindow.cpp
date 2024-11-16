@@ -2,7 +2,7 @@
 #include "../managers/StatsManager.hpp"
 #include "../layers/LabelSettingsLayer.hpp"
 
-LabelLayoutWindow* LabelLayoutWindow::create(LabelLayout MyLayout, DTLayer* DTLayer) {
+LabelLayoutWindow* LabelLayoutWindow::create(const LabelLayout& MyLayout, DTLayer* const& DTLayer) {
     auto ret = new LabelLayoutWindow();
     if (ret && ret->init(MyLayout, DTLayer)) {
         ret->autorelease();
@@ -13,7 +13,7 @@ LabelLayoutWindow* LabelLayoutWindow::create(LabelLayout MyLayout, DTLayer* DTLa
     return ret;
 }
 
-bool LabelLayoutWindow::init(LabelLayout MyLayout, DTLayer* DTLayer){
+bool LabelLayoutWindow::init(const LabelLayout& MyLayout, DTLayer* const& DTLayer){
 
     s = CCScale9Sprite::create("GJ_squareB_01.png");
     s->setScale(0.5f);
@@ -36,7 +36,7 @@ bool LabelLayoutWindow::init(LabelLayout MyLayout, DTLayer* DTLayer){
     return true;
 }
 
-CCPoint LabelLayoutWindow::mousePosToNode(CCNode* node){
+CCPoint LabelLayoutWindow::mousePosToNode(CCNode* const& node){
     if (!m_DTLayer->ClickPos) return {0, 0};
 
     CCPoint mousePos;
@@ -101,8 +101,9 @@ void LabelLayoutWindow::myUpdate(float delta){
                     m_DoubleClickTimer = 0.3f;
                 }
                 else{
-                    //auto Settings = LabelSettingsLayer::create(this);
-                    //m_DTLayer->addChild(Settings);
+                    auto Settings = LabelSettingsLayer::create(this, m_DTLayer);
+                    Settings->setZOrder(1);
+                    m_DTLayer->addChild(Settings);
                     m_Lock = true;
                     return;
                 }
@@ -147,7 +148,7 @@ void LabelLayoutWindow::myUpdate(float delta){
         }
 }
 
-void LabelLayoutWindow::setPositionBasedOnLayout(LabelLayout layout, int d){
+void LabelLayoutWindow::setPositionBasedOnLayout(const LabelLayout& layout, int d){
     s->setPosition({0, 0});
     this->setPosition({0, 0});
     s->setContentSize({323 / s->getScale() / 1.05f, s->getContentSize().height});
@@ -192,7 +193,7 @@ void LabelLayoutWindow::setPositionBasedOnLayout(LabelLayout layout, int d){
     this->setContentSize(s->getScaledContentSize());
 }
 
-bool LabelLayoutWindow::isMouseTouching(CCNode* node){
+bool LabelLayoutWindow::isMouseTouching(CCNode* const& node){
     bool toReturn = false;
     CCRect* rect = new CCRect(node->getPositionX(), node->getPositionY(), node->getScaledContentSize().width, node->getScaledContentSize().height);
     toReturn = rect->containsPoint(mousePosToNode(node)) && m_DTLayer->m_IsClicking;
@@ -244,7 +245,7 @@ std::pair<int, int> LabelLayoutWindow::getLineByPos(CCPoint pos){
     return std::make_pair(lineChosen, positionChosen);
 }
 
-void LabelLayoutWindow::updateLine(int line){
+void LabelLayoutWindow::updateLine(const int& line){
     for (int i = 0; i < m_DTLayer->m_LayoutLines.size(); i++)
     {
         auto winToCheck = static_cast<LabelLayoutWindow*>(m_DTLayer->m_LayoutLines[i]);
@@ -254,7 +255,20 @@ void LabelLayoutWindow::updateLine(int line){
     }
 }
 
-void LabelLayoutWindow::setMoveEnabled(bool b){
+bool LabelLayoutWindow::isNextToAnother(){
+    bool toReturn = false;
+    for (int i = 0; i < m_DTLayer->m_LayoutLines.size(); i++)
+    {
+        auto winToCheck = static_cast<LabelLayoutWindow*>(m_DTLayer->m_LayoutLines[i]);
+        if (winToCheck->m_MyLayout.line == m_MyLayoutSave.line && winToCheck != this){
+            toReturn = true;
+        }
+    }
+
+    return toReturn;
+}
+
+void LabelLayoutWindow::setMoveEnabled(const bool& b){
     MoveEnabled = b;
 }
 

@@ -1,9 +1,9 @@
 #include "../layers/LinkLevelCell.hpp"
 #include "../utils/Settings.hpp"
 
-LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, LevelStats stats, bool linked) {
+LinkLevelCell* LinkLevelCell::create(const float& cellW, const std::string& levelKey, const LevelStats& stats, const bool& linked, const std::function<void(const std::string, LevelStats , const bool &)>& callback) {
     auto ret = new LinkLevelCell();
-    if (ret && ret->init(DTL, levelKey, stats, linked)) {
+    if (ret && ret->init(cellW, levelKey, stats, linked, callback)) {
         ret->autorelease();
     } else {
         delete ret;
@@ -12,18 +12,13 @@ LinkLevelCell* LinkLevelCell::create(DTLinkLayer* DTL, std::string levelKey, Lev
     return ret;
 }
 
-bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool linked){
+bool LinkLevelCell::init(const float& cellW, const std::string& levelKey, const LevelStats& stats, const bool& linked, const std::function<void(const std::string, LevelStats, const bool &)>& callback){
 
     m_LevelKey = levelKey;
     m_Stats = stats;
     m_Linked = linked;
 
-    float cellW = 0;
-
-    if (dynamic_cast<DTLinkLayer*>(l)){
-        m_DTLinkLayer = dynamic_cast<DTLinkLayer*>(l);
-        cellW = m_DTLinkLayer->CellsWidth;
-    }
+    m_Callback = callback;
     
     auto splittedKey = StatsManager::splitLevelKey(levelKey);
 
@@ -82,34 +77,32 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
     bMenu->setPosition({0,0});
     this->addChild(bMenu);
 
-    if (m_DTLinkLayer){
-        CCSprite* MoveButtonSprite;
-        if (linked){
-            MoveButtonSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-            MoveButtonSprite->setScale(0.5f);
-        }
-        else{
-            MoveButtonSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
-            MoveButtonSprite->setScaleX(-0.5f);
-            MoveButtonSprite->setScaleY(0.5f);
-        }
-        auto MoveButton = CCMenuItemSpriteExtra::create(
-            MoveButtonSprite,
-            nullptr,
-            this,
-            menu_selector(LinkLevelCell::MoveMe)
-        );
+    CCSprite* MoveButtonSprite;
+    if (linked){
+        MoveButtonSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+        MoveButtonSprite->setScale(0.5f);
+    }
+    else{
+        MoveButtonSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        MoveButtonSprite->setScaleX(-0.5f);
+        MoveButtonSprite->setScaleY(0.5f);
+    }
+    auto MoveButton = CCMenuItemSpriteExtra::create(
+        MoveButtonSprite,
+        nullptr,
+        this,
+        menu_selector(LinkLevelCell::MoveMe)
+    );
 
-        bMenu->addChild(MoveButton);
+    bMenu->addChild(MoveButton);
 
-        if (linked){
-            MoveButton->setPosition({15, 20});
-        }
-        else{
-            MoveButton->setPosition({cellW - 15, 20});
-            MoveButton->setContentSize({-MoveButton->getContentSize().width, MoveButton->getContentSize().height});
-            MoveButtonSprite->setPositionX(-MoveButtonSprite->getPositionX());
-        }
+    if (linked){
+        MoveButton->setPosition({15, 20});
+    }
+    else{
+        MoveButton->setPosition({cellW - 15, 20});
+        MoveButton->setContentSize({-MoveButton->getContentSize().width, MoveButton->getContentSize().height});
+        MoveButtonSprite->setPositionX(-MoveButtonSprite->getPositionX());
     }
 
     scheduleUpdate();
@@ -118,5 +111,6 @@ bool LinkLevelCell::init(CCNode* l, std::string levelKey, LevelStats stats, bool
 }
 
 void LinkLevelCell::MoveMe(CCObject*){
-    m_DTLinkLayer->ChangeLevelLinked(m_LevelKey, m_Stats, m_Linked);
+    if (m_Callback != NULL)
+        m_Callback(m_LevelKey, m_Stats, m_Linked);
 }

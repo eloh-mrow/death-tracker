@@ -7,12 +7,12 @@ using namespace geode;
 
 class ChooseRunCell : public CCNode {
 protected:
-    bool init(int Precent, CCNode* DTGLayer);
+    bool init(const int& Precent, const std::function<void(const int&)>& callback);
 public:
-    static ChooseRunCell* create(int Precent, CCNode* DTLayer);
+    static ChooseRunCell* create(const int& Precent, const std::function<void(const int&)>& callback = NULL);
 
     int m_Precent;
-    CCNode* m_DTGraphLayer;
+    std::function<void(const int&)> m_Callback;
 
     void ChooseMe(CCObject*);
 };
