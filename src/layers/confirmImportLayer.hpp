@@ -15,7 +15,7 @@ class confirmImportLayer : public Popup<DTLayer* const&, const Deaths&, const Ru
         Deaths deaths;
         Runs runs;
 
-        void update(float delta);
+        void update(float delta) override;
         CCNode* text;
         
         void yesClicked(CCObject*);

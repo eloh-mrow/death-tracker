@@ -16,7 +16,7 @@ std::vector<std::string> StatsManager::splitStr(const std::string& str, const st
     while ((posEnd = str.find(delim, posStart)) != std::string::npos) {
         std::string token = str.substr(posStart, posEnd - posStart);
         posStart = posEnd + delimLen;
-        if (token != "")
+        if (!token.empty())
             res.push_back(token);
     }
 
@@ -785,7 +785,8 @@ std::vector<int> StatsManager::KMPSearch(const std::string& pat, const std::stri
 }
 
 int StatsManager::getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor){
-    if (text->getString() == "") return -1;
+    if (text->getString() == nullptr) return -1;
+    if (text->getString()[0] == '\0') return -1;
 
     std::string tempS = text->getString();
     if (tempS == " ") return 0;

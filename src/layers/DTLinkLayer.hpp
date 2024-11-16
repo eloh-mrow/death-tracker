@@ -11,7 +11,7 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
     protected:
         bool setup(DTLayer* const& layer) override;
 
-        void update(float delta);
+        void update(float delta) override;
     public:
         static DTLinkLayer* create(DTLayer* const& layer);
 
@@ -35,11 +35,11 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
 
         TextInput* seartchInput;
         std::string m_filterText;
-        void textChanged(CCTextInputNode* input);
+        void textChanged(CCTextInputNode* input) override;
 
         std::vector<std::pair<std::string, LevelStats>> m_AllLevels;
 
-        void onClose(CCObject*);
+        void onClose(CCObject*) override;
         //info
         void onOverallInfo(CCObject*);
 

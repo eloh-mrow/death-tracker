@@ -461,7 +461,7 @@ void LabelSettingsLayer::useSTK(const std::string& stk){
     labelTextInput->focus();
 
     std::string labelText = "";
-    if (labelTextInput->getString() != "")
+    if (!labelTextInput->getString().empty())
         labelText = labelTextInput->getString();
 
     int index = StatsManager::getCursorPosition(labelTextInput->getInputNode()->getPlaceholderLabel(), labelTextInput->getInputNode()->m_cursor);

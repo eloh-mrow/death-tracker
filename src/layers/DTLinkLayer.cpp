@@ -296,7 +296,7 @@ void DTLinkLayer::textChanged(CCTextInputNode* input){
     levelPage = 1;
     if (seartchInput->getInputNode() == input){
         std::string filterText = "";
-        if (input->getString() != "")
+        if (!input->getString().empty())
             filterText = input->getString();
         
         m_filterText = filterText;

@@ -14,7 +14,7 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&, DTLayer* cons
 
         void onClose(cocos2d::CCObject*) override;
 
-        void update(float delta);
+        void update(float delta) override;
 
         void updateColor(cocos2d::ccColor4B const& color) override;
 

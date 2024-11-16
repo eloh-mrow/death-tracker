@@ -106,7 +106,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void textInputOpened(CCTextInputNode* input) override;
         void textInputClosed(CCTextInputNode* input) override;
 
-        void FLAlert_Clicked(FLAlertLayer* layer, bool selected);
+        void FLAlert_Clicked(FLAlertLayer* layer, bool selected) override;
 
         void onClose(cocos2d::CCObject*) override;
 

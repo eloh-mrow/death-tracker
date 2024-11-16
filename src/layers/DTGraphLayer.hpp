@@ -11,7 +11,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
     protected:
         bool setup(DTLayer* const& layer) override;
 
-        void update(float delta);
+        void update(float delta) override;
     public:
         static DTGraphLayer* create(DTLayer* const& layer);
 
@@ -44,18 +44,18 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         CCLabelBMFont* npsLabel;
         SimpleTextArea* PointInfoLabel;
 
-        void OnPointSelected(cocos2d::CCNode* point);
+        void OnPointSelected(cocos2d::CCNode* point) override;
 
-        void OnPointDeselected(cocos2d::CCNode* point);
+        void OnPointDeselected(cocos2d::CCNode* point) override;
 
         void switchedSessionRight(CCObject*);
         void switchedSessionLeft(CCObject*);
         TextInput* m_SessionSelectionInput;
-        void textChanged(CCTextInputNode* input);
-        void textInputClosed(CCTextInputNode* input);
-        void textInputOpened(CCTextInputNode* input);
+        void textChanged(CCTextInputNode* input) override;
+        void textInputClosed(CCTextInputNode* input) override;
+        void textInputOpened(CCTextInputNode* input) override;
 
-        void onClose(cocos2d::CCObject*);
+        void onClose(cocos2d::CCObject*) override;
 
         ButtonSprite* viewModeButtonS;
         ButtonSprite* runViewModeButtonS;

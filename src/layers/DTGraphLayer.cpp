@@ -268,7 +268,7 @@ void DTGraphLayer::onTypeViewModeButton(CCObject*){
         currentType = GraphType::ReachRate;
         typeViewModeButtonS->m_label->setString("ReachRate");
     }
-    else if (currentType = GraphType::ReachRate){
+    else if (currentType == GraphType::ReachRate){
         currentType = GraphType::PassRate;
         typeViewModeButtonS->m_label->setString("PassRate");
     }
@@ -290,7 +290,7 @@ void DTGraphLayer::onRunViewModeButton(CCObject*){
 void DTGraphLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInputNode() && m_DTLayer->m_SessionsAmount > 0){
         int selected = 1;
-        if (input->getString() != ""){
+        if (!input->getString().empty()){
             auto res = utils::numFromString<int>(input->getString());
             selected = res.unwrapOr(1);
         }
@@ -315,7 +315,7 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
 
     if (input == m_RunSelectInput->getInputNode()){
         int selected = 0;
-        if (input->getString() != ""){
+        if (!input->getString().empty()){
             auto res = utils::numFromString<int>(input->getString());
             selected = res.unwrapOr(0);
         }

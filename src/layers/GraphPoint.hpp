@@ -18,7 +18,7 @@ class GraphPoint : public CCMenuItem {
     public:
         static GraphPoint* create(const std::string& run, const float& passrate, const ccColor3B& color);
 
-        void update(float delta);
+        void update(float delta) override;
 
         CCSprite* c;
 

@@ -356,7 +356,7 @@ void DTLayer::onEditLayout(CCObject* sender){
 void DTLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
         int selected = 1;
-        if (input->getString() != ""){
+        if (!input->getString().empty()){
             auto res = utils::numFromString<int>(input->getString());
             selected = res.unwrapOr(1);
         }
@@ -388,7 +388,7 @@ void DTLayer::textInputOpened(CCTextInputNode* input){
 
 void DTLayer::textInputClosed(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
-        input->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
+        m_SessionSelectionInput->setString(fmt::format("{}/{}", m_SessionSelected, m_SessionsAmount));
         m_SessionSelectionInputSelected = false;
     }
 }
@@ -647,7 +647,7 @@ void DTLayer::RefreshText(bool moveToTop){
         if (twoLabelLines[std::get<1>(lables[i])]){
             SimpleTextArea* currentArea = std::get<0>(lables[i]);
 
-            currentArea->setWidth({currentArea->getWidth() / 2});
+            currentArea->setWidth(currentArea->getWidth() / 2);
             if (std::get<2>(lables[i]) == 1){
                 currentArea->setPositionX(currentArea->getPositionX() + currentArea->getWidth() / 2);
             }

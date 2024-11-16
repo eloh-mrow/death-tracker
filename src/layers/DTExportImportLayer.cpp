@@ -340,11 +340,11 @@ void DTExportImportLayer::onImportClicked(CCObject*){
                 //log::info("before 3 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
 
                 if (fileText[i] == '\n' || fileText[i] == ',' || fileText.length() - 1 == i){
-                    if (num != "" && amount == ""){
+                    if (!num.empty() && !amount.empty()){
                         amount = "1";
                     }
 
-                    if (searchPhase >= 1 && num != ""){
+                    if (searchPhase >= 1 && !num.empty()){
                         if (!isRun)
                             deathDetected[num] += geode::utils::numFromString<int>(amount).unwrapOr(0);
                         else

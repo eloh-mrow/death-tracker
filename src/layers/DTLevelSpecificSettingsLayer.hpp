@@ -63,7 +63,7 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
         void EnableTouch(bool b);
         std::vector<CCMenu*> touchMenus{};
 
-        void FLAlert_Clicked(FLAlertLayer* layer, bool selected);
+        void FLAlert_Clicked(FLAlertLayer* layer, bool selected) override;
         void textChanged(CCTextInputNode* input);
         
         void addRunStartInputKeyDown();
