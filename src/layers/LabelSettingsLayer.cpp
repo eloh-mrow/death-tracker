@@ -314,17 +314,19 @@ void LabelSettingsLayer::playEntryAnimation(const CCPoint& startingPoint){
     m_mainLayer->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 1), 2));
     textPreviewWindow->runAction(CCEaseInOut::create(CCScaleTo::create(transitionDuration, 1), 2));
 
-    m_mainLayer->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {384, 185}), 2));
-    textPreviewWindow->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {110, 185}), 2));
+    //569 : 320
+
+    m_mainLayer->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {winSize.width / 2 + 99.5f, 185}), 2));
+    textPreviewWindow->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {winSize.width / 2 - 174.5f, 185}), 2));
     labelWinPreview->runAction(CCEaseInOut::create(CCMoveTo::create(transitionDuration * 1.3f, {winSize.width / 2, 35}), 2));
 }
 
 void LabelSettingsLayer::onClose(cocos2d::CCObject*){
     if (!isTransitioning)
-        LabelSettingsLayer::playColsingAnimation(m_LabelWin->getParent()->convertToWorldSpace(m_LabelWin->getPosition()) + m_LabelWin->getContentSize() / 2);
+        LabelSettingsLayer::playClosingAnimation(m_LabelWin->getParent()->convertToWorldSpace(m_LabelWin->getPosition()) + m_LabelWin->getContentSize() / 2);
 }
 
-void LabelSettingsLayer::playColsingAnimation(const CCPoint& endPoint){
+void LabelSettingsLayer::playClosingAnimation(const CCPoint& endPoint){
     isTransitioning = true;
 
     float transitionDuration = 0.2f;

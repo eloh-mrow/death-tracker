@@ -39,7 +39,7 @@ class LabelSettingsLayer : public Popup<LabelLayoutWindow* const&, DTLayer* cons
         CCScale9Sprite* textPreviewWindow;
         CCScale9Sprite* labelWinPreview;
         void playEntryAnimation(const CCPoint& startingPoint);
-        void playColsingAnimation(const CCPoint& endPoint);
+        void playClosingAnimation(const CCPoint& endPoint);
         bool isTransitioning;
 
         void OnTransitionEnded(CCObject* transitionType);
