@@ -458,7 +458,9 @@ void LabelSettingsLayer::setFont(const int& fontID){
 }
 
 void LabelSettingsLayer::useSTK(const std::string& stk){
+    #if !defined(GEODE_IS_ANDROID)
     labelTextInput->focus();
+    #endif
 
     std::string labelText = "";
     if (!labelTextInput->getString().empty())

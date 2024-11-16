@@ -337,7 +337,9 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
             "{}",
-            "- <cg>fixed a crash when opening the link layer (i hope)</c>"
+            "- <cg>updated for geode v4.0.0-beta.1</c>"
+            "- <cg>completely revamped the 'LabelSettingsLayer', it is now a lot better and comprehensive</c>"
+            "- <cg>reworked/organized some code</c>"
         ), "OK", nullptr, 415, false, 200, 1)->show();
     }
 
