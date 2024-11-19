@@ -32,7 +32,7 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void levelComplete();
 
-    void resetLevelFromStart();
+    void removeAllCheckpoints();
 
     #if defined(GEODE_IS_MACOS)
 

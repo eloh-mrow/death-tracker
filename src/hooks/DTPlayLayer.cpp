@@ -224,9 +224,8 @@ void DTPlayLayer::levelComplete() {
     }            
 }
 
-void DTPlayLayer::resetLevelFromStart() {
-    PlayLayer::resetLevelFromStart();
-    //log::info("PlayLayer::resetLevelFromStart()");
+void DTPlayLayer::removeAllCheckpoints() {
+    PlayLayer::removeAllCheckpoints();
 
     m_fields->currentRun.end = 0;
 }

@@ -373,13 +373,7 @@ CCNode* DTGraphLayer::CreateGraph(
     auto clippingNode = CCClippingNode::create();
     toReturnNode->addChild(clippingNode);
 
-    auto mask = new CCDrawNode();
-
-    if (mask && mask->init())
-        mask->autorelease();
-    else
-        CC_SAFE_DELETE(mask);
-
+    auto mask = CCDrawNode::create();
     mask->drawPolygon(MaskShape, 4, ccc4FFromccc4B(graphBoxFillColor), graphBoxOutlineThickness, ccc4FFromccc4B(graphBoxOutlineColor));
     clippingNode->setStencil(mask);
     clippingNode->addChild(mask);
@@ -508,13 +502,7 @@ CCNode* DTGraphLayer::CreateGraph(
     }
 
     //create graph
-    auto line = new CCDrawNode();
-
-    if (line && line->init())
-        line->autorelease();
-    else
-        CC_SAFE_DELETE(line);
-
+    auto line = CCDrawNode::create();
     for (int i = 0; i < lines.size(); i++)
     {
         if (i != 0){
@@ -530,13 +518,7 @@ CCNode* DTGraphLayer::CreateGraph(
     tempT->setScale(0.4f);
     float XForPr = tempT->getScaledContentSize().width;
 
-    auto gridNode = new CCDrawNode();
-
-    if (gridNode && gridNode->init())
-        gridNode->autorelease();
-    else
-        CC_SAFE_DELETE(gridNode);
-
+    auto gridNode = CCDrawNode::create();
     gridNode->setZOrder(-1);
     clippingNode->addChild(gridNode);
 
