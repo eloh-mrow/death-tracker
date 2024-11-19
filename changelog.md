@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.4.1
+- fixed macos inline crash
+- fixed a TON of text alignment issues
+- made stat calculations happen in the background, should result in less lag when navigating the menus
+- added the "hide runs by length" to let you remove some clutter in the menu
+- now removing a run from zero completely will also erase it from your "new bests"
+- added the option to have the death tracker button on the left menu in the level page
+- added the option to change the graph points size
+- some bug fixes
+
 ## v2.4.0
 - updated for geode v4.0.0-beta.1
 - completely revamped the 'LabelSettingsLayer', it is now a lot better and comprehensive

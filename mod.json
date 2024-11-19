@@ -1,12 +1,12 @@
 {
-	"geode": "4.0.0-beta.1",
+	"geode": "4.0.0",
 	"gd": {
         "android": "2.2074",
         "win": "2.2074",
 		"mac": "2.2074",
 		"ios": "2.2074"
     },
-	"version": "v2.4.0",
+	"version": "v2.4.1",
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
 	"developer": "abb2k",
@@ -40,6 +40,12 @@
 			"type": "bool",
 			"default": true
 		},
+		"left-menu": {
+			"name": "Left Menu Button",
+			"description": "Moves the death tracker button to the left menu of the level page.",
+			"type": "bool",
+			"default": false
+		},
 		"late-save": {
 			"name": "Late Save",
 			"description": "Will save your deaths when exiting the level instead of when you die, this may fix lag spikes that happen on death.",
@@ -57,6 +63,14 @@
 			"description": "Deaths will be shown instead of runs from 0% in practice mode.",
 			"type": "bool",
 			"default": true
+		},
+		"graph-point-size": {
+			"name": "Graph point size",
+			"description": "determines the size of the points on the graph (this setting will layer be moved to the graph layer)",
+			"type": "float",
+			"default": 1,
+			"min": 0.5,
+			"max": 2
 		},
 		"save-path-new": {
 			"type": "folder",

@@ -126,12 +126,12 @@ bool DTLevelSpecificSettingsLayer::init(const CCSize& size, DTLayer* const& _DTL
             allRunsToggle->toggle(true);
         }
 
-    allRunsToggle->setPosition({52.5f, 32});
+    allRunsToggle->setPosition({48.5f, 32});
     allRunsToggle->setScale(0.7f);
     runsButtonsMenu->addChild(allRunsToggle);
 
     auto allRunsToggleLabel = CCLabelBMFont::create("Track any run", "bigFont.fnt");
-    allRunsToggleLabel->setPosition({52.5f, 14});
+    allRunsToggleLabel->setPosition({48.5f, 14});
     allRunsToggleLabel->setScale(0.325f);
     runsButtonsMenu->addChild(allRunsToggleLabel);
 
@@ -175,16 +175,30 @@ bool DTLevelSpecificSettingsLayer::init(const CCSize& size, DTLayer* const& _DTL
         DeleteUnusedButtonLabel->setOpacity(100);
     }
 
-    auto HideUptoInputLabel = CCLabelBMFont::create("Hide Up To", "bigFont.fnt");
-    HideUptoInputLabel->setPosition({52.5f, -30});
-    HideUptoInputLabel->setScale(0.45f);
-    runsMenu->addChild(HideUptoInputLabel);
+    auto HideRunLengthLabel = CCLabelBMFont::create("Hide runs by length", "bigFont.fnt");
+    HideRunLengthLabel->setPosition({48.5f, -7});
+    HideRunLengthLabel->setScale(0.275f);
+    runsMenu->addChild(HideRunLengthLabel);
+
+    HideRunLengthInput = TextInput::create(165, "hiderun len");
+    HideRunLengthInput->getInputNode()->setMaxLabelLength(3);
+    HideRunLengthInput->setCommonFilter(CommonFilter::Uint);
+    HideRunLengthInput->setDelegate(this);
+    HideRunLengthInput->setPosition({48.5f, -22});
+    HideRunLengthInput->setString(std::to_string(myDTLayer->m_MyLevelStats.hideRunLength));
+    HideRunLengthInput->setScale(0.5f);
+    runsMenu->addChild(HideRunLengthInput);
+
+    auto HideUptoILabel = CCLabelBMFont::create("Hide up to", "bigFont.fnt");
+    HideUptoILabel->setPosition({48.5f, -38});
+    HideUptoILabel->setScale(0.45f);
+    runsMenu->addChild(HideUptoILabel);
 
     HideUptoInput = TextInput::create(165, "hideto %");
     HideUptoInput->getInputNode()->setMaxLabelLength(3);
     HideUptoInput->setCommonFilter(CommonFilter::Uint);
     HideUptoInput->setDelegate(this);
-    HideUptoInput->setPosition({52.5f, -47});
+    HideUptoInput->setPosition({48.5f, -55});
     HideUptoInput->setString(std::to_string(myDTLayer->m_MyLevelStats.hideUpto));
     HideUptoInput->setScale(0.5f);
     runsMenu->addChild(HideUptoInput);
@@ -608,12 +622,13 @@ void DTLevelSpecificSettingsLayer::deleteUnused(CCObject*){
 }
 
 void DTLevelSpecificSettingsLayer::onRunsAInfo(CCObject*){
-    auto alert = FLAlertLayer::create("Help", fmt::format("{}\n{}\n{}\n{}",
-    "- <cg>Runs list</c>, any run starting from a percentage within this list will be tracked.",
+    auto alert = FLAlertLayer::create(nullptr, "Help", fmt::format("{}\n{}\n{}\n{}\n{}",
+    "- <cg>Runs list</c>: any run starting from a percentage within this list will be tracked.",
     "- <cr>Delete unused</c> will delete all runs that don't start from a percentage that's on the <cg>runs list</c>.",
     "- <cy>Track any run</c> will let the mod track any run starting at any percentage. This will disable the <cg>runs list</c>.",
+    "- <ca>Hide runs by length</c> will hide any run that lasts a shorter amount then the inputted percentage.",
     "- <cl>Hide up to</c> will hide any run from 0% that's below the inputted percentage."
-    ), "Ok");
+    ), "Ok", nullptr, 375);
     alert->show();
 }
 
@@ -666,8 +681,7 @@ void DTLevelSpecificSettingsLayer::onAddedFZRun(CCObject*){
 
     StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
     myDTLayer->UpdateSharedStats();
-    myDTLayer->refreshStrings();
-    myDTLayer->RefreshText();
+    myDTLayer->refreshAll();
 }
 
 void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
@@ -688,8 +702,12 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
         
     if (myDTLayer->m_MyLevelStats.deaths.contains(std::to_string(precent))){
         myDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
+
         if (myDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
             myDTLayer->m_MyLevelStats.deaths.erase(std::to_string(precent));
+
+            if (myDTLayer->m_MyLevelStats.newBests.contains(precent))
+                myDTLayer->m_MyLevelStats.newBests.erase(precent);
         }
 
         StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
@@ -705,8 +723,12 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
 
             if (lStats.deaths.contains(std::to_string(precent))){
                 lStats.deaths[std::to_string(precent)] -= amount;
+
                 if (lStats.deaths[std::to_string(precent)] <= 0){
                     lStats.deaths.erase(std::to_string(precent));
+
+                    if (lStats.newBests.contains(precent))
+                        lStats.newBests.erase(precent);
                 }
 
                 StatsManager::saveData(lStats, myDTLayer->m_MyLevelStats.LinkedLevels[i]);
@@ -717,8 +739,7 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
     }
     
     myDTLayer->UpdateSharedStats();
-    myDTLayer->refreshStrings();
-    myDTLayer->RefreshText();
+    myDTLayer->refreshAll();
 }
 
 void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
@@ -754,8 +775,7 @@ void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
 
     StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
     myDTLayer->UpdateSharedStats();
-    myDTLayer->refreshStrings();
-    myDTLayer->RefreshText();
+    myDTLayer->refreshAll();
 }
 
 void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
@@ -816,11 +836,9 @@ void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
         }
         
     }
-
     
     myDTLayer->UpdateSharedStats();
-    myDTLayer->refreshStrings();
-    myDTLayer->RefreshText();
+    myDTLayer->refreshAll();
 }
 
 void DTLevelSpecificSettingsLayer::onModRunsInfo(CCObject*){
@@ -880,8 +898,7 @@ void DTLevelSpecificSettingsLayer::FLAlert_Clicked(FLAlertLayer* layer, bool sel
 
         StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
         myDTLayer->UpdateSharedStats();
-        myDTLayer->refreshStrings();
-        myDTLayer->RefreshText();
+        myDTLayer->refreshAll();
     }
 
     if (currDeleteAlert == layer && selected){
@@ -1009,8 +1026,38 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
         myDTLayer->m_MyLevelStats.hideUpto = res;
 
         StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
-        myDTLayer->refreshStrings();
-        myDTLayer->RefreshText();
+        myDTLayer->refreshAll();
+    }
+
+    if (input == HideRunLengthInput->getInputNode()){
+
+        int res = 0;
+        if (!input->getString().empty()){
+            auto resNum = utils::numFromString<int>(input->getString());
+            res = resNum.unwrapOr(0);
+        }
+
+        if (res > 100){
+            res = 100;
+            input->setString("100");
+        }
+
+        for (int i = 0; i < myDTLayer->m_MyLevelStats.LinkedLevels.size(); i++)
+        {
+            auto currStats = StatsManager::getLevelStats(myDTLayer->m_MyLevelStats.LinkedLevels[i]).unwrapOrDefault();
+            if (currStats.levelName == "Unknown name"){
+                Notification::create("Failed syncing data with linked level - " + myDTLayer->m_MyLevelStats.LinkedLevels[i])->show();
+                return;
+            }
+
+            currStats.hideRunLength = res;
+            StatsManager::saveData(currStats, myDTLayer->m_MyLevelStats.LinkedLevels[i]);
+        }
+
+        myDTLayer->m_MyLevelStats.hideRunLength = res;
+
+        StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
+        myDTLayer->refreshAll();
     }
 
     if (input == addFZRunInput->getInputNode()){
@@ -1058,10 +1105,10 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == runsAmountInput->getInputNode()){
 
-        int res = 0;
+        int res = 1;
         if (!input->getString().empty()){
             auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
+            res = resNum.unwrapOr(1);
         }
 
         if (res == 0){

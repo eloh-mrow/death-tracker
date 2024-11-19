@@ -22,8 +22,16 @@ bool Settings::getPauseMenuEnabled(){
     return Mod::get()->getSettingValue<bool>("pause-menu");
 }
 
+bool Settings::getLeftMenuEnabled(){
+    return Mod::get()->getSettingValue<bool>("left-menu");
+}
+
 bool Settings::getLateSaveEnabled(){
     return Mod::get()->getSettingValue<bool>("late-save");
+}
+
+float Settings::getGraphPointSize(){
+    return static_cast<float>(Mod::get()->getSettingValue<double>("graph-point-size"));
 }
 
 std::filesystem::path Settings::getSavePath(){

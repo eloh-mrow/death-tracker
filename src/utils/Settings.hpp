@@ -10,6 +10,8 @@ public:
     static bool isCompletedLevelTrackingDisabled();
     static bool isPracticeZeroDeathsEnabled();
     static bool getPauseMenuEnabled();
+    static bool getLeftMenuEnabled();
     static bool getLateSaveEnabled();
+    static float getGraphPointSize();
     static std::filesystem::path getSavePath();
 };

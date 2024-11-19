@@ -1,5 +1,6 @@
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/ChooseRunCell.hpp"
+#include "../utils/Settings.hpp"
 
 DTGraphLayer* DTGraphLayer::create(DTLayer* const& layer) {
     auto ret = new DTGraphLayer();
@@ -234,11 +235,11 @@ void DTGraphLayer::update(float delta){
 
         if (runFixed != "<" && runFixed.length() > 1){
             //new best color
-            if (m_DTLayer->isKeyInIndex(runFixed, 1, "nbc>")){
+            if (StatsManager::isKeyInIndex(runFixed, 1, "nbc>")){
                 runFixed.erase(0, 5);
             }
             //sessions best color
-            if (m_DTLayer->isKeyInIndex(runFixed, 1, "sbc>")){
+            if (StatsManager::isKeyInIndex(runFixed, 1, "sbc>")){
                 runFixed.erase(0, 5);
             }
         }
@@ -308,7 +309,7 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
         m_DTLayer->m_SessionSelectionInput->setString(fmt::format("{}/{}", selected, m_DTLayer->m_SessionsAmount));
 
         m_DTLayer->m_SessionSelected = selected;
-        m_DTLayer->updateSessionString(m_DTLayer->m_SessionSelected);
+        m_DTLayer->refreshSession();
         if (!ViewModeNormal)
             refreshGraph();
     }
@@ -491,12 +492,12 @@ CCNode* DTGraphLayer::CreateGraph(
     for (int i = 0; i < lines.size(); i++)
     {
         if (ignoredIndexes.contains(i)) continue;
-        if (lines[i].x >= 0 || lines[i].x <= 100 * Scaling.x || lines[i].y >= 0 || lines[i].y <= 100 * Scaling.y)
+        if (lines[i].x >= 0 && lines[i].x <= 100 * Scaling.x && lines[i].y >= 0 && lines[i].y <= 100 * Scaling.y)
         {
             auto GP = GraphPoint::create(fmt::format("{}%", lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
             GP->setDelegate(this);
             GP->setPosition(lines[i]);
-            GP->setScale(0.06f);
+            GP->setScale(Settings::getGraphPointSize() / 20 + 0.01f);
             MenuForGP->addChild(GP);
         }
     }
@@ -721,12 +722,12 @@ CCNode* DTGraphLayer::CreateRunGraph(
 
     for (int i = 0; i < lines.size(); i++)
     {
-        if (lines[i].x >= 0 || lines[i].x <= 100 * Scaling.x || lines[i].y >= 0 || lines[i].y <= 100 * Scaling.y)
+        if (lines[i].x >= 0 && lines[i].x <= 100 * Scaling.x && lines[i].y >= 0 && lines[i].y <= 100 * Scaling.y)
         {
             auto GP = GraphPoint::create(fmt::format("{}% - {}%", RunStartPrecent, lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
             GP->setDelegate(this);
             GP->setPosition(lines[i]);
-            GP->setScale(0.05f);
+            GP->setScale(Settings::getGraphPointSize() / 20 + 0.01f);
             MenuForGP->addChild(GP);
         }
     }
@@ -863,9 +864,7 @@ void DTGraphLayer::OnPointDeselected(cocos2d::CCNode* point){
             pointToDisplay.erase(std::next(pointToDisplay.begin(), i));
             break;
         }
-            
     }
-    
 }
 
 void DTGraphLayer::switchedSessionRight(CCObject*){
@@ -880,7 +879,7 @@ void DTGraphLayer::switchedSessionRight(CCObject*){
         m_DTLayer->m_SessionSelectionInput->setString(fmt::format("{}/{}",m_DTLayer-> m_SessionSelected, m_DTLayer->m_SessionsAmount));
         m_SessionSelectionInput->setString(fmt::format("{}/{}",m_DTLayer-> m_SessionSelected, m_DTLayer->m_SessionsAmount));
     }
-    m_DTLayer->updateSessionString(m_DTLayer->m_SessionSelected);
+    m_DTLayer->refreshSession();
     if (!ViewModeNormal)
         refreshGraph();
 }
@@ -898,13 +897,13 @@ void DTGraphLayer::switchedSessionLeft(CCObject*){
         m_SessionSelectionInput->setString(fmt::format("{}/{}", m_DTLayer->m_SessionSelected, m_DTLayer->m_SessionsAmount));
     }
         
-    m_DTLayer->updateSessionString(m_DTLayer->m_SessionSelected);
+    m_DTLayer->refreshSession();
     if (!ViewModeNormal)
         refreshGraph();
 }
 
 void DTGraphLayer::onClose(cocos2d::CCObject*) {
-    m_DTLayer->RefreshText();
+    m_DTLayer->refreshAll();
     m_DTLayer->m_SessionSelectionInputSelected = false;
     this->setKeypadEnabled(false);
     this->setTouchEnabled(false);

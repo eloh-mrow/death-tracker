@@ -63,8 +63,8 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin, DTLayer* cons
 
     previewText = SimpleTextArea::create("", StatsManager::getFont(labelWin->m_MyLayout.font), labelWin->m_MyLayout.fontSize / 1.8f);
     previewText->setAnchorPoint({.5f, 1});
-    previewText->setWidth(previewScroll->getContentWidth());
-    previewText->setWrappingMode(WrappingMode::NO_WRAP);
+    previewText->setWrappingMode(WrappingMode::WORD_WRAP);
+    previewText->setWidth(previewScroll->getContentWidth() - 20);
     previewScroll->m_contentLayer->addChild(previewText);
 
     previewText->setAlignment(m_LabelWin->m_MyLayout.alignment);
@@ -223,8 +223,8 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin, DTLayer* cons
         {"{s0}", "will include <co>all runs from 0</c> that are within your <cy>selected session</c>."},
         {"{sruns}", "will include <co>all</c> runs from <cl>practice</c> and <cg>startpos</c> that are within your <cy>selected session</c>."},
         {"{nl}", "inserts a <cg>new line</c> into the text."},
-        {"{ssd}", "will display the <co>date</c> in which your <cy>selected session</c> accrued.\n<cj>[month/day/year]</c>"},
-        {"{sst}", "will display the <co>time</c> in which your <cy>selected session</c> accrued.\n<cj>[AM/PM]</c>"}
+        {"{ssd}", "will display the <co>date</c> in which your <cy>selected session</c> occurred.\n<cj>[month/day/year]</c>"},
+        {"{sst}", "will display the <co>time</c> in which your <cy>selected session</c> occurred.\n<cj>[AM/PM]</c>"}
     };
 
     CCArray* specialTextKeys = CCArray::create();
@@ -514,12 +514,12 @@ void LabelSettingsLayer::removeTextBestColoring(){
     {
         std::string s = previewText->getLines()[i]->getString();
         if (s != "<" && s.length() > 1){
-            if (m_DTLayer->isKeyInIndex(s, 1, "nbc>")){
+            if (StatsManager::isKeyInIndex(s, 1, "nbc>")){
                 s.erase(0, 5);
                 previewText->getLines()[i]->setString(s.c_str());
                 previewText->getLines()[i]->setColor(m_DTLayer->colorSpritenb->getColor());
             }
-            if (m_DTLayer->isKeyInIndex(s, 1, "sbc>")){
+            if (StatsManager::isKeyInIndex(s, 1, "sbc>")){
                 s.erase(0, 5);
                 previewText->getLines()[i]->setString(s.c_str());
                 previewText->getLines()[i]->setColor(m_DTLayer->colorSpritesb->getColor()); 
@@ -569,7 +569,7 @@ void LabelSettingsLayer::OnInfo(CCObject*){
     "<cr>Font</c> - change the font of the text.",
     "<cc>Special text keys</c> - allows you to add special things into your text! an explanation is available in each key.",
     "<ca>Text preview</c> - displays how the text should look in action :D",
-    "<cl>Label preview</c> - this is the small box fond at the bottom. displays how the label will look and allow you to change the labels name."
+    "<cl>Label preview</c> - this is the small box found at the bottom. displays how the label will look and allow you to change the labels name."
     ).c_str(), "Ok", nullptr, 450);
     alert->show();
 }

@@ -137,7 +137,7 @@ Result<LevelStats> StatsManager::getLevelStats(const std::filesystem::path& leve
 }
 
 Result<LevelStats> StatsManager::getLevelStats(const std::string& levelKey){
-    auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");;
+    auto levelSaveFilePath = m_savesFolderPath / (levelKey + ".json");
 
     if (std::filesystem::exists(levelSaveFilePath)){
         auto res = file::readJson(levelSaveFilePath);
@@ -217,7 +217,7 @@ void StatsManager::logDeaths(const std::vector<int>& percents) {
 
 void StatsManager::logRun(const Run& run) {
     bool TrackRun = false;
-    if (m_levelStats.RunsToSave.size())
+    if (m_levelStats.RunsToSave.size()){
         if (m_levelStats.RunsToSave[0] == -1){
             TrackRun = true;
         }
@@ -230,6 +230,7 @@ void StatsManager::logRun(const Run& run) {
                 }
             }
         }
+    }
 
     if (!TrackRun) return;
 
@@ -252,7 +253,7 @@ void StatsManager::logRuns(const std::vector<Run>& runs) {
     bool TrackRun = false;
     for (int i = 0; i < runs.size(); i++)
     {
-        if (m_levelStats.RunsToSave.size())
+        if (m_levelStats.RunsToSave.size()){
             if (m_levelStats.RunsToSave[0] == -1){
                 TrackRun = true;
             }
@@ -265,7 +266,8 @@ void StatsManager::logRuns(const std::vector<Run>& runs) {
                     }
                 }
             }
-
+        }
+            
         if (!TrackRun) return;
 
         auto session = StatsManager::getSession();
@@ -446,8 +448,6 @@ void StatsManager::saveData(const LevelStats& stats, GJGameLevel* const& level) 
         ? matjson::NO_INDENTATION
         : 4;
 
-    log::info("writing {}", levelSaveFilePath.string(), levelKey);
-
     auto jsonStr = matjson::Value(stats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
 }
@@ -489,8 +489,6 @@ void StatsManager::saveData(const LevelStats& stats, const std::string& levelKey
     auto indentation = Dev::MINIFY_SAVE_FILE
         ? matjson::NO_INDENTATION
         : 4;
-
-    log::info("writing {}", levelSaveFilePath.string(), levelKey);
 
     auto jsonStr = matjson::Value(stats).dump(indentation);
     auto _ = file::writeString(levelSaveFilePath, jsonStr);
@@ -807,4 +805,10 @@ int StatsManager::getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* c
     }
     
     return index + 1;
+}
+
+bool StatsManager::StatsManager::isKeyInIndex(const std::string& s, const int& index, const std::string& key) {
+    if (index + key.length() > s.length()) return false;
+
+    return s.substr(index, key.length()) == key;
 }

@@ -7,6 +7,9 @@
 
 using namespace geode::prelude;
 
+using DeathStringTask = Task<Result<std::vector<DeathInfo>>>;
+using ResultTask = Task<Result<>>;
+
 class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, public FLAlertLayerProtocol, public ColorPickPopupDelegate {
     protected:
         bool setup(GJGameLevel* const& Level) override;
@@ -34,11 +37,10 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void RefreshText(bool moveToTop = false);
         CCNode* m_TextCont = nullptr;
         std::string modifyString(std::string ToModify);
-        bool isKeyInIndex(const std::string& s, int Index, const std::string& key);
 
-        Result<std::vector<DeathInfo>> CreateDeathsString(const Deaths& deaths, const NewBests& newBests);
-        Result<std::vector<DeathInfo>> CreateRunsString(const Runs& runs);
-        void refreshStrings();
+        DeathStringTask CreateDeathsString(const Deaths& deaths, const NewBests& newBests);
+        DeathStringTask CreateRunsString(const Runs runs);
+        ResultTask refreshStrings();
 
         std::vector<DeathInfo> m_DeathsInfo;
         std::vector<DeathInfo> selectedSessionInfo;
@@ -57,7 +59,7 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         int m_SessionsAmount;
         int m_SessionSelected;
         bool m_SessionSelectionInputSelected;
-        void updateSessionString(const int& session);
+        ResultTask updateSessionString(const int& session);
         void SwitchSessionRight(CCObject*);
         void SwitchSessionLeft(CCObject*);
 
@@ -136,4 +138,12 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         void onMoveTransitionEnded(CCObject* LSSL);
         bool isExitingSSLayer = false;
         CCSprite* levelSettingsBSArrow;
+
+        //
+        EventListener<ResultTask> refreshListener;
+        void refreshAll(bool moveToTop = false);
+        void refreshSession(bool moveToTop = false);
+
+        void onRefreshFinished(ResultTask::Event* event);
+        LoadingCircle* refreshLoadingCircle = nullptr;
 };

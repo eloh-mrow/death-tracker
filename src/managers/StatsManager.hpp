@@ -51,6 +51,7 @@ struct LevelStats_s {
     int attempts;
     int difficulty;
     int hideUpto;
+    int hideRunLength;
 };
 typedef struct LevelStats_s LevelStats;
 
@@ -125,6 +126,12 @@ struct matjson::Serialize<LevelStats> {
         else
             stats.difficulty = 0;
 
+        if (value.contains("hideRunLength")){
+            GEODE_UNWRAP_INTO(stats.hideRunLength, value["hideRunLength"].asInt());
+        }
+        else
+            stats.hideRunLength = 0;
+
         if (value.contains("hideUpto")){
             GEODE_UNWRAP_INTO(stats.hideUpto, value["hideUpto"].asInt());
         }
@@ -146,6 +153,7 @@ struct matjson::Serialize<LevelStats> {
             { "levelName", value.levelName },
             { "attempts", value.attempts },
             { "difficulty", value.difficulty },
+            { "hideRunLength", value.hideRunLength },
             { "hideUpto", value.hideUpto },
         });
         return obj;
@@ -247,4 +255,6 @@ public:
     static std::vector<int> KMPSearch(const std::string& pat, const std::string& txt);
 
     static int getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor);
+
+    static bool isKeyInIndex(const std::string& s, const int& Index, const std::string& key);
 };

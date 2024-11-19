@@ -93,59 +93,61 @@ void LabelLayoutWindow::myUpdate(float delta){
 
     if (!MoveEnabled) return;
 
-    if (this->getParent()->isVisible())
-        if (isMouseTouching(this) && !m_Lock){
-            
-            if (!m_DTLayer->m_IsMovingAWindow){
-                if (m_DoubleClickTimer <= 0){
-                    m_DoubleClickTimer = 0.3f;
-                }
-                else{
-                    auto Settings = LabelSettingsLayer::create(this, m_DTLayer);
-                    Settings->setZOrder(1);
-                    m_DTLayer->addChild(Settings);
-                    m_Lock = true;
-                    return;
-                }
+    if (!this->getParent()->isVisible())
+        return;
 
-                m_DTLayer->m_IsMovingAWindow = true;
-                m_FollowMouse = true;
-                m_DTLayer->m_ScrollLayer->setTouchEnabled(false);
-                m_MyLayoutSave = m_MyLayout;
-                this->setZOrder(2);
-
-                int lineToUpdate = m_MyLayout.line;
-
-                m_MyLayout.line = -1;
-                m_MyLayout.position = -1;
-
-                updateLine(lineToUpdate);
+    if (isMouseTouching(this) && !m_Lock){
+        
+        if (!m_DTLayer->m_IsMovingAWindow){
+            if (m_DoubleClickTimer <= 0){
+                m_DoubleClickTimer = 0.3f;
             }
-        }
-        else{
-            m_Lock = m_DTLayer->m_IsClicking;
-            if (m_FollowMouse){
-                m_DTLayer->m_IsMovingAWindow = false;
-                m_FollowMouse = false;
-                auto positioning = getLineByPos(mousePosToNode(this));
-                this->setZOrder(0);
-                if (positioning.first != -1){
-                    m_MyLayout.line = positioning.first;
-                    m_MyLayout.position = positioning.second;
-                    
-                    setPositionBasedOnLayout(m_MyLayout);
-                }
-                else{
-                    m_MyLayout.line = m_MyLayoutSave.line;
-                    m_MyLayout.position = m_MyLayoutSave.position;
-                    setPositionBasedOnLayout(m_MyLayout);
-                }
+            else{
+                auto Settings = LabelSettingsLayer::create(this, m_DTLayer);
+                Settings->setZOrder(1);
+                m_DTLayer->addChild(Settings);
+                m_Lock = true;
+                return;
+            }
 
-                m_DTLayer->changeScrollSizeByBoxes();
+            m_DTLayer->m_IsMovingAWindow = true;
+            m_FollowMouse = true;
+            m_DTLayer->m_ScrollLayer->setTouchEnabled(false);
+            m_MyLayoutSave = m_MyLayout;
+            this->setZOrder(2);
+
+            int lineToUpdate = m_MyLayout.line;
+
+            m_MyLayout.line = -1;
+            m_MyLayout.position = -1;
+
+            updateLine(lineToUpdate);
+        }
+    }
+    else{
+        m_Lock = m_DTLayer->m_IsClicking;
+        if (m_FollowMouse){
+            m_DTLayer->m_IsMovingAWindow = false;
+            m_FollowMouse = false;
+            auto positioning = getLineByPos(mousePosToNode(this));
+            this->setZOrder(0);
+            if (positioning.first != -1){
+                m_MyLayout.line = positioning.first;
+                m_MyLayout.position = positioning.second;
                 
-                m_DTLayer->m_ScrollLayer->setTouchEnabled(true);
+                setPositionBasedOnLayout(m_MyLayout);
             }
+            else{
+                m_MyLayout.line = m_MyLayoutSave.line;
+                m_MyLayout.position = m_MyLayoutSave.position;
+                setPositionBasedOnLayout(m_MyLayout);
+            }
+
+            m_DTLayer->changeScrollSizeByBoxes();
+            
+            m_DTLayer->m_ScrollLayer->setTouchEnabled(true);
         }
+    }
 }
 
 void LabelLayoutWindow::setPositionBasedOnLayout(const LabelLayout& layout, int d){

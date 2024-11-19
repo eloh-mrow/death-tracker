@@ -23,7 +23,7 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTLinkLayer::onOverallInfo)
     );
-    overallInfoButton->setPosition(m_size.width / 2 - 8.5f, m_size.height / 2 - 8.5f);
+    overallInfoButton->setPosition(m_size.width - 8.5f, m_size.height - 8.5f);
     this->m_buttonMenu->addChild(overallInfoButton);
 
     alignmentNode = CCNode::create();
@@ -306,8 +306,7 @@ void DTLinkLayer::textChanged(CCTextInputNode* input){
 
 void DTLinkLayer::onClose(CCObject*) {
     m_DTLayer->UpdateSharedStats();
-    m_DTLayer->refreshStrings();
-    m_DTLayer->RefreshText(true);
+    m_DTLayer->refreshAll(true);
     this->setKeypadEnabled(false);
     this->setTouchEnabled(false);
     this->removeFromParentAndCleanup(true);

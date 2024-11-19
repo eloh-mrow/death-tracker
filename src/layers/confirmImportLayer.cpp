@@ -127,8 +127,7 @@ void confirmImportLayer::yesClicked(CCObject*){
 
     StatsManager::saveData(m_DTLayer->m_MyLevelStats, m_DTLayer->m_Level);
     m_DTLayer->UpdateSharedStats();
-    m_DTLayer->refreshStrings();
-    m_DTLayer->RefreshText();
+    m_DTLayer->refreshAll();
 
     geode::Notification::create("Applied changes!", CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png"))->show();
 

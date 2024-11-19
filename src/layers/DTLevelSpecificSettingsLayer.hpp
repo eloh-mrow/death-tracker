@@ -30,6 +30,7 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
 
         CCMenuItemSpriteExtra* DeleteUnusedButton;
 
+        TextInput* HideRunLengthInput;
         TextInput* HideUptoInput;
 
         //Save Manegment
