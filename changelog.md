@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.4.2
+- fixed a crash bug on launch (macos)
+
 ## v2.4.1
 - fixed macos inline crash
 - fixed a TON of text alignment issues
@@ -8,7 +11,6 @@
 - now removing a run from zero completely will also erase it from your "new bests"
 - added the option to have the death tracker button on the left menu in the level page
 - added the option to change the graph points size
-- fixed a crash bug on launch (macos)
 - some bug fixes
 
 ## v2.4.0
