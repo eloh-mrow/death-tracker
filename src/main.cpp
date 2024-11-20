@@ -79,7 +79,10 @@ $execute {
     }
 
     StatsManager::m_savesFolderPath = Settings::getSavePath();
+    
+};
 
+$on_mod(Loaded){
     //load fonts
     auto allFonts = StatsManager::getAllFonts();
 
@@ -89,5 +92,4 @@ $execute {
         CCScene::get()->addChild(label);
         label->removeMeAndCleanup();
     }
-    
 };

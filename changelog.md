@@ -8,6 +8,7 @@
 - now removing a run from zero completely will also erase it from your "new bests"
 - added the option to have the death tracker button on the left menu in the level page
 - added the option to change the graph points size
+- fixed a crash bug on launch (macos)
 - some bug fixes
 
 ## v2.4.0
@@ -31,7 +32,7 @@
 - removed most UI from the main page
 - added a level options page where all the level-specific settings are now
 - fixed some typos
-- added an option to hid all runs up to a certain percentage
+- added an option to hide all runs up to a certain percentage
 - edit layout now has a new button
 - removed "safe mode" due to bugs
 
@@ -47,7 +48,7 @@
 ## v2.1.0
 - added the option to change the new best colors
 - added a new type of graph
-- added a new logo made taz!
+- added a new logo made by taz!
 
 ## v2.0.1
 - fixed a crash bug when clicking cancel on edit layout
