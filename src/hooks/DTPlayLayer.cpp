@@ -24,7 +24,7 @@ void DTPlayLayer::updateSessionLastPlayed() {
 
 /* hooks
 ========== */
-void DTPlayLayer::onModify(auto& self) {
+static void onModify(auto& self) {
     auto _ = self.setHookPriority("PlayLayer::levelComplete", -9999);
 }
 

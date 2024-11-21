@@ -422,7 +422,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
             {
                 if (SDeathI.run.end < m_MyLevelStats.hideUpto) continue;
                 if (mergedString == "No Saved Attempts! ")
-                    mergedString;
+                    mergedString = "";
 
                 if (SDeathI.isNewBest)
                     mergedString += "<sbc>";
@@ -445,7 +445,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
                 {
                     if (SRunI.run.end - SRunI.run.start < m_MyLevelStats.hideRunLength) continue;
                     if (mergedString == "No Saved Runs! ")
-                        mergedString;
+                        mergedString = "";
 
                     mergedString += fmt::format("{}% - {}% x{}\n", SRunI.run.start, SRunI.run.end, SRunI.deaths);
                 }
@@ -897,7 +897,7 @@ ResultTask DTLayer::refreshStrings(){
             {
                 if (deathI.run.end < m_MyLevelStats.hideUpto) continue;
                 if (mergedString == "No Saved Attempts! ")
-                    mergedString;
+                    mergedString = "";
 
                 if (deathI.isNewBest)
                     mergedString += "<nbc>";
@@ -921,7 +921,7 @@ ResultTask DTLayer::refreshStrings(){
                 {
                     if (runI.run.end - runI.run.start < m_MyLevelStats.hideRunLength) continue;
                     if (mergedString == "No Saved Runs! ")
-                        mergedString;
+                        mergedString = "";
 
                     mergedString += fmt::format("{}% - {}% x{}\n", runI.run.start, runI.run.end, runI.deaths);
                 }

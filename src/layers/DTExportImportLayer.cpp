@@ -297,12 +297,12 @@ std::pair<const Deaths&, const Runs&> DTExportImportLayer::readRunsFromText(cons
     Runs runsDetected{};
 
     int searchPhase = 0;
-    std::string num;
-    std::string num2;
+    std::string num{};
+    std::string num2{};
 
     bool isRun = false;
 
-    std::string amount;
+    std::string amount{};
 
     for (int i = 0; i < textToRead.length(); i++)
     {

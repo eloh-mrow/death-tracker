@@ -22,7 +22,6 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     /* hooks
     ========== */
-    static void onModify(auto& self);
 
     bool init(GJGameLevel* level, bool p1, bool p2);
 
