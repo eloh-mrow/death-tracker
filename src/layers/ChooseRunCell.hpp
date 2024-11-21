@@ -6,13 +6,17 @@ using namespace cocos2d;
 using namespace geode;
 
 class ChooseRunCell : public CCNode {
-protected:
-    bool init(const int& Precent, const std::function<void(const int&)>& callback);
-public:
-    static ChooseRunCell* create(const int& Precent, const std::function<void(const int&)>& callback = NULL);
+    protected:
+        bool init(const int& Percent, const std::function<void(const int&)>& callback);
 
-    int m_Precent;
-    std::function<void(const int&)> m_Callback;
+    public:
+        static ChooseRunCell* create(const int& Percent, const std::function<void(const int&)>& callback = NULL);
 
-    void ChooseMe(CCObject*);
+    private:
+        //runs the callback provided when the use button is clicked
+        void ChooseMe(CCObject*);
+        
+
+        int m_Percent;
+        std::function<void(const int&)> m_Callback;
 };

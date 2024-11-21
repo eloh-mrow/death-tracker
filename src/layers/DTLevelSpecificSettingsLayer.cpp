@@ -431,23 +431,23 @@ bool DTLevelSpecificSettingsLayer::init(const CCSize& size, DTLayer* const& _DTL
 //-- runs functions --
 
 void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
-    int startPrecent = -1;
+    int startPercent = -1;
     if (!m_AddRunAllowedInput->getString().empty()){
         auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
-        startPrecent = res.unwrapOr(-1);
+        startPercent = res.unwrapOr(-1);
     }
 
-    if (startPrecent == -1) return;
+    if (startPercent == -1) return;
 
     bool doesExist = false;
     for (int i = 0; i < myDTLayer->m_MyLevelStats.RunsToSave.size(); i++)
     {
-        if (myDTLayer->m_MyLevelStats.RunsToSave[i] == startPrecent)
+        if (myDTLayer->m_MyLevelStats.RunsToSave[i] == startPercent)
             doesExist = true;
     }
     
     if (!doesExist){
-        myDTLayer->m_MyLevelStats.RunsToSave.push_back(startPrecent);
+        myDTLayer->m_MyLevelStats.RunsToSave.push_back(startPercent);
 
         std::ranges::sort(myDTLayer->m_MyLevelStats.RunsToSave, [](const int a, const int b) {
             return a < b; // true --> A before B
@@ -464,12 +464,12 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
             bool doesExist2 = false;
             for (int r = 0; r < currStats.RunsToSave.size(); r++)
             {
-                if (currStats.RunsToSave[r] == startPrecent)
+                if (currStats.RunsToSave[r] == startPercent)
                     doesExist2 = true;
             }
 
             if (!doesExist2 && currStats.currentBest != -1){
-                currStats.RunsToSave.push_back(startPrecent);
+                currStats.RunsToSave.push_back(startPercent);
 
                 std::ranges::sort(currStats.RunsToSave, [](const int a, const int b) {
                     return a < b; // true --> A before B
@@ -479,7 +479,7 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
             }
         }
 
-        auto runACell = RunAllowedCell::create(startPrecent, 0.6f, std::bind(&DTLevelSpecificSettingsLayer::removeRunAllowed, this, std::placeholders::_1, std::placeholders::_2));
+        auto runACell = RunAllowedCell::create(startPercent, 0.6f, std::bind(&DTLevelSpecificSettingsLayer::removeRunAllowed, this, std::placeholders::_1, std::placeholders::_2));
         runsAllowedCellsCont->addChild(runACell);
         runsAllowedCellsCont->updateLayout();
         
@@ -493,12 +493,12 @@ void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
     }
 }
 
-void DTLevelSpecificSettingsLayer::removeRunAllowed(const int& precent, CCNode* cell){
+void DTLevelSpecificSettingsLayer::removeRunAllowed(const int& percent, CCNode* cell){
     LevelStats myStats = myDTLayer->m_MyLevelStats;
 
     for (int i = 0; i < myStats.RunsToSave.size(); i++)
     {
-        if (myStats.RunsToSave[i] == precent){
+        if (myStats.RunsToSave[i] == percent){
             myStats.RunsToSave.erase(std::next(myStats.RunsToSave.begin(), i));
             break;
         }
@@ -518,7 +518,7 @@ void DTLevelSpecificSettingsLayer::removeRunAllowed(const int& precent, CCNode* 
         bool doesExist2 = false;
         for (int r = 0; r < currStats.RunsToSave.size(); r++)
         {
-            if (currStats.RunsToSave[r] == precent){
+            if (currStats.RunsToSave[r] == percent){
                 currStats.RunsToSave.erase(std::next(currStats.RunsToSave.begin(), r));
                 break;
             }
@@ -671,13 +671,13 @@ void DTLevelSpecificSettingsLayer::onAddedFZRun(CCObject*){
         amount = res.unwrapOr(1);
     }
 
-    int precent = 0;
+    int percent = 0;
     if (!addFZRunInput->getString().empty()){
         auto res = utils::numFromString<int>(addFZRunInput->getString());
-        precent = res.unwrapOr(0);
+        percent = res.unwrapOr(0);
     }
     
-    myDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] += amount;
+    myDTLayer->m_MyLevelStats.deaths[std::to_string(percent)] += amount;
 
     StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
     myDTLayer->UpdateSharedStats();
@@ -694,20 +694,20 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
         amount = res.unwrapOr(1);
     }
         
-    int precent = 0;
+    int percent = 0;
     if (!addFZRunInput->getString().empty()){
         auto res = utils::numFromString<int>(addFZRunInput->getString());
-        precent = res.unwrapOr(0);
+        percent = res.unwrapOr(0);
     }
         
-    if (myDTLayer->m_MyLevelStats.deaths.contains(std::to_string(precent))){
-        myDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] -= amount;
+    if (myDTLayer->m_MyLevelStats.deaths.contains(std::to_string(percent))){
+        myDTLayer->m_MyLevelStats.deaths[std::to_string(percent)] -= amount;
 
-        if (myDTLayer->m_MyLevelStats.deaths[std::to_string(precent)] <= 0){
-            myDTLayer->m_MyLevelStats.deaths.erase(std::to_string(precent));
+        if (myDTLayer->m_MyLevelStats.deaths[std::to_string(percent)] <= 0){
+            myDTLayer->m_MyLevelStats.deaths.erase(std::to_string(percent));
 
-            if (myDTLayer->m_MyLevelStats.newBests.contains(precent))
-                myDTLayer->m_MyLevelStats.newBests.erase(precent);
+            if (myDTLayer->m_MyLevelStats.newBests.contains(percent))
+                myDTLayer->m_MyLevelStats.newBests.erase(percent);
         }
 
         StatsManager::saveData(myDTLayer->m_MyLevelStats, myDTLayer->m_Level);
@@ -721,14 +721,14 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
                 continue;
             }
 
-            if (lStats.deaths.contains(std::to_string(precent))){
-                lStats.deaths[std::to_string(precent)] -= amount;
+            if (lStats.deaths.contains(std::to_string(percent))){
+                lStats.deaths[std::to_string(percent)] -= amount;
 
-                if (lStats.deaths[std::to_string(precent)] <= 0){
-                    lStats.deaths.erase(std::to_string(precent));
+                if (lStats.deaths[std::to_string(percent)] <= 0){
+                    lStats.deaths.erase(std::to_string(percent));
 
-                    if (lStats.newBests.contains(precent))
-                        lStats.newBests.erase(precent);
+                    if (lStats.newBests.contains(percent))
+                        lStats.newBests.erase(percent);
                 }
 
                 StatsManager::saveData(lStats, myDTLayer->m_MyLevelStats.LinkedLevels[i]);

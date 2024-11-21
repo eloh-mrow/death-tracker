@@ -1,6 +1,4 @@
 #include "../layers/confirmImportLayer.hpp"
-#include "../utils/Save.hpp"
-#include "Geode/ui/TextArea.hpp"
 
 confirmImportLayer* confirmImportLayer::create(DTLayer* const& layer, const Deaths& ds, const Runs& rs) {
     auto ret = new confirmImportLayer();
@@ -37,7 +35,7 @@ bool confirmImportLayer::setup(DTLayer* const& layer, const Deaths& ds, const Ru
     sl->setZOrder(1);
     prevewCont->addChild(sl);
 
-    std::string sToShow = "";
+    std::string sToShow;
 
     for (auto d : ds){
         sToShow += d.first + "% x" + std::to_string(d.second) + "\n";

@@ -124,7 +124,7 @@ void DTLinkLayer::refreshLists(){
 
     for (int i = 0; i < m_AllLevels.size(); i++)
     {
-        std::string levelNameLower = "";
+        std::string levelNameLower;
         for (char ch : m_AllLevels[i].second.levelName) { 
             levelNameLower += std::tolower(ch);
         }
@@ -178,7 +178,7 @@ void DTLinkLayer::refreshLists(){
 
     for (int i = 0; i < allLevelsInRange.size(); i++)
     {
-        std::string filterTextLower = "";
+        std::string filterTextLower;
         for (char ch : m_filterText) { 
             filterTextLower += std::tolower(ch); 
         }
@@ -295,7 +295,7 @@ void DTLinkLayer::update(float delta){
 void DTLinkLayer::textChanged(CCTextInputNode* input){
     levelPage = 1;
     if (seartchInput->getInputNode() == input){
-        std::string filterText = "";
+        std::string filterText;
         if (!input->getString().empty())
             filterText = input->getString();
         

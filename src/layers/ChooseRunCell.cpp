@@ -1,8 +1,8 @@
 #include "../layers/ChooseRunCell.hpp"
 
-ChooseRunCell* ChooseRunCell::create(const int& Precent, const std::function<void(const int&)>& callback) {
+ChooseRunCell* ChooseRunCell::create(const int& Percent, const std::function<void(const int&)>& callback) {
     auto ret = new ChooseRunCell();
-    if (ret && ret->init(Precent, callback)) {
+    if (ret && ret->init(Percent, callback)) {
         ret->autorelease();
     } else {
         delete ret;
@@ -11,11 +11,11 @@ ChooseRunCell* ChooseRunCell::create(const int& Precent, const std::function<voi
     return ret;
 }
 
-bool ChooseRunCell::init(const int& Precent, const std::function<void(const int&)>& callback){
-    m_Precent = Precent;
+bool ChooseRunCell::init(const int& Percent, const std::function<void(const int&)>& callback){
+    m_Percent = Percent;
     m_Callback = callback;
 
-    auto label = CCLabelBMFont::create(fmt::format("{}%", m_Precent).c_str(), "bigFont.fnt");
+    auto label = CCLabelBMFont::create(fmt::format("{}%", m_Percent).c_str(), "bigFont.fnt");
     label->setScale(0.35f);
     label->setAnchorPoint({0, 0.5f});
     label->setPosition({2, 10});
@@ -39,7 +39,8 @@ bool ChooseRunCell::init(const int& Precent, const std::function<void(const int&
     return true;
 }
 
+
 void ChooseRunCell::ChooseMe(CCObject*){
     if (m_Callback != NULL)
-        m_Callback(m_Precent);
+        m_Callback(m_Percent);
 }

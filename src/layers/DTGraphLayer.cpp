@@ -72,7 +72,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     if (currentType == GraphType::ReachRate)
         typeText = "Reachrate";
 
-    PointInfoLabel = SimpleTextArea::create(fmt::format("Precent\n \nP{}:\nlol", typeText).c_str(), "bigFont.fnt");
+    PointInfoLabel = SimpleTextArea::create(fmt::format("Percent\n \nP{}:\nlol", typeText).c_str(), "bigFont.fnt");
     PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     PointInfoLabel->setPosition({-215, -83});
     PointInfoLabel->setZOrder(1);
@@ -326,7 +326,7 @@ void DTGraphLayer::textChanged(CCTextInputNode* input){
             input->setString("100");
         }
 
-        m_SelectedRunPrecent = selected;
+        m_SelectedRunPercent = selected;
 
         if (!RunViewModeFromZero)
             refreshGraph();
@@ -446,28 +446,28 @@ CCNode* DTGraphLayer::CreateGraph(
     else if (type == GraphType::ReachRate){
 
         int overallCount = 0;
-        std::vector<std::pair<int, int>> precentageDeaths{};
+        std::vector<std::pair<int, int>> percentageDeaths{};
         for (int i = fixedDS.size() - 1; i >= 0; i--)
         {
             overallCount += fixedDS[i].deaths;
-            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
+            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
         }
 
-        if (precentageDeaths[0].first > 0)
-            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(0, overallCount));
+        if (percentageDeaths[0].first > 0)
+            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(0, overallCount));
         
-        if (precentageDeaths[precentageDeaths.size() - 1].first < 100){
-            precentageDeaths.push_back(std::make_pair(precentageDeaths[precentageDeaths.size() - 1].first + 1, 0));
+        if (percentageDeaths[percentageDeaths.size() - 1].first < 100){
+            percentageDeaths.push_back(std::make_pair(percentageDeaths[percentageDeaths.size() - 1].first + 1, 0));
 
-            if (precentageDeaths[precentageDeaths.size() - 1].first != 100)
-                precentageDeaths.push_back(std::make_pair(100, 0));
+            if (percentageDeaths[percentageDeaths.size() - 1].first != 100)
+                percentageDeaths.push_back(std::make_pair(100, 0));
         }
 
-        for (int i = 0; i < precentageDeaths.size(); i++)
+        for (int i = 0; i < percentageDeaths.size(); i++)
         {
-            float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
+            float reachRate = static_cast<float>(percentageDeaths[i].second) / overallCount;
 
-            CCPoint p = ccp(precentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100);
+            CCPoint p = ccp(percentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100);
 
             if (p.x != previousPoint.x + 1 * Scaling.x){
                 lines.push_back(ccp(previousPoint.x + 1 * Scaling.x, reachRate * Scaling.y * 100));
@@ -626,7 +626,7 @@ CCNode* DTGraphLayer::CreateRunGraph(
     MenuForGP->setZOrder(1);
     toReturnNode->addChild(MenuForGP);
 
-    float RunStartPrecent = fixedDS[0].run.start;
+    float RunStartPercent = fixedDS[0].run.start;
 
     std::vector<CCPoint> lines;
 
@@ -634,13 +634,13 @@ CCNode* DTGraphLayer::CreateRunGraph(
 
     if (type == GraphType::PassRate){
         //add the min and max points if needed
-        if (fixedDS[0].run.end > RunStartPrecent){
-            auto info = DeathInfo(Run(RunStartPrecent, RunStartPrecent), 0, 100);
+        if (fixedDS[0].run.end > RunStartPercent){
+            auto info = DeathInfo(Run(RunStartPercent, RunStartPercent), 0, 100);
             fixedDS.insert(fixedDS.begin(), info);
         }
         
         if (fixedDS[fixedDS.size() - 1].run.end < 100){
-            auto info = DeathInfo(Run(RunStartPrecent, 100), 100, 0);
+            auto info = DeathInfo(Run(RunStartPercent, 100), 100, 0);
             fixedDS.push_back(info);
         }
         else{
@@ -685,28 +685,28 @@ CCNode* DTGraphLayer::CreateRunGraph(
     else if (type == GraphType::ReachRate){
 
         int overallCount = 0;
-        std::vector<std::pair<int, int>> precentageDeaths{};
+        std::vector<std::pair<int, int>> percentageDeaths{};
         for (int i = fixedDS.size() - 1; i >= 0; i--)
         {
             overallCount += fixedDS[i].deaths;
-            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
+            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
         }
 
-        if (precentageDeaths[0].first > RunStartPrecent)
-            precentageDeaths.insert(precentageDeaths.begin(), std::make_pair(RunStartPrecent, overallCount));
+        if (percentageDeaths[0].first > RunStartPercent)
+            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(RunStartPercent, overallCount));
         
-        if (precentageDeaths[precentageDeaths.size() - 1].first < 100){
-            precentageDeaths.push_back(std::make_pair(precentageDeaths[precentageDeaths.size() - 1].first + 1, 0));
+        if (percentageDeaths[percentageDeaths.size() - 1].first < 100){
+            percentageDeaths.push_back(std::make_pair(percentageDeaths[percentageDeaths.size() - 1].first + 1, 0));
 
-            if (precentageDeaths[precentageDeaths.size() - 1].first != 100)
-                precentageDeaths.push_back(std::make_pair(100, 0));
+            if (percentageDeaths[percentageDeaths.size() - 1].first != 100)
+                percentageDeaths.push_back(std::make_pair(100, 0));
         }
             
 
-        for (int i = 0; i < precentageDeaths.size(); i++)
+        for (int i = 0; i < percentageDeaths.size(); i++)
         {
-            float reachRate = static_cast<float>(precentageDeaths[i].second) / overallCount;
-            lines.push_back(ccp(precentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100));
+            float reachRate = static_cast<float>(percentageDeaths[i].second) / overallCount;
+            lines.push_back(ccp(percentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100));
         }
         
     }
@@ -724,7 +724,7 @@ CCNode* DTGraphLayer::CreateRunGraph(
     {
         if (lines[i].x >= 0 && lines[i].x <= 100 * Scaling.x && lines[i].y >= 0 && lines[i].y <= 100 * Scaling.y)
         {
-            auto GP = GraphPoint::create(fmt::format("{}% - {}%", RunStartPrecent, lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
+            auto GP = GraphPoint::create(fmt::format("{}% - {}%", RunStartPercent, lines[i].x / Scaling.x), lines[i].y / Scaling.y, colorOfPoints);
             GP->setDelegate(this);
             GP->setPosition(lines[i]);
             GP->setScale(Settings::getGraphPointSize() / 20 + 0.01f);
@@ -831,10 +831,10 @@ int DTGraphLayer::GetBestRun(const NewBests& bests){
     return bestRun;
 }
 
-int DTGraphLayer::GetBestRunDeathS(const std::vector<DeathInfo>& selectedPrecentDeathsInfo){
+int DTGraphLayer::GetBestRunDeathS(const std::vector<DeathInfo>& selectedPercentDeathsInfo){
     int bestRun = 0;
 
-    for (auto best : selectedPrecentDeathsInfo)
+    for (auto best : selectedPercentDeathsInfo)
     {        
         if (best.run.end > bestRun) bestRun = best.run.end;
     }
@@ -842,10 +842,10 @@ int DTGraphLayer::GetBestRunDeathS(const std::vector<DeathInfo>& selectedPrecent
     return bestRun;
 }
 
-int DTGraphLayer::GetBestRun(const std::vector<DeathInfo>& selectedPrecentRunInfo){
+int DTGraphLayer::GetBestRun(const std::vector<DeathInfo>& selectedPercentRunInfo){
     int bestRun = 0;
 
-    for (auto best : selectedPrecentRunInfo)
+    for (auto best : selectedPercentRunInfo)
     {
         if (best.run.end > bestRun) bestRun = best.run.end;
     }
@@ -918,17 +918,17 @@ void DTGraphLayer::refreshGraph(){
             m_graph = CreateGraph(m_DTLayer->m_DeathsInfo, GetBestRunDeathS(m_DTLayer->m_DeathsInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         else{
-            std::vector<DeathInfo> selectedPrecentRunInfo;
+            std::vector<DeathInfo> selectedPercentRunInfo;
             for (int i = 0; i < m_DTLayer->m_RunInfo.size(); i++)
             {
 
-                if (m_DTLayer->m_RunInfo[i].run.start == m_SelectedRunPrecent){
-                    selectedPrecentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
+                if (m_DTLayer->m_RunInfo[i].run.start == m_SelectedRunPercent){
+                    selectedPercentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
                 }
                         
             }
 
-            m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            m_graph = CreateRunGraph(selectedPercentRunInfo, GetBestRun(selectedPercentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         
         if (m_graph){
@@ -946,15 +946,15 @@ void DTGraphLayer::refreshGraph(){
             m_graph = CreateGraph(m_DTLayer->selectedSessionInfo, GetBestRunDeathS(m_DTLayer->selectedSessionInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         else{
-            std::vector<DeathInfo> selectedPrecentRunInfo;
+            std::vector<DeathInfo> selectedPercentRunInfo;
             for (int i = 0; i < m_DTLayer->m_SelectedSessionRunInfo.size(); i++)
             {
-                if (m_DTLayer->m_SelectedSessionRunInfo[i].run.start == m_SelectedRunPrecent){
-                    selectedPrecentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
+                if (m_DTLayer->m_SelectedSessionRunInfo[i].run.start == m_SelectedRunPercent){
+                    selectedPercentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
                 }
             }
 
-            m_graph = CreateRunGraph(selectedPrecentRunInfo, GetBestRun(selectedPrecentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            m_graph = CreateRunGraph(selectedPercentRunInfo, GetBestRun(selectedPercentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
 
         if (m_graph){
@@ -972,7 +972,7 @@ void DTGraphLayer::refreshGraph(){
 
 void DTGraphLayer::RunChosen(const int& run){
     m_RunSelectInput->setString(std::to_string(run));
-    m_SelectedRunPrecent = run;
+    m_SelectedRunPercent = run;
     if (!RunViewModeFromZero)
         refreshGraph();
 }

@@ -425,7 +425,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
             {
                 if (SDeathI.run.end < m_MyLevelStats.hideUpto) continue;
                 if (mergedString == "No Saved Attempts! ")
-                    mergedString = "";
+                    mergedString;
 
                 if (SDeathI.isNewBest)
                     mergedString += "<sbc>";
@@ -448,7 +448,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
                 {
                     if (SRunI.run.end - SRunI.run.start < m_MyLevelStats.hideRunLength) continue;
                     if (mergedString == "No Saved Runs! ")
-                        mergedString = "";
+                        mergedString;
 
                     mergedString += fmt::format("{}% - {}% x{}\n", SRunI.run.start, SRunI.run.end, SRunI.deaths);
                 }
@@ -900,7 +900,7 @@ ResultTask DTLayer::refreshStrings(){
             {
                 if (deathI.run.end < m_MyLevelStats.hideUpto) continue;
                 if (mergedString == "No Saved Attempts! ")
-                    mergedString = "";
+                    mergedString;
 
                 if (deathI.isNewBest)
                     mergedString += "<nbc>";
@@ -924,7 +924,7 @@ ResultTask DTLayer::refreshStrings(){
                 {
                     if (runI.run.end - runI.run.start < m_MyLevelStats.hideRunLength) continue;
                     if (mergedString == "No Saved Runs! ")
-                        mergedString = "";
+                        mergedString;
 
                     mergedString += fmt::format("{}% - {}% x{}\n", runI.run.start, runI.run.end, runI.deaths);
                 }
@@ -951,11 +951,11 @@ DeathStringTask DTLayer::CreateDeathsString(const Deaths& deaths, const NewBests
 
         // sort the deaths
         for (const auto& [percentKey, count] : deaths) {
-            GEODE_UNWRAP_INTO(auto precentInt, geode::utils::numFromString<int>(percentKey));
+            GEODE_UNWRAP_INTO(auto percentInt, geode::utils::numFromString<int>(percentKey));
 
-            sortedDeaths.insert(std::make_pair(precentInt, count));
+            sortedDeaths.insert(std::make_pair(percentInt, count));
             totalDeaths += count;
-            if (precentInt > bestRun) bestRun = precentInt;
+            if (percentInt > bestRun) bestRun = percentInt;
         }
 
         // create output
@@ -1076,7 +1076,7 @@ void DTLayer::addBox(CCObject*){
     LabelLayout currentLayout
     {
         .labelName = "Label",
-        .text = "",
+        .text,
         .line = lastLine + 1,
         .position = 0,
         .color = {255, 255, 255, 255},

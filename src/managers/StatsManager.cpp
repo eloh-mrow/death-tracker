@@ -297,7 +297,7 @@ long long StatsManager::getNowSeconds() {
 Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 	if (!level) return Err("invalid level!");
 
-	std::string levelId = "";
+	std::string levelId;
 
     if (level->m_levelType == GJLevelType::Editor){
         levelId += std::to_string(EditorIDs::getID(level));
@@ -615,18 +615,6 @@ Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* co
     return Ok(filePath);
 }
 
-bool StatsManager::ContainsAtIndex(const int& startIndex, const std::string& check, const std::string& str){
-    if (startIndex + check.length() >= str.length()) return false;
-    bool toReturn = true;
-
-    for (int i = 0; i < check.length(); i++)
-    {
-        if (str[startIndex + i] != check[i]) toReturn = false;
-    }
-
-    return toReturn;
-}
-
 ccColor3B StatsManager::inverseColor(const ccColor3B& color){
     return {static_cast<GLubyte>(abs(color.r - 255)), static_cast<GLubyte>(abs(color.g - 255)), static_cast<GLubyte>(abs(color.b - 255))};
 }
@@ -644,7 +632,7 @@ std::string StatsManager::getFontName(const int& fontID){
     for (int i = 0; i < m_AllFontsMap.size(); i++)
     {
         if (i == fontID){
-            std::string fontName = "";
+            std::string fontName;
 
             if (i == 0)
                 fontName = "Big Font";

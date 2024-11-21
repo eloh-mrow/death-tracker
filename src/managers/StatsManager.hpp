@@ -228,7 +228,6 @@ public:
     static void scheduleCreateNewSession(const bool& scheduled);
     static bool hasPlayedLevel();
     static Result<std::filesystem::path> getLevelSaveFilePath(GJGameLevel* const& level = m_level);
-    static bool ContainsAtIndex(const int& startIndex, const std::string& check, const std::string& str);
     static ccColor3B inverseColor(const ccColor3B& color);
     static std::string getFont(const int& fontID);
     static std::string getFontName(const int& fontID);

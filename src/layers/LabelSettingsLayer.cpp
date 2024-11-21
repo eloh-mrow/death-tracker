@@ -257,7 +257,7 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin, DTLayer* cons
 
     for (int i = 0; i < AllFonts.size(); i++)
     {
-        std::string fontName = "";
+        std::string fontName;
 
         if (i == 0)
             fontName = "Big Font";
@@ -464,7 +464,7 @@ void LabelSettingsLayer::useSTK(const std::string& stk){
     labelTextInput->focus();
     #endif
 
-    std::string labelText = "";
+    std::string labelText;
     if (!labelTextInput->getString().empty())
         labelText = labelTextInput->getString();
 

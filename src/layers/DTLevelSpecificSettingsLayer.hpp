@@ -21,7 +21,7 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
 
         CCMenu* runsAllowedCellsCont;
         void addRunAllowed(CCObject*);
-        void removeRunAllowed(const int& precent, CCNode* cell);
+        void removeRunAllowed(const int& percent, CCNode* cell);
 
         void deleteUnused(CCObject*);
         FLAlertLayer* m_RunDeleteAlert;

@@ -178,17 +178,16 @@ void DTExportImportLayer::onExportClicked(CCObject*){
     file::pick(file::PickMode::SaveFile, options).listen([this](Result<std::filesystem::path>* path) {
         auto currPath = path->unwrapOrDefault();
 
-        if (currPath.empty()){
+        if (currPath.empty())
             return;
-        }
 
-        std::string ToWrite = "";
+        std::string ToWrite;
 
         if (Save::getExportWOutLabels()){
             std::string s = m_DTLayer->deathsString;
             for (int i = 0; i < s.length(); i++)
             {
-                if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
+                if (StatsManager::isKeyInIndex(s, i, "<nbc>") || StatsManager::isKeyInIndex(s, i, "<sbc>")){
                     s = s.erase(i, 5);
                 }
             }
@@ -203,9 +202,8 @@ void DTExportImportLayer::onExportClicked(CCObject*){
                 std::string s = m_DTLayer->modifyString(currLayout[i].text);
                 for (int i = 0; i < s.length(); i++)
                 {
-                    if (StatsManager::ContainsAtIndex(i, "<nbc>", s) || StatsManager::ContainsAtIndex(i, "<sbc>", s)){
+                    if (StatsManager::isKeyInIndex(s, i, "<nbc>") || StatsManager::isKeyInIndex(s, i, "<sbc>")){
                         s = s.erase(i, 5);
-                        
                     }
                 }
 
@@ -278,93 +276,12 @@ void DTExportImportLayer::onImportClicked(CCObject*){
                 return;
             }
 
-            Deaths deathDetected{};
-            Runs runsDetected{};
-
-            int searchPhase = 0;
-            std::string num = "";
-            std::string num2 = "";
-
-            bool isRun = false;
-
-            std::string amount = "";
-
-            for (int i = 0; i < fileText.length(); i++)
-            {
-                //log::info("before 1 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                if (std::isdigit(fileText[i]) && (searchPhase == 0 || searchPhase == 1)){
-                    if (searchPhase == 0)
-                        searchPhase = 1;
-                    if (!isRun)
-                        num += fileText[i];
-                    else
-                        num2 += fileText[i];
-                }
-                else if (fileText[i] == '-' && searchPhase == 1){
-                    isRun = true;
-                }
-                else if (!std::isdigit(fileText[i]) && fileText[i] != ' ' && fileText[i] != '%' && searchPhase == 1 && fileText[i] != '-'){
-                    searchPhase = 2;
-                }
-                else if (searchPhase == 0 || searchPhase == 1 && fileText[i] != ' ' && fileText[i] != '%') {
-                    searchPhase = 0;
-                    num = "";
-                    isRun = false;
-                }
-
-                if (searchPhase == 3 && std::isdigit(fileText[i])){
-                    amount += fileText[i];
-                }
-                else if (fileText[i] != ' ' && searchPhase == 3){
-                    searchPhase = 4;
-                }
-
-                //log::info("before 2 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                if (searchPhase == 2 && fileText[i] != '\r' && fileText[i] != '\n'){
-
-                    if (tolower(fileText[i]) != 'x' && fileText[i] != ' '){
-                        num = "";
-                        num2 = "";
-                        isRun = false;
-                        amount = "";
-                        searchPhase = 0;
-                    }
-                    else if (tolower(fileText[i]) == 'x'){
-                        searchPhase = 3;
-                    }
-
-                }
-
-                //log::info("before 3 | num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-
-                if (fileText[i] == '\n' || fileText[i] == ',' || fileText.length() - 1 == i){
-                    if (!num.empty() && !amount.empty()){
-                        amount = "1";
-                    }
-
-                    if (searchPhase >= 1 && !num.empty()){
-                        if (!isRun)
-                            deathDetected[num] += geode::utils::numFromString<int>(amount).unwrapOr(0);
-                        else
-                            runsDetected[fmt::format("{}-{}", num, num2)] += geode::utils::numFromString<int>(amount).unwrapOr(0);
-                    }
-
-                    num = "";
-                    num2 = "";
-                    isRun = false;
-                    amount = "";
-                    searchPhase = 0;
-                }
-
-                //log::info("num {} | num2 {} | isRun {} | amount {} | searchPhase {} | char '{}'", num, num2, isRun, amount, searchPhase, fileText[i]);
-            }
+            auto info = DTExportImportLayer::readRunsFromText(fileText);
 
             loading->setVisible(false);
             importing = false;
 
-            auto CILayer = confirmImportLayer::create(m_DTLayer, deathDetected, runsDetected);
+            auto CILayer = confirmImportLayer::create(m_DTLayer, info.first, info.second);
             CILayer->setZOrder(100);
             this->addChild(CILayer);
         }
@@ -373,6 +290,87 @@ void DTExportImportLayer::onImportClicked(CCObject*){
     auto task = file::pick(file::PickMode::OpenFile, options);
 
     openFileLocListener.setFilter(task);
+}
+
+const std::pair<const Deaths&, const Runs&>& DTExportImportLayer::readRunsFromText(const std::string& textToRead){
+    Deaths deathDetected{};
+    Runs runsDetected{};
+
+    int searchPhase = 0;
+    std::string num;
+    std::string num2;
+
+    bool isRun = false;
+
+    std::string amount;
+
+    for (int i = 0; i < textToRead.length(); i++)
+    {
+        if (std::isdigit(textToRead[i]) && (searchPhase == 0 || searchPhase == 1)){
+            if (searchPhase == 0)
+                searchPhase = 1;
+            if (!isRun)
+                num += textToRead[i];
+            else
+                num2 += textToRead[i];
+        }
+        else if (textToRead[i] == '-' && searchPhase == 1){
+            isRun = true;
+        }
+        else if (!std::isdigit(textToRead[i]) && textToRead[i] != ' ' && textToRead[i] != '%' && searchPhase == 1 && textToRead[i] != '-'){
+            searchPhase = 2;
+        }
+        else if (searchPhase == 0 || searchPhase == 1 && textToRead[i] != ' ' && textToRead[i] != '%') {
+            searchPhase = 0;
+            num;
+            isRun = false;
+        }
+
+        if (searchPhase == 3 && std::isdigit(textToRead[i])){
+            amount += textToRead[i];
+        }
+        else if (textToRead[i] != ' ' && searchPhase == 3){
+            searchPhase = 4;
+        }
+
+        if (searchPhase == 2 && textToRead[i] != '\r' && textToRead[i] != '\n'){
+
+            if (tolower(textToRead[i]) != 'x' && textToRead[i] != ' '){
+                num;
+                num2;
+                isRun = false;
+                amount;
+                searchPhase = 0;
+            }
+            else if (tolower(textToRead[i]) == 'x'){
+                searchPhase = 3;
+            }
+
+        }
+
+        if (textToRead[i] == '\n' || textToRead[i] == ',' || textToRead.length() - 1 == i){
+            if (!num.empty() && !amount.empty()){
+                amount = "1";
+            }
+
+            if (searchPhase >= 1 && !num.empty()){
+                if (!isRun)
+                    deathDetected[num] += geode::utils::numFromString<int>(amount).unwrapOr(0);
+                else
+                    runsDetected[fmt::format("{}-{}", num, num2)] += geode::utils::numFromString<int>(amount).unwrapOr(0);
+            }
+
+            num;
+            num2;
+            isRun = false;
+            amount;
+            searchPhase = 0;
+        }
+    }
+
+    auto toReturn = std::make_pair(deathDetected, runsDetected);
+
+    return toReturn;
 }
 
 void DTExportImportLayer::onExportInfo(CCObject*){
