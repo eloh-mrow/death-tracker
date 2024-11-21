@@ -370,11 +370,8 @@ void DTLayer::onEditLayout(CCObject* sender){
 
 void DTLayer::textChanged(CCTextInputNode* input){
     if (input == m_SessionSelectionInput->getInputNode() && m_SessionsAmount > 0){
-        int selected = 1;
-        if (!input->getString().empty()){
-            auto res = utils::numFromString<int>(input->getString());
-            selected = res.unwrapOr(1);
-        }
+        auto res = utils::numFromString<int>(input->getString());
+        int selected = res.unwrapOr(1);
         
         if (selected > m_SessionsAmount){
             selected = m_SessionsAmount;
@@ -412,7 +409,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
 
     Session currentSession = m_SharedLevelStats.sessions[session - 1];
 
-    auto selectedSessionInfoRes = CreateDeathsString(currentSession.deaths, currentSession.newBests).chain([&, currentSession](DeathStringTask::Value* value) -> ResultTask {
+    auto selectedSessionInfoRes = CreateDeathsInfo(currentSession.deaths, currentSession.newBests).chain([&, currentSession](DeathStringTask::Value* value) -> ResultTask {
         if (!value) return ResultTask::immediate(Err("Failed to get deaths string"));
         if (value->isErr()){
             selectedSessionString = "No Saved Attempts!";
@@ -435,7 +432,7 @@ ResultTask DTLayer::updateSessionString(const int& session){
             selectedSessionString = mergedString;
         }
 
-        return CreateRunsString(currentSession.runs).chain([&](DeathStringTask::Value* value) -> ResultTask {
+        return CreateRunsInfo(currentSession.runs).chain([&](DeathStringTask::Value* value) -> ResultTask {
             if (!value) return ResultTask::immediate(Err("Failed to get deaths string"));
             if (value->isErr()){
                 selectedSessionRunString = "No Saved Runs!";
@@ -887,7 +884,7 @@ std::string DTLayer::modifyString(std::string ToModify){
 }
 
 ResultTask DTLayer::refreshStrings(){
-    auto DeathsInfoRes = DTLayer::CreateDeathsString(m_SharedLevelStats.deaths, m_SharedLevelStats.newBests).chain([&](DeathStringTask::Value* value) -> ResultTask {
+    auto DeathsInfoRes = DTLayer::CreateDeathsInfo(m_SharedLevelStats.deaths, m_SharedLevelStats.newBests).chain([&](DeathStringTask::Value* value) -> ResultTask {
         if (!value) return ResultTask::immediate(Err("Failed to get deaths string"));
         if (value->isErr()){
             deathsString = "No Saved Attempts!";
@@ -911,7 +908,7 @@ ResultTask DTLayer::refreshStrings(){
         }
 
         
-        return DTLayer::CreateRunsString(m_SharedLevelStats.runs).chain([&](DeathStringTask::Value* value) -> ResultTask {
+        return DTLayer::CreateRunsInfo(m_SharedLevelStats.runs).chain([&](DeathStringTask::Value* value) -> ResultTask {
             if (!value) return ResultTask::immediate(Err("Failed to get deaths string"));
             if (value->isErr()){
                 RunString = "No Saved Runs!";
@@ -940,7 +937,7 @@ ResultTask DTLayer::refreshStrings(){
     return DeathsInfoRes;
 }
 
-DeathStringTask DTLayer::CreateDeathsString(const Deaths& deaths, const NewBests& newBests){
+DeathStringTask DTLayer::CreateDeathsInfo(const Deaths& deaths, const NewBests& newBests){
     return DeathStringTask::run([&, deaths, newBests](auto progress, auto hasBeenCancelled) -> DeathStringTask::Result {
         if (!m_Level) return Err("invalid level");
         if (deaths.size() == 0) return Err("No Saved Progress");
@@ -995,7 +992,7 @@ DeathStringTask DTLayer::CreateDeathsString(const Deaths& deaths, const NewBests
     });
 }
 
-DeathStringTask DTLayer::CreateRunsString(const Runs runs){
+DeathStringTask DTLayer::CreateRunsInfo(const Runs runs){
     return DeathStringTask::run([&, runs](auto progress, auto hasBeenCancelled) -> DeathStringTask::Result  {
         if (!m_Level) return Err("invalid level");
         if (runs.size() == 0) return Err("No Saved Progress");
@@ -1076,7 +1073,6 @@ void DTLayer::addBox(CCObject*){
     LabelLayout currentLayout
     {
         .labelName = "Label",
-        .text,
         .line = lastLine + 1,
         .position = 0,
         .color = {255, 255, 255, 255},

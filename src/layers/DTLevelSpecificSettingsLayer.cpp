@@ -431,11 +431,8 @@ bool DTLevelSpecificSettingsLayer::init(const CCSize& size, DTLayer* const& _DTL
 //-- runs functions --
 
 void DTLevelSpecificSettingsLayer::addRunAllowed(CCObject*){
-    int startPercent = -1;
-    if (!m_AddRunAllowedInput->getString().empty()){
-        auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
-        startPercent = res.unwrapOr(-1);
-    }
+    auto res = utils::numFromString<int>(m_AddRunAllowedInput->getString());
+    int startPercent = res.unwrapOr(-1);
 
     if (startPercent == -1) return;
 
@@ -665,17 +662,11 @@ void DTLevelSpecificSettingsLayer::onSaveManagementInfo(CCObject*){
 void DTLevelSpecificSettingsLayer::onAddedFZRun(CCObject*){
     if (myDTLayer->m_MyLevelStats.currentBest == -1) return;
 
-    int amount = 1;
-    if (!runsAmountInput->getString().empty()){
-        auto res = utils::numFromString<int>(runsAmountInput->getString());
-        amount = res.unwrapOr(1);
-    }
+    auto amountRes = utils::numFromString<int>(runsAmountInput->getString());
+    int amount = amountRes.unwrapOr(1);
 
-    int percent = 0;
-    if (!addFZRunInput->getString().empty()){
-        auto res = utils::numFromString<int>(addFZRunInput->getString());
-        percent = res.unwrapOr(0);
-    }
+    auto runRes = utils::numFromString<int>(addFZRunInput->getString());
+    int percent = runRes.unwrapOr(0);
     
     myDTLayer->m_MyLevelStats.deaths[std::to_string(percent)] += amount;
 
@@ -688,17 +679,11 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
 
     if (myDTLayer->m_MyLevelStats.currentBest == -1) return;
 
-    int amount = 1;
-    if (!runsAmountInput->getString().empty()){
-        auto res = utils::numFromString<int>(runsAmountInput->getString());
-        amount = res.unwrapOr(1);
-    }
+    auto amountRes = utils::numFromString<int>(runsAmountInput->getString());
+    int amount = amountRes.unwrapOr(1);
         
-    int percent = 0;
-    if (!addFZRunInput->getString().empty()){
-        auto res = utils::numFromString<int>(addFZRunInput->getString());
-        percent = res.unwrapOr(0);
-    }
+    auto runRes = utils::numFromString<int>(addFZRunInput->getString());
+    int percent = runRes.unwrapOr(0);
         
     if (myDTLayer->m_MyLevelStats.deaths.contains(std::to_string(percent))){
         myDTLayer->m_MyLevelStats.deaths[std::to_string(percent)] -= amount;
@@ -745,27 +730,19 @@ void DTLevelSpecificSettingsLayer::onRemovedFZRun(CCObject*){
 void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
     if (myDTLayer->m_MyLevelStats.currentBest == -1) return;
 
-    int amount = 1;
-    if (!runsAmountInput->getString().empty()){
-        auto res = utils::numFromString<int>(runsAmountInput->getString());
-        amount = res.unwrapOr(1);
-    }
+    auto amountRes = utils::numFromString<int>(runsAmountInput->getString());
+    int amount = amountRes.unwrapOr(1);
 
     Run r{
         0,
         0
     };
 
-    if (!addRunStartInput->getString().empty()){
-        auto res = utils::numFromString<int>(addRunStartInput->getString());
-        r.start = res.unwrapOr(0);
-    }
+    auto RStartRes = utils::numFromString<int>(addRunStartInput->getString());
+    r.start = RStartRes.unwrapOr(0);
         
-
-    if (!addRunEndInput->getString().empty()){
-        auto res = utils::numFromString<int>(addRunEndInput->getString());
-        r.end = res.unwrapOr(0);
-    }
+    auto REndRes = utils::numFromString<int>(addRunEndInput->getString());
+    r.end = REndRes.unwrapOr(0);
     
     if (r.start > r.end) return;
 
@@ -781,27 +758,19 @@ void DTLevelSpecificSettingsLayer::onAddedRun(CCObject*){
 void DTLevelSpecificSettingsLayer::onRemovedRun(CCObject*){
     if (myDTLayer->m_MyLevelStats.currentBest == -1) return;
 
-    int amount = 1;
-    if (!runsAmountInput->getString().empty()){
-            auto res = utils::numFromString<int>(runsAmountInput->getString());
-            amount = res.unwrapOr(1);
-        }
+    auto amountRes = utils::numFromString<int>(runsAmountInput->getString());
+    int amount = amountRes.unwrapOr(1);
     
     Run r{
         0,
         0
     };
 
-    if (!addRunStartInput->getString().empty()){
-            auto res = utils::numFromString<int>(addRunStartInput->getString());
-            r.start = res.unwrapOr(0);
-        }
+    auto RStartRes = utils::numFromString<int>(addRunStartInput->getString());
+    r.start = RStartRes.unwrapOr(0);
 
-    if (!addRunEndInput->getString().empty()){
-            auto res = utils::numFromString<int>(addRunEndInput->getString());
-            r.end = res.unwrapOr(0);
-        }
-        
+    auto REndRes = utils::numFromString<int>(addRunEndInput->getString());
+    r.end = REndRes.unwrapOr(0);
 
     if (r.start > r.end) return;
 
@@ -985,11 +954,8 @@ void DTLevelSpecificSettingsLayer::EnableTouch(bool b){
 void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     if (input == m_AddRunAllowedInput->getInputNode()){
 
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);
 
         if (res > 100){
             res = 100;
@@ -1000,11 +966,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == HideUptoInput->getInputNode()){
 
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);
 
         if (res > 100){
             res = 100;
@@ -1031,11 +994,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == HideRunLengthInput->getInputNode()){
 
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);
 
         if (res > 100){
             res = 100;
@@ -1061,11 +1021,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
     }
 
     if (input == addFZRunInput->getInputNode()){
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);
 
         if (res > 100){
             res = 100;
@@ -1076,12 +1033,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == addRunStartInput->getInputNode()){
 
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
-            
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);  
         
         if (res > 100){
             res = 100;
@@ -1091,11 +1044,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == addRunEndInput->getInputNode()){
 
-        int res = 0;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(0);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(0);
         
         if (res > 100){
             res = 100;
@@ -1105,11 +1055,8 @@ void DTLevelSpecificSettingsLayer::textChanged(CCTextInputNode* input){
 
     if (input == runsAmountInput->getInputNode()){
 
-        int res = 1;
-        if (!input->getString().empty()){
-            auto resNum = utils::numFromString<int>(input->getString());
-            res = resNum.unwrapOr(1);
-        }
+        auto resNum = utils::numFromString<int>(input->getString());
+        int res = resNum.unwrapOr(1);
 
         if (res == 0){
             res = 1;

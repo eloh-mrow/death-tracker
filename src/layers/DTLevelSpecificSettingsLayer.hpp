@@ -11,61 +11,84 @@ class DTLevelSpecificSettingsLayer : public CCNode, public FLAlertLayerProtocol,
     public:
         static DTLevelSpecificSettingsLayer* create(const CCSize& size, DTLayer* const& _DTLayer);
 
+        //enable/disable touch on this layer
+        void EnableTouch(bool b);
+
         CCSize m_Size;
 
+    private:
+
         //runs
+        
+        //toggles the 'track all runs' option
+        void OnToggleAllRuns(CCObject*);
+
+        //adds the run inputted on the m_AddRunAllowedInput input to the allowed runs
+        void addRunAllowed(CCObject*);
+        //removes an allowed run from the list
+        void removeRunAllowed(const int& percent, CCNode* cell);
+
+        //deletes all runs that dont starts from the allowed runs percents
+        void deleteUnused(CCObject*);
+        //info about the run managment and options
+        void onRunsAInfo(CCObject*);
+
         TextInput* m_AddRunAllowedInput;
         CCMenuItemSpriteExtra* AddRunAllowedButton;
         CCMenuItemToggler* allRunsToggle;
-        void OnToggleAllRuns(CCObject*);
 
         CCMenu* runsAllowedCellsCont;
-        void addRunAllowed(CCObject*);
-        void removeRunAllowed(const int& percent, CCNode* cell);
-
-        void deleteUnused(CCObject*);
+        
         FLAlertLayer* m_RunDeleteAlert;
-
-        void onRunsAInfo(CCObject*);
 
         CCMenuItemSpriteExtra* DeleteUnusedButton;
 
         TextInput* HideRunLengthInput;
         TextInput* HideUptoInput;
 
-        //Save Manegment
+        //Save Manegement
+
+        //opens the alarm for deletall all of your progress
         void onCurrentDeleteClicked(CCObject*);
-        FLAlertLayer* currDeleteAlert = nullptr;
-
+        //opens the alarm for reverting your save back to the backup
         void onRevertClicked(CCObject*);
-        FLAlertLayer* revertAlert = nullptr;
-
+        //opens the export/import layer
         void onExportClicked(CCObject*);
-
+        //info about save management and its options
         void onSaveManagementInfo(CCObject*);
 
+        FLAlertLayer* currDeleteAlert = nullptr;
+        FLAlertLayer* revertAlert = nullptr;
+
         //run management
+
+        //adds a run from 0% depending on the amount
+        void onAddedFZRun(CCObject*);
+        //removes a run from 0% depending on the amount
+        void onRemovedFZRun(CCObject*);
+
+        //adds a run depending on the amount
+        void onAddedRun(CCObject*);
+        //removes a run depending on the amount
+        void onRemovedRun(CCObject*);
+        //swaps between the addRunStartInput and addRunEndInput when clicking the - key
+        void addRunStartInputKeyDown();
+
+        //info about run managment and the usage of it
+        void onModRunsInfo(CCObject*);
+
         TextInput* addFZRunInput;
         TextInput* addRunStartInput;
         TextInput* addRunEndInput;
         TextInput* runsAmountInput;
-        void onAddedFZRun(CCObject*);
-        void onRemovedFZRun(CCObject*);
-
-        void onAddedRun(CCObject*);
-        void onRemovedRun(CCObject*);
-
-        void onModRunsInfo(CCObject*);
 
         CCLabelBMFont* runSeparator;
 
         //overall
-        DTLayer* myDTLayer;
-        void EnableTouch(bool b);
-        std::vector<CCMenu*> touchMenus{};
 
         void FLAlert_Clicked(FLAlertLayer* layer, bool selected) override;
         void textChanged(CCTextInputNode* input) override;
-        
-        void addRunStartInputKeyDown();
+
+        DTLayer* myDTLayer;
+        std::vector<CCMenu*> touchMenus{};
 };

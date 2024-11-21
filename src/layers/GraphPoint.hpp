@@ -15,19 +15,23 @@ class GraphPointDelegate {
 class GraphPoint : public CCMenuItem {
     protected:
         bool init(const std::string& run, const float& passrate, const ccColor3B& color);
+        
     public:
         static GraphPoint* create(const std::string& run, const float& passrate, const ccColor3B& color);
 
-        void update(float delta) override;
-
-        CCSprite* c;
+        //set the delegate for the point
+        void setDelegate(GraphPointDelegate* Delegate);
 
         std::string m_Run;
 
         float m_Passrate;
 
+    private:
+        //check for inputs
+        void update(float delta) override;
+
+        CCSprite* c;
+
         GraphPointDelegate* m_Delegate;
         bool m_oneTimeCall;
-
-        void setDelegate(GraphPointDelegate* Delegate);
 };

@@ -6,36 +6,52 @@
 #include <Geode/ui/TextArea.hpp>
 
 class LabelLayoutWindow : public cocos2d::CCNode {
-protected:
-    bool init(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
-public:
-    static LabelLayoutWindow* create(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
+    protected:
+        bool init(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
+    public:
+        static LabelLayoutWindow* create(const LabelLayout& MyLayout, DTLayer* const& DTLayer);
 
-    void myUpdate(float delta);
+        //sets this windows offset and scale based on this layout info
+        void setPositionBasedOnLayout(const LabelLayout& layout, int d = 0);
 
-    bool m_FollowMouse;
-    CCScale9Sprite* s;
+        //if this window is next to another window horizontally, return true 
+        bool isNextToAnother();
 
-    LabelLayout m_MyLayout;
-    LabelLayout m_MyLayoutSave;
-    SimpleTextArea* m_Label;
-    bool m_Lock;
+        //enable/disable this windows movement
+        void setMoveEnabled(const bool& b);
 
-    DTLayer* m_DTLayer;
+        DTLayer* m_DTLayer;
 
-    CCPoint mousePosToNode(CCNode* const& node);
-    bool isMouseTouching(CCNode* const& node);
-    void setPositionBasedOnLayout(const LabelLayout& layout, int d = 0);
-    //first: line, second: position
-    std::pair<int, int> getLineByPos(CCPoint pos);
-    void updateLine(const int& line);
-    float m_DoubleClickTimer;
-    bool isNextToAnother();
+        LabelLayout m_MyLayout;
+        CCScale9Sprite* s;
+        SimpleTextArea* m_Label;
 
-    bool MoveEnabled = true;
-    void setMoveEnabled(const bool& b);
-    bool oneTimeClickDetect;
+    private:
 
-    void setOpacity(GLubyte opacity);
-    void runAction(CCAction* action);
+        //used to detect inputs, and double clicks
+        void myUpdate(float delta);
+        float m_DoubleClickTimer;
+
+        //converts a mouse input to node space
+        CCPoint mousePosToNode(CCNode* const& node);
+        //if the curser is clicking this window, returns true
+        bool isMouseTouching(CCNode* const& node);
+        //gets the labels layout position based on its local node position
+        //first: line, second: position
+        std::pair<int, int> getLineByPos(CCPoint pos);
+        //updates position of recieves the same line number
+        void updateLine(const int& line);
+
+        //set this windows opacity
+        void setOpacity(GLubyte opacity);
+        //run a CCAction on this window
+        void runAction(CCAction* action);
+
+        bool MoveEnabled = true;
+        bool oneTimeClickDetect;
+
+        bool m_FollowMouse;
+
+        LabelLayout m_MyLayoutSave;
+        bool m_Lock;
 };

@@ -11,8 +11,9 @@ protected:
 public:
     static LabelFontCell* create(const int& FontID, const std::string& FontFNT, const std::string& FontName, const std::function<void(const int&)>& callback = NULL);
 
+    //activates the given callback to this LabelFontCell
+    void Use(CCObject*);
+
     int m_FontID;
     std::function<void(const int&)> m_Callback;
-
-    void Use(CCObject*);
 };

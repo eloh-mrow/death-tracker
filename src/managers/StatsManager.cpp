@@ -5,7 +5,6 @@
 
 using namespace geode::prelude;
 
-// return a splitted version of the string provided, devided by the delim
 std::vector<std::string> StatsManager::splitStr(const std::string& str, const std::string& delim) {
     size_t posStart = 0;
     size_t posEnd;
@@ -613,10 +612,6 @@ Result<std::filesystem::path> StatsManager::getLevelSaveFilePath(GJGameLevel* co
 
     filePath = m_savesFolderPath / (levelKey + ".json");
     return Ok(filePath);
-}
-
-ccColor3B StatsManager::inverseColor(const ccColor3B& color){
-    return {static_cast<GLubyte>(abs(color.r - 255)), static_cast<GLubyte>(abs(color.g - 255)), static_cast<GLubyte>(abs(color.b - 255))};
 }
 
 std::string StatsManager::getFont(const int& fontID){

@@ -292,7 +292,7 @@ void DTExportImportLayer::onImportClicked(CCObject*){
     openFileLocListener.setFilter(task);
 }
 
-const std::pair<const Deaths&, const Runs&>& DTExportImportLayer::readRunsFromText(const std::string& textToRead){
+std::pair<const Deaths&, const Runs&> DTExportImportLayer::readRunsFromText(const std::string& textToRead){
     Deaths deathDetected{};
     Runs runsDetected{};
 

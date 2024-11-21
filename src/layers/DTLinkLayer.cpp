@@ -131,7 +131,7 @@ void DTLinkLayer::refreshLists(){
         if (m_AllLevels[i].second.levelName == "-1")
             levelNameLower = "unknown name";
         
-        if (m_AllLevels[i].first != myKey && StatsManager::ContainsAtIndex(0, m_filterText, levelNameLower))
+        if (m_AllLevels[i].first != myKey && StatsManager::isKeyInIndex(levelNameLower, 0, m_filterText))
             AllLevelsSearch.push_back(m_AllLevels[i]);
     }
 
