@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.4.3
+- organized code!!!!! added comments to everything!!!!!!
+
 ## v2.4.2
 - fixed a crash bug on launch (macos)
 
