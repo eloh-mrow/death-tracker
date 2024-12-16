@@ -790,8 +790,24 @@ int StatsManager::getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* c
     return index + 1;
 }
 
-bool StatsManager::StatsManager::isKeyInIndex(const std::string& s, const int& index, const std::string& key) {
+bool StatsManager::isKeyInIndex(const std::string& s, const int& index, const std::string& key) {
     if (index + key.length() > s.length()) return false;
 
     return s.substr(index, key.length()) == key;
+}
+
+std::string StatsManager::workingTime(long long value){
+    if(value < 0) return fmt::format("NA ({})", value);
+    if(value == 0) return "NA";
+
+    int hours = value / 3600;
+    int minutes = (value % 3600) / 60;
+    int seconds = value % 60;
+
+    std::ostringstream stream;
+    if(hours > 0) stream << hours << "h ";
+    if(minutes > 0) stream << minutes << "m ";
+    stream << seconds << "s";
+
+    return stream.str();
 }

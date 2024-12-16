@@ -831,6 +831,27 @@ std::string DTLayer::modifyString(std::string ToModify){
             overallOffset -= 4;
             overallOffset += 1;
         }
+        if (StatsManager::isKeyInIndex(ToModify, inctences[i] + 1, "ptf0}")){
+            ToModify.erase(inctences[i], 6);
+            auto timeText = StatsManager::workingTime(playtimeFromZero);
+            ToModify.insert(inctences[i], timeText);
+            overallOffset -= 6;
+            overallOffset += timeText.length();
+        }
+        if (StatsManager::isKeyInIndex(ToModify, inctences[i] + 1, "ptrun}")){
+            ToModify.erase(inctences[i], 7);
+            auto timeText = StatsManager::workingTime(playtimeFromRuns);
+            ToModify.insert(inctences[i], timeText);
+            overallOffset -= 7;
+            overallOffset += timeText.length();
+        }
+        if (StatsManager::isKeyInIndex(ToModify, inctences[i] + 1, "ptall}")){
+            ToModify.erase(inctences[i], 7);
+            auto timeText = StatsManager::workingTime(playtimeFromRuns + playtimeFromZero);
+            ToModify.insert(inctences[i], timeText);
+            overallOffset -= 7;
+            overallOffset += timeText.length();
+        }
         if (StatsManager::isKeyInIndex(ToModify, inctences[i] + 1, "ssd}")){
             ToModify.erase(inctences[i], 5);
             overallOffset -= 5;
@@ -892,6 +913,8 @@ ResultTask DTLayer::refreshStrings(){
         else{
             m_DeathsInfo = value->unwrap();
 
+            DTLayer::updatePlaytime(m_DeathsInfo, false);
+
             std::string mergedString = "No Saved Attempts! ";
             for (const auto& deathI : m_DeathsInfo)
             {
@@ -915,6 +938,8 @@ ResultTask DTLayer::refreshStrings(){
             }
             else{
                 m_RunInfo = value->unwrap();
+
+                DTLayer::updatePlaytime(m_RunInfo, true);
 
                 std::string mergedString = "No Saved Runs! ";
                 for (const auto& runI : m_RunInfo)
@@ -948,10 +973,11 @@ DeathStringTask DTLayer::CreateDeathsInfo(const Deaths& deaths, const NewBests& 
 
         // sort the deaths
         for (const auto& [percentKey, count] : deaths) {
-            GEODE_UNWRAP_INTO(auto percentInt, geode::utils::numFromString<int>(percentKey));
+            GEODE_UNWRAP_INTO(int percentInt, geode::utils::numFromString<int>(percentKey));
 
             sortedDeaths.insert(std::make_pair(percentInt, count));
             totalDeaths += count;
+
             if (percentInt > bestRun) bestRun = percentInt;
         }
 
@@ -1002,8 +1028,10 @@ DeathStringTask DTLayer::CreateRunsInfo(const Runs runs){
 
         for (const auto [runKey, count] : runs){
             sortedRuns.push_back(std::make_tuple(runKey, count));
-                            
-            totalDeaths[StatsManager::splitRunKey(runKey).start] += count;
+            
+            Run currRun = StatsManager::splitRunKey(runKey);
+
+            totalDeaths[currRun.start] += count;
         }
 
         // sort the runs
@@ -1036,6 +1064,146 @@ DeathStringTask DTLayer::CreateRunsInfo(const Runs runs){
         return Ok(output);
     });
     
+}
+
+//better info time calc
+
+uint64_t DTLayer::timeInMs() {
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+std::string DTLayer::decodeBase64Gzip(const std::string& input) {
+    return ZipUtils::decompressString(input, false, 0);
+}
+
+inline bool objectIDIsSpeedPortal(int id) {
+    return (id == 200 || id == 201 || id == 202 || id == 203 || id == 1334);
+}
+
+inline int speedToPortalId(int speed) {
+    switch(speed) {
+    default:
+        return 201;
+        break;
+    case 1:
+        return 200;
+        break;
+    case 2:
+        return 202;
+        break;
+    case 3:
+        return 203;
+        break;
+    case 4:
+        return 1334;
+        break;
+    }
+}
+
+inline float travelForPortalId(int speed) {
+    switch (speed)
+    {
+    case 200:
+        return 251.16008f;
+        break;
+    default:
+        return 311.58011f;
+        break;
+    case 202:
+        return 387.42014f;
+        break;
+    case 203:
+        return 468.00015f;
+        break;
+    case 1334:
+        return 576.00018f;
+        break;
+    }
+}
+
+float DTLayer::timeForLevelString(const std::string& levelString) {
+    try {
+        auto a = timeInMs();
+
+        auto decompressString = decodeBase64Gzip(levelString);
+        auto c = timeInMs();
+        std::stringstream responseStream(decompressString);
+        std::string currentObject;
+        std::string currentKey;
+        std::string keyID;
+
+        float prevPortalX = 0;
+        int prevPortalId = 0;
+
+        float timeFull = 0;
+
+        float maxPos = 0;
+        while(getline(responseStream, currentObject, ';')){
+            size_t i = 0;
+            int objID = 0;
+            float xPos = 0;
+            bool checked = false;
+
+            std::stringstream objectStream(currentObject);
+            while(getline(objectStream, currentKey, ',')) {
+                if(i % 2 == 0) keyID = currentKey;
+                else {
+                    if(keyID == "1") objID = geode::utils::numFromString<int>(currentKey).unwrapOr(0);
+                    else if(keyID == "2") xPos = geode::utils::numFromString<float>(currentKey).unwrapOr(0);
+                    else if(keyID == "13") checked = geode::utils::numFromString<int>(currentKey).unwrapOr(0);
+                    else if(keyID == "kA4") prevPortalId = speedToPortalId(geode::utils::numFromString<int>(currentKey).unwrapOr(0));
+                }
+                i++;
+
+                if(xPos != 0 && objID != 0 && checked == true) break;
+            }
+
+            if(maxPos < xPos) maxPos = xPos;
+            if(!checked || !objectIDIsSpeedPortal(objID)) continue;
+
+            timeFull += (xPos - prevPortalX) / travelForPortalId(prevPortalId);
+            prevPortalId = objID;
+            prevPortalX = xPos;
+        }
+
+        timeFull += (maxPos - prevPortalX) / travelForPortalId(prevPortalId);
+        auto b = timeInMs() - a;
+        return timeFull;
+    } catch(std::exception e) {
+        log::error("An exception has occured while calculating time for levelString: {}", e.what());
+        return 0;
+    }
+}
+
+void DTLayer::updatePlaytime(std::vector<DeathInfo> deaths, bool runs){
+    //credit to better info for the level time stuff :)
+    
+    if (runs)
+        playtimeFromRuns = 0;
+    else
+        playtimeFromZero = 0;
+
+    auto wt = m_Level->m_timestamp
+        ? m_Level->m_timestamp / 240
+        : std::ceil(timeForLevelString(m_Level->m_levelString));
+
+    for (int i = 0; i < deaths.size(); i++)
+    {
+        int runLength = (deaths[i].run.end - deaths[i].run.start);
+
+        long long runOverallPlaytime = 0;
+
+        if (runLength == 0)
+            runOverallPlaytime = wt * 0.005f * deaths[i].deaths;
+        else
+            runOverallPlaytime = wt * (runLength / 100.0f) * deaths[i].deaths;
+
+        if (runs)
+            playtimeFromRuns += runOverallPlaytime;
+        else
+            playtimeFromZero += runOverallPlaytime;
+    }
 }
 
 void DTLayer::SwitchSessionRight(CCObject*){

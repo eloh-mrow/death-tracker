@@ -56,6 +56,9 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         std::string deathsString;
         std::string selectedSessionString;
 
+        long long playtimeFromZero;
+        long long playtimeFromRuns;
+
         bool m_IsMovingAWindow;
         std::vector<CCNode*> m_LayoutLines;
         ColorChannelSprite* colorSpritenb;
@@ -94,6 +97,17 @@ class DTLayer : public Popup<GJGameLevel* const&>, public TextInputDelegate, pub
         ResultTask refreshStrings();
         //uses the deaths and runs info to create a long string to be displayed in the main page, this creates the string specifically for the current session selected
         ResultTask updateSessionString(const int& session);
+
+        //updates the playtime based on the given deaths and the current levels length
+        //@param deaths the deaths to mesure from
+        //@param runs wether to update the runs playtime or from 0 playime
+        void updatePlaytime(std::vector<DeathInfo> deaths, bool runs);
+
+        //better info time calc :)
+
+        uint64_t timeInMs();
+        std::string decodeBase64Gzip(const std::string& input);
+        float timeForLevelString(const std::string& levelString);
 
         //session selection
         

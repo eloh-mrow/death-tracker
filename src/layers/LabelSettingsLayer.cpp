@@ -223,6 +223,9 @@ bool LabelSettingsLayer::setup(LabelLayoutWindow* const& labelWin, DTLayer* cons
         {"{s0}", "will include <co>all runs from 0</c> that are within your <cy>selected session</c>."},
         {"{sruns}", "will include <co>all</c> runs from <cl>practice</c> and <cg>startpos</c> that are within your <cy>selected session</c>."},
         {"{nl}", "inserts a <cg>new line</c> into the text."},
+        {"{ptf0}", "inserts your <cr>approximated</c> playtime <cg>from 0</c>."},
+        {"{ptrun}", "inserts your <cr>approximated</c> playtime <cg>from runs</c>."},
+        {"{ptall}", "inserts your <cr>approximated</c> playtime <cg>in total</c>."},
         {"{ssd}", "will display the <co>date</c> in which your <cy>selected session</c> occurred.\n<cj>[month/day/year]</c>"},
         {"{sst}", "will display the <co>time</c> in which your <cy>selected session</c> occurred.\n<cj>[AM/PM]</c>"}
     };

@@ -298,4 +298,8 @@ public:
     //@param index the index where to look for the key in
     //@param key the key to look for in the string
     static bool isKeyInIndex(const std::string& s, const int& Index, const std::string& key);
+
+    //better info calc :)
+    //converts time to a working time string
+    static std::string workingTime(long long value);
 };
