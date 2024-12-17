@@ -2,8 +2,8 @@
 
 #include <Geode/Geode.hpp>
 #include "../layers/DTLayer.hpp"
-#include "../managers/StatsManager.hpp"
-#include "../utils/Save.hpp"
+#include "../../managers/StatsManager.hpp"
+#include "../../utils/Save.hpp"
 
 using namespace geode::prelude;
 

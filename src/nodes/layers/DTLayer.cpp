@@ -1,13 +1,13 @@
 #include "../layers/DTLayer.hpp"
-#include "../managers/DTPopupManager.hpp"
-#include "../utils/Settings.hpp"
-#include "../layers/LabelLayoutWindow.hpp"
+#include "../../managers/DTPopupManager.hpp"
+#include "../../utils/Settings.hpp"
+#include "../LabelLayoutWindow.hpp"
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/DTLinkLayer.hpp"
-#include <Geode/ui/GeodeUI.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
-#include "../hooks/DTColorSelectPopup.hpp"
+#include "../../hooks/DTColorSelectPopup.hpp"
 #include "../layers/DTLevelSpecificSettingsLayer.hpp"
+#include <Geode/ui/GeodeUI.hpp>
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();

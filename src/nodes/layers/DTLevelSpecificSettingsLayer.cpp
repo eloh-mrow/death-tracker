@@ -1,8 +1,8 @@
 #include "../layers/DTLevelSpecificSettingsLayer.hpp"
 #include "../layers/DTExportImportLayer.hpp"
 #include "../layers/DTLayer.hpp"
-#include "../layers/RunAllowedCell.hpp"
-#include "../hooks/DTCCTextInputNode.hpp"
+#include "../cells/RunAllowedCell.hpp"
+#include "../../hooks/DTCCTextInputNode.hpp"
 
 DTLevelSpecificSettingsLayer* DTLevelSpecificSettingsLayer::create(const CCSize& size, DTLayer* const& _DTLayer) {
     auto ret = new DTLevelSpecificSettingsLayer();

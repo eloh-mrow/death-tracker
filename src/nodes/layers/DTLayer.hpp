@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include "Geode/ui/TextArea.hpp"
-#include "../managers/StatsManager.hpp"
-#include "../utils/Save.hpp"
+#include "../../managers/StatsManager.hpp"
+#include "../../utils/Save.hpp"
 
 using namespace geode::prelude;
 

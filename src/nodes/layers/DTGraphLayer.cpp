@@ -1,6 +1,6 @@
 #include "../layers/DTGraphLayer.hpp"
-#include "../layers/ChooseRunCell.hpp"
-#include "../utils/Settings.hpp"
+#include "../cells/ChooseRunCell.hpp"
+#include "../../utils/Settings.hpp"
 
 DTGraphLayer* DTGraphLayer::create(DTLayer* const& layer) {
     auto ret = new DTGraphLayer();
@@ -37,6 +37,9 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     noGraphLabel->setPosition({46, 3});
     alignmentNode->addChild(noGraphLabel);
 
+    graph = DTGraphNode::create({4, 2.3f});
+    this->m_mainLayer->addChild(graph);
+
     refreshGraph();
 
     CCScale9Sprite* FontTextDisplayBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
@@ -68,8 +71,8 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     std::string typeText = "Passrate";
 
-    if (currentType == GraphType::ReachRate)
-        typeText = "Reachrate";
+    //if (currentType == GraphType::ReachRate)
+    //    typeText = "Reachrate";
 
     PointInfoLabel = SimpleTextArea::create(fmt::format("Percent\n \nP{}:\nlol", typeText).c_str(), "bigFont.fnt");
     PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -220,248 +223,28 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     return true;
 }
-
+/*
 CCNode* DTGraphLayer::CreateGraph(
         const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
-        const CCPoint& Scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+        ,
         const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
     ){
     if (!deathsString.size()) return nullptr;
 
     auto toReturnNode = CCNode::create();
 
-    std::vector<DeathInfo> fixedDS = deathsString;
+    
 
-    auto LabelsNode = CCNode::create();
-    toReturnNode->addChild(LabelsNode);
-
-    CCPoint MaskShape[4] = {
-        ccp(0, 0),
-        ccp(100 * Scaling.x, 0),
-        ccp(100 * Scaling.x, 100 * Scaling.y),
-        ccp(0, 100 * Scaling.y)
-    };
-
-    auto clippingNode = CCClippingNode::create();
-    toReturnNode->addChild(clippingNode);
-
-    auto mask = CCDrawNode::create();
-    mask->drawPolygon(MaskShape, 4, ccc4FFromccc4B(graphBoxFillColor), graphBoxOutlineThickness, ccc4FFromccc4B(graphBoxOutlineColor));
-    clippingNode->setStencil(mask);
-    clippingNode->addChild(mask);
-
-    auto MenuForGP = CCMenu::create();
-    MenuForGP->setPosition({0,0});
-    MenuForGP->setZOrder(1);
-    toReturnNode->addChild(MenuForGP);
-
-    float RunStartPercent = fixedDS[0].run.start;
-
-    std::vector<CCPoint> lines;
-
-    fixedDS[fixedDS.size() - 1].passrate = 0;
-
-    if (type == GraphType::PassRate){
-        //add the min and max points if needed
-        if (fixedDS[0].run.end > RunStartPercent){
-            auto info = DeathInfo(Run(RunStartPercent, RunStartPercent), 0, 100);
-            fixedDS.insert(fixedDS.begin(), info);
-        }
-        
-        if (fixedDS[fixedDS.size() - 1].run.end < 100){
-            auto info = DeathInfo(Run(RunStartPercent, 100), 100, 0);
-            fixedDS.push_back(info);
-        }
-        else{
-            fixedDS[fixedDS.size() - 1].passrate = 100;
-        }
-        
-
-        //log::info("added extras");
-
-        CCPoint previousPoint = ccp(-1, -1);
-
-        for (const auto& deathI : fixedDS)
-        {
-            //save point
-            CCPoint myPoint = ccp(deathI.run.end, deathI.passrate);
-
-            
-            //add extra points
-            if (previousPoint.x != -1){
-
-                //add a before point if needed
-                if (previousPoint.x != myPoint.x - 1){
-
-                    if (previousPoint.x != myPoint.x - 2 && previousPoint.y != 100 && previousPoint.x + 1 <= bestRun){
-                        lines.push_back(ccp(previousPoint.x + 1, 100) * Scaling);
-                    }
-
-                    if (myPoint.x - 1 <= bestRun && myPoint.y != 100)
-                        lines.push_back(ccp(myPoint.x - 1, 100) * Scaling);
-                }
-            }
-
-            lines.push_back(myPoint * Scaling);
-            previousPoint = myPoint;
-        }
-
-        //add wrapping
-        lines.push_back(ccp(lines[lines.size() - 1].x + 100, lines[lines.size() - 1].y));
-        lines.push_back(ccp(lines[lines.size() - 1].x + 100, -100));
-        lines.push_back(ccp(lines[0].x, -100));
-    }
-    else if (type == GraphType::ReachRate){
-
-        int overallCount = 0;
-        std::vector<std::pair<int, int>> percentageDeaths{};
-        for (int i = fixedDS.size() - 1; i >= 0; i--)
-        {
-            overallCount += fixedDS[i].deaths;
-            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(fixedDS[i].run.end, overallCount));
-        }
-
-        if (percentageDeaths[0].first > RunStartPercent)
-            percentageDeaths.insert(percentageDeaths.begin(), std::make_pair(RunStartPercent, overallCount));
-        
-        if (percentageDeaths[percentageDeaths.size() - 1].first < 100){
-            percentageDeaths.push_back(std::make_pair(percentageDeaths[percentageDeaths.size() - 1].first + 1, 0));
-
-            if (percentageDeaths[percentageDeaths.size() - 1].first != 100)
-                percentageDeaths.push_back(std::make_pair(100, 0));
-        }
-            
-
-        for (int i = 0; i < percentageDeaths.size(); i++)
-        {
-            float reachRate = static_cast<float>(percentageDeaths[i].second) / overallCount;
-            lines.push_back(ccp(percentageDeaths[i].first * Scaling.x, reachRate * Scaling.y * 100));
-        }
-        
-    }
-
-    //log::info("added lines");
-
-    ccColor3B colorOfPoints;
-
-    if ((color.r + color.g + color.b) / 3 > 200)
-        colorOfPoints = {255, 255, 255};
-    else
-        colorOfPoints = { 136, 136, 136};
-
-    for (int i = 0; i < lines.size(); i++)
-    {
-        if (lines[i].x >= 0 && lines[i].x <= 100 * Scaling.x && lines[i].y >= 0 && lines[i].y <= 100 * Scaling.y)
-        {
-            auto pointText = fmt::format("{}%", lines[i].x / Scaling.x);
-            if (RunStartPercent != 0)
-                pointText.insert(0, fmt::format("{}% - ", RunStartPercent));
-
-            auto GP = GraphPoint::create(pointText, lines[i].y / Scaling.y, colorOfPoints);
-            GP->setDelegate(this);
-            GP->setPosition(lines[i]);
-            GP->setScale(Settings::getGraphPointSize() / 20 + 0.01f);
-            MenuForGP->addChild(GP);
-        }
-    }
-
-    auto line = CCDrawNode::create();
-    for (int i = 0; i < lines.size(); i++)
-    {
-        if (i != 0){
-            if (!line->drawSegment(lines[i - 1], lines[i], 1, ccc4FFromccc3B(color))){
-                return DTGraphLayer::CreateGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
-            }
-        }
-    }
-    clippingNode->addChild(line);
-
-    auto tempT = CCLabelBMFont::create("100", "chatFont.fnt");
-    tempT->setScale(0.4f);
-    float XForPr = tempT->getScaledContentSize().width;
-
-    auto gridNode = CCDrawNode::create();
-    gridNode->setZOrder(-1);
-    clippingNode->addChild(gridNode);
-
-    for (int i = 0; i <= 100; i++)
-    {
-        auto labelPr = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
-        labelPr->setPositionX(i * Scaling.x);
-        labelPr->setRotation(90);
-        labelPr->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        labelPr->setOpacity(labelLineColor.a);
-        LabelsNode->addChild(labelPr);
-        
-        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
-            labelPr->setScaleX(0.2f);
-
-            auto labelPrText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
-            labelPrText->setPositionX(i * Scaling.x);
-            labelPrText->setScale(0.4f);
-            labelPrText->setPositionY(-labelPr->getScaledContentSize().width - labelPrText->getScaledContentSize().height);
-            labelPrText->setColor({labelColor.r, labelColor.g, labelColor.b});
-            labelPrText->setOpacity(labelColor.a);
-            LabelsNode->addChild(labelPrText);
-        }
-        else{
-            labelPr->setScaleX(0.1f);
-            labelPr->setScaleY(0.8f);
-        }
-        labelPr->setPositionY(-labelPr->getScaledContentSize().width);
-        
-
-        //
-
-        auto labelPS = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
-        labelPS->setPositionY(i * Scaling.y);
-        labelPS->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        labelPS->setOpacity(labelLineColor.a);
-        LabelsNode->addChild(labelPS);
-
-        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
-            labelPS->setScaleX(0.2f);
-
-            auto labelPSText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
-            labelPSText->setPositionY(i * Scaling.y);
-            labelPSText->setScale(0.4f);
-            labelPSText->setPositionX(-labelPS->getScaledContentSize().width - XForPr);
-            labelPSText->setColor({labelColor.r, labelColor.g, labelColor.b});
-            labelPSText->setOpacity(labelColor.a);
-            LabelsNode->addChild(labelPSText);
-        }
-        else{
-            labelPS->setScaleX(0.1f);
-            labelPS->setScaleY(0.8f);
-        }
-
-        labelPS->setPositionX(-labelPS->getScaledContentSize().width);
-
-        //grid
-
-        if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            if (
-                !gridNode->drawSegment(ccp(0, i * Scaling.y), ccp(100 * Scaling.x, i * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor)) || 
-                !gridNode->drawSegment(ccp(i * Scaling.x, 0), ccp(i * Scaling.x, 100 * Scaling.y), 0.2f, ccc4FFromccc4B(gridColor))
-            ){
-                return DTGraphLayer::CreateGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
-            }
-        }
-    }
+    
     
 
     return toReturnNode;
-}
+}*/
 
 int DTGraphLayer::GetBestRun(const std::vector<DeathInfo>& selectedPercentRunInfo){
-    int bestRun = 0;
+    
 
-    for (auto best : selectedPercentRunInfo)
-    {
-        if (best.run.end > bestRun) bestRun = best.run.end;
-    }
-
-    return bestRun;
+    return 0;
 }
 
 void DTGraphLayer::OnPointSelected(cocos2d::CCNode* point){
@@ -471,8 +254,8 @@ void DTGraphLayer::OnPointSelected(cocos2d::CCNode* point){
     npsLabel->setVisible(false);
     std::string typeText = "Passrate";
 
-    if (currentType == GraphType::ReachRate)
-        typeText = "Reachrate";
+    //if (currentType == GraphType::ReachRate)
+    //    typeText = "Reachrate";
 
     PointInfoLabel->setText(fmt::format("Run:\n{}\n \n{}:\n{:.2f}%", pointToDisplay->m_Run, typeText, pointToDisplay->m_Passrate));
 }
@@ -486,11 +269,11 @@ void DTGraphLayer::OnPointDeselected(cocos2d::CCNode* point){
 }
 
 void DTGraphLayer::refreshGraph(){
-    if (m_graph) m_graph->removeMeAndCleanup();
+    //if (m_graph) m_graph->removeMeAndCleanup();
 
     if (ViewModeNormal){
         if (RunViewModeFromZero){
-            m_graph = DTGraphLayer::CreateGraph(m_DTLayer->m_DeathsInfo, DTGraphLayer::GetBestRun(m_DTLayer->m_DeathsInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            graph->addGraphForDeaths("from 0", m_DTLayer->m_DeathsInfo, DTGraphNode::GraphType::PassRate, 1, { Save::getNewBestColor().r, Save::getNewBestColor().g, Save::getNewBestColor().b, 255});
         }
         else{
             std::vector<DeathInfo> selectedPercentRunInfo;
@@ -500,9 +283,9 @@ void DTGraphLayer::refreshGraph(){
                     selectedPercentRunInfo.push_back(m_DTLayer->m_RunInfo[i]);
             }
 
-            m_graph = DTGraphLayer::CreateGraph(selectedPercentRunInfo, DTGraphLayer::GetBestRun(selectedPercentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            //m_graph = DTGraphLayer::CreateGraph(selectedPercentRunInfo, DTGraphLayer::GetBestRun(selectedPercentRunInfo), Save::getNewBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
-        
+        /*
         if (m_graph){
             m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
@@ -511,11 +294,11 @@ void DTGraphLayer::refreshGraph(){
         }
         else{
             noGraphLabel->setVisible(true);
-        }
+        }*/
     }
     else{
         if (RunViewModeFromZero){
-            m_graph = DTGraphLayer::CreateGraph(m_DTLayer->selectedSessionInfo, DTGraphLayer::GetBestRun(m_DTLayer->selectedSessionInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            //m_graph = DTGraphLayer::CreateGraph(m_DTLayer->selectedSessionInfo, DTGraphLayer::GetBestRun(m_DTLayer->selectedSessionInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
         else{
             std::vector<DeathInfo> selectedPercentRunInfo;
@@ -525,9 +308,9 @@ void DTGraphLayer::refreshGraph(){
                     selectedPercentRunInfo.push_back(m_DTLayer->m_SelectedSessionRunInfo[i]);
             }
 
-            m_graph = DTGraphLayer::CreateGraph(selectedPercentRunInfo, DTGraphLayer::GetBestRun(selectedPercentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
+            //m_graph = DTGraphLayer::CreateGraph(selectedPercentRunInfo, DTGraphLayer::GetBestRun(selectedPercentRunInfo), Save::getSessionBestColor(), {4, 2.3f}, { 124, 124, 124, 255}, {0, 0, 0, 120}, 0.2f, {115, 115, 115, 255}, { 202, 202, 202, 255}, 5, { 29, 29, 29, 255 }, 5, currentType);
         }
-
+        /*
         if (m_graph){
             m_graph->setPosition({-155, -108});
             m_graph->setZOrder(1);
@@ -536,7 +319,7 @@ void DTGraphLayer::refreshGraph(){
         }
         else{
             noGraphLabel->setVisible(true);
-        }
+        }*/
     }
 }
 
@@ -653,6 +436,7 @@ void DTGraphLayer::onRunViewModeButton(CCObject*){
 }
 
 void DTGraphLayer::onTypeViewModeButton(CCObject*){
+    /*
     if (currentType == GraphType::PassRate){
         currentType = GraphType::ReachRate;
         typeViewModeButtonS->m_label->setString("ReachRate");
@@ -660,7 +444,7 @@ void DTGraphLayer::onTypeViewModeButton(CCObject*){
     else if (currentType == GraphType::ReachRate){
         currentType = GraphType::PassRate;
         typeViewModeButtonS->m_label->setString("PassRate");
-    }
+    }*/
     DTGraphLayer::refreshGraph();
 }
 

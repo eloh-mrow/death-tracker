@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include "../managers/StatsManager.hpp"
-#include "../layers/DTLinkLayer.hpp"
+#include "../../managers/StatsManager.hpp"
 
 using namespace cocos2d;
 using namespace geode;

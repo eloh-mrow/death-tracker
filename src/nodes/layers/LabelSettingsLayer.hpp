@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include "../layers/LabelLayoutWindow.hpp"
-#include <Geode/ui/TextArea.hpp>
-#include "../layers/LabelFontCell.hpp"
+#include "../LabelLayoutWindow.hpp"
+#include "../cells/LabelFontCell.hpp"
 #include "../layers/DTLayer.hpp"
 
 using namespace geode::prelude;

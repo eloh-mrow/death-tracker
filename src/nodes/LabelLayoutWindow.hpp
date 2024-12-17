@@ -2,8 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include "../utils/Save.hpp"
-#include "../layers/DTLayer.hpp"
-#include <Geode/ui/TextArea.hpp>
+#include "../nodes/layers/DTLayer.hpp"
 
 class LabelLayoutWindow : public cocos2d::CCNode {
     protected:

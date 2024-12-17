@@ -1,6 +1,6 @@
-#include "../layers/LabelLayoutWindow.hpp"
+#include "../nodes/LabelLayoutWindow.hpp"
 #include "../managers/StatsManager.hpp"
-#include "../layers/LabelSettingsLayer.hpp"
+#include "../nodes/layers/LabelSettingsLayer.hpp"
 
 LabelLayoutWindow* LabelLayoutWindow::create(const LabelLayout& MyLayout, DTLayer* const& DTLayer) {
     auto ret = new LabelLayoutWindow();
