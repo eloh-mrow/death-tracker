@@ -37,10 +37,11 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     noGraphLabel->setPosition({46, 3});
     alignmentNode->addChild(noGraphLabel);
 
-    graph = DTGraphNode::create({4, 2.3f});
+    graph = DTGraphNode::create({4.75f, 2});
+    graph->setPosition({268, 158});
     this->m_mainLayer->addChild(graph);
 
-    refreshGraph();
+    DTGraphLayer::refreshGraph();
 
     CCScale9Sprite* FontTextDisplayBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
     FontTextDisplayBG->setPosition({35, 0});
@@ -69,12 +70,7 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     npsLabel->setPositionY(npsLabel->getPositionY());
     alignmentNode->addChild(npsLabel);
 
-    std::string typeText = "Passrate";
-
-    //if (currentType == GraphType::ReachRate)
-    //    typeText = "Reachrate";
-
-    PointInfoLabel = SimpleTextArea::create(fmt::format("Percent\n \nP{}:\nlol", typeText).c_str(), "bigFont.fnt");
+    PointInfoLabel = SimpleTextArea::create(fmt::format("Percent\n \nP{}:\nlol", "Passrate").c_str(), "bigFont.fnt");
     PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     PointInfoLabel->setPosition({-215, -83});
     PointInfoLabel->setZOrder(1);
@@ -223,29 +219,6 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
 
     return true;
 }
-/*
-CCNode* DTGraphLayer::CreateGraph(
-        const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
-        ,
-        const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
-    ){
-    if (!deathsString.size()) return nullptr;
-
-    auto toReturnNode = CCNode::create();
-
-    
-
-    
-    
-
-    return toReturnNode;
-}*/
-
-int DTGraphLayer::GetBestRun(const std::vector<DeathInfo>& selectedPercentRunInfo){
-    
-
-    return 0;
-}
 
 void DTGraphLayer::OnPointSelected(cocos2d::CCNode* point){
     pointToDisplay = static_cast<GraphPoint*>(point);
@@ -253,9 +226,6 @@ void DTGraphLayer::OnPointSelected(cocos2d::CCNode* point){
     PointInfoLabel->setVisible(true);
     npsLabel->setVisible(false);
     std::string typeText = "Passrate";
-
-    //if (currentType == GraphType::ReachRate)
-    //    typeText = "Reachrate";
 
     PointInfoLabel->setText(fmt::format("Run:\n{}\n \n{}:\n{:.2f}%", pointToDisplay->m_Run, typeText, pointToDisplay->m_Passrate));
 }

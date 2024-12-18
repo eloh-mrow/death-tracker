@@ -14,18 +14,21 @@ DTGraphNode* DTGraphNode::create(const CCSize& scaling) {
 bool DTGraphNode::init(const CCSize& scaling){
     this->scaling = scaling;
 
-    auto LabelsNode = CCNode::create();
-    LabelsNode->setID("labels-container");
-    this->addChild(LabelsNode);
+    LabelsContainer = CCNode::create();
+    LabelsContainer->setID("labels-container");
+    this->addChild(LabelsContainer);
 
-    this->setContentSize(scaling);
+    this->setContentSize(scaling * 100);
+    this->setAnchorPoint({.5f, .5f});
 
     DTGraphNode::refreshBackground(fillColor, outlineThickness, outlineColor);
+    DTGraphNode::refreshGrid();
+    DTGraphNode::updateLabels();
 
     return true;
 }
 
-void DTGraphNode::setBGFillColor(ccColor4B color){
+void DTGraphNode::setBGFillColor(const ccColor4B& color){
     DTGraphNode::refreshBackground(color, outlineThickness, outlineColor);
 }
 
@@ -33,13 +36,16 @@ void DTGraphNode::setOutlineThickness(float thickness){
     DTGraphNode::refreshBackground(fillColor, thickness, outlineColor);
 }
 
-void DTGraphNode::setOutlineColor(ccColor4B color){
+void DTGraphNode::setOutlineColor(const ccColor4B& color){
     DTGraphNode::refreshBackground(fillColor, outlineThickness, color);
 }
 
-void DTGraphNode::refreshBackground(ccColor4B newFillColor, float newOutlineThickness, ccColor4B newOutlineColor){
-    if (BGNode) BGNode->clear();
-    else BGNode = CCDrawNode::create();
+void DTGraphNode::refreshBackground(const ccColor4B& newFillColor, float newOutlineThickness, const ccColor4B& newOutlineColor){
+    if (fillNode) fillNode->clear();
+    else fillNode = CCDrawNode::create();
+
+    if (outlineNode) outlineNode->clear();
+    else outlineNode = CCDrawNode::create();
 
     fillColor = newFillColor;
     outlineThickness = newOutlineThickness;
@@ -52,14 +58,27 @@ void DTGraphNode::refreshBackground(ccColor4B newFillColor, float newOutlineThic
         ccp(0, 100 * scaling.height)
     };
 
-    if (mask) mask->removeMeAndCleanup();
-    mask = CCClippingNode::create();
-    mask->setID("mask-outline");
-    this->addChild(mask);
+    if (!mask){
+        mask = CCClippingNode::create();
+        mask->setID("mask");
+        this->addChild(mask);
+    }
 
-    BGNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(newFillColor), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
-    mask->setStencil(BGNode);
-    mask->addChild(BGNode);
+    fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(newFillColor), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
+    fillNode->setID("fill");
+    fillNode->setZOrder(-1);
+    mask->setStencil(fillNode);
+    mask->addChild(fillNode);
+
+    outlineNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
+    outlineNode->setID("outline");
+    outlineNode->setZOrder(2);
+    mask->addChild(outlineNode);
+    
+    if (graphsContainer) return;
+    graphsContainer = CCNode::create();
+    graphsContainer->setID("graphs-container");
+    mask->addChild(graphsContainer);
 }
 
 void DTGraphNode::addGraphForDeaths(const std::string& graphName, const std::vector<DeathInfo>& deaths, GraphType type, float thickness, const ccColor4B& color, bool clearOther){
@@ -88,7 +107,7 @@ void DTGraphNode::addGraphForDeaths(const std::string& graphName, const std::vec
         MenuForGP->setPosition({0,0});
         MenuForGP->setZOrder(1);
         myGraph.GraphPointsContainer = MenuForGP;
-        this->addChild(MenuForGP);
+        graphsContainer->addChild(MenuForGP);
     }
 
     myGraph.thickness = thickness;
@@ -187,6 +206,8 @@ void DTGraphNode::addGraphForDeaths(const std::string& graphName, const std::vec
     else myGraph.lineNode = CCDrawNode::create();
     myGraph.lineNode->setID(graphName + "-graph");
 
+    log::info("{} | {}", myGraph.points.size(), deaths.size());
+
     bool isFirst = false;
     CCPoint prevPoint;
     for (const CCPoint& linePoint : myGraph.points)
@@ -211,14 +232,14 @@ void DTGraphNode::addGraphForDeaths(const std::string& graphName, const std::vec
             continue;
         }
 
-        while (true){
+        for (int attempts = 0; attempts < 5; attempts++) {
             if (myGraph.lineNode->drawSegment(prevPoint, linePoint, myGraph.thickness, ccc4FFromccc4B(color)))
                 break;
         }
         prevPoint = linePoint;
     }
 
-    mask->addChild(myGraph.lineNode);
+    graphsContainer->addChild(myGraph.lineNode);
 
     if (!allGraphs.contains(graphName))
         allGraphs.emplace(graphName, myGraph);
@@ -240,7 +261,7 @@ void DTGraphNode::setGraphColorByName(const std::string& graphName, const ccColo
             continue;
         }
 
-        while (true){
+        for (int attempts = 0; attempts < 5; attempts++) {
             if (allGraphs[graphName].lineNode->drawSegment(prevPoint, linePoint, allGraphs[graphName].thickness, ccc4FFromccc4B(newColor)))
                 break;
         }
@@ -259,26 +280,52 @@ void DTGraphNode::eraseGraphByName(const std::string& graphName){
     allGraphs.erase(graphName);
 }
 
-void DTGraphNode::refreshGizmos(){
+void DTGraphNode::refreshGrid(){
+
+    if (boldGridNode) boldGridNode->clear();
+    else {
+        boldGridNode = CCDrawNode::create();
+        boldGridNode->setZOrder(-1);
+        graphsContainer->addChild(boldGridNode);
+    }
+
+    for (int i = 0; i <= 100; i++){
+        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
+            for (int attempts = 0; attempts < 5; attempts++) {
+                if (
+                    boldGridNode->drawSegment(ccp(0, i * scaling.height), ccp(100 * scaling.width, i * scaling.height), 0.2f, ccc4FFromccc4B(boldGridColor)) && 
+                    boldGridNode->drawSegment(ccp(i * scaling.width, 0), ccp(i * scaling.width, 100 * scaling.height), 0.2f, ccc4FFromccc4B(boldGridColor))
+                ) break;
+            }
+        }
+    }
+}
+
+void DTGraphNode::updateLabels(){
     auto tempT = CCLabelBMFont::create("100", "chatFont.fnt");
     tempT->setScale(0.4f);
     float XForPr = tempT->getScaledContentSize().width;
 
-    auto gridNode = CCDrawNode::create();
-    gridNode->setZOrder(-1);
-    mask->addChild(gridNode);
+    smallLines.clear();
+    boldLines.clear();
+    labels.clear();
 
     for (int i = 0; i <= 100; i++)
     {
         auto labelPr = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
         labelPr->setPositionX(i * scaling.width);
         labelPr->setRotation(90);
-        labelPr->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        labelPr->setOpacity(labelLineColor.a);
-        LabelsNode->addChild(labelPr);
+        labelPr->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
+        labelPr->setOpacity(smallLineColor.a);
+        LabelsContainer->addChild(labelPr);
+
+        float closestBigLabel = static_cast<float>(i) / labelEvery;
         
-        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
+        if (floor(closestBigLabel) == closestBigLabel){
             labelPr->setScaleX(0.2f);
+
+            labelPr->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
+            labelPr->setOpacity(boldLineColor.a);
 
             auto labelPrText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPrText->setPositionX(i * scaling.width);
@@ -286,25 +333,32 @@ void DTGraphNode::refreshGizmos(){
             labelPrText->setPositionY(-labelPr->getScaledContentSize().width - labelPrText->getScaledContentSize().height);
             labelPrText->setColor({labelColor.r, labelColor.g, labelColor.b});
             labelPrText->setOpacity(labelColor.a);
-            LabelsNode->addChild(labelPrText);
+            LabelsContainer->addChild(labelPrText);
+
+            boldLines.insert(labelPr);
+            labels.insert(labelPrText);
         }
         else{
             labelPr->setScaleX(0.1f);
             labelPr->setScaleY(0.8f);
+
+            smallLines.insert(labelPr);
         }
         labelPr->setPositionY(-labelPr->getScaledContentSize().width);
-        
 
         //
 
         auto labelPS = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
         labelPS->setPositionY(i * scaling.height);
-        labelPS->setColor({labelLineColor.r, labelLineColor.g, labelLineColor.b});
-        labelPS->setOpacity(labelLineColor.a);
-        LabelsNode->addChild(labelPS);
+        labelPS->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
+        labelPS->setOpacity(smallLineColor.a);
+        LabelsContainer->addChild(labelPS);
 
-        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery){
+        if (floor(closestBigLabel) == closestBigLabel){
             labelPS->setScaleX(0.2f);
+
+            labelPS->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
+            labelPS->setOpacity(boldLineColor.a);
 
             auto labelPSText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPSText->setPositionY(i * scaling.height);
@@ -312,24 +366,42 @@ void DTGraphNode::refreshGizmos(){
             labelPSText->setPositionX(-labelPS->getScaledContentSize().width - XForPr);
             labelPSText->setColor({labelColor.r, labelColor.g, labelColor.b});
             labelPSText->setOpacity(labelColor.a);
-            LabelsNode->addChild(labelPSText);
+            LabelsContainer->addChild(labelPSText);
+
+            boldLines.insert(labelPS);
+            labels.insert(labelPSText);
         }
         else{
             labelPS->setScaleX(0.1f);
             labelPS->setScaleY(0.8f);
+
+            smallLines.insert(labelPS);
         }
 
         labelPS->setPositionX(-labelPS->getScaledContentSize().width);
+    }
+}
 
-        //grid
+void DTGraphNode::setSmallLinesColor(const ccColor4B& newColor){
+    smallLineColor = newColor;
+    for (auto line : smallLines){
+        line->setColor({newColor.r, newColor.g, newColor.b});
+        line->setOpacity(newColor.a);
+    }
+}
 
-        if (floor(static_cast<float>(i) / gridLineEvery) == static_cast<float>(i) / gridLineEvery){
-            if (
-                !gridNode->drawSegment(ccp(0, i * scaling.height), ccp(100 * scaling.width, i * scaling.height), 0.2f, ccc4FFromccc4B(gridColor)) || 
-                !gridNode->drawSegment(ccp(i * scaling.width, 0), ccp(i * scaling.width, 100 * scaling.height), 0.2f, ccc4FFromccc4B(gridColor))
-            ){
-                return DTGraphLayer::CreateGraph(deathsString, bestRun, color, Scaling, graphBoxOutlineColor, graphBoxFillColor, graphBoxOutlineThickness, labelLineColor, labelColor, labelEvery, gridColor, gridLineEvery, currentType);
-            }
-        }
+void DTGraphNode::setBoldLinesColor(const ccColor4B& newColor){
+    boldLineColor = newColor;
+    for (auto line : boldLines){
+        line->setColor({newColor.r, newColor.g, newColor.b});
+        line->setOpacity(newColor.a);
+    }
+}
+
+void DTGraphNode::setLabelsColor(const ccColor4B& newColor){
+    labelColor = newColor;
+    for (auto label : labels){
+        label->setColor({newColor.r, newColor.g, newColor.b});
+        label->setOpacity(newColor.a);
     }
 }

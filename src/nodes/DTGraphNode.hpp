@@ -19,17 +19,23 @@ class DTGraphNode : public CCNode {
             ReachRate
         };
 
-        void setBGFillColor(ccColor4B color);
+        void setBGFillColor(const ccColor4B& color);
         void setOutlineThickness(float thickness);
-        void setOutlineColor(ccColor4B color);
+        void setOutlineColor(const ccColor4B& color);
 
-        void refreshBackground(ccColor4B newFillColor, float newOutlineThickness, ccColor4B newOutlineColor);
+        void refreshBackground(const ccColor4B& newFillColor, float newOutlineThickness, const ccColor4B& newOutlineColor);
 
         void addGraphForDeaths(const std::string& graphName, const std::vector<DeathInfo>& deaths, GraphType type, float thickness, const ccColor4B& color, bool clearOther = false);
         void setGraphColorByName(const std::string& graphName, const ccColor4B& newColor);
         void eraseGraphByName(const std::string& graphName);
 
-        void refreshGizmos();
+        void refreshGrid();
+
+        void updateLabels();
+
+        void setSmallLinesColor(const ccColor4B& newColor);
+        void setBoldLinesColor(const ccColor4B& newColor);
+        void setLabelsColor(const ccColor4B& newColor);
 
     private:
 
@@ -42,12 +48,28 @@ class DTGraphNode : public CCNode {
 
         CCSize scaling;
 
-        ccColor4B fillColor = { 124, 124, 124, 255};
+        ccColor4B fillColor = {0, 0, 0, 120};
         float outlineThickness = 0.2f;
-        ccColor4B outlineColor = {0, 0, 0, 120};
+        ccColor4B outlineColor = { 124, 124, 124, 255};
 
-        CCDrawNode* BGNode = nullptr;
+        int labelEvery = 5;
+
+        CCDrawNode* boldGridNode = nullptr;
+        ccColor4B boldGridColor = { 29, 29, 29, 255 };
+
+        ccColor4B boldLineColor = {115, 115, 115, 255};
+        ccColor4B smallLineColor = {115, 115, 115, 100};
+        ccColor4B labelColor = { 202, 202, 202, 255};
+
+        CCDrawNode* fillNode = nullptr;
+        CCDrawNode* outlineNode = nullptr;
         CCClippingNode* mask = nullptr;
 
+        CCNode* graphsContainer = nullptr;
+        CCNode* LabelsContainer = nullptr;
+
         std::unordered_map<std::string, GraphLine> allGraphs{};
+        std::set<CCSprite*> smallLines{};
+        std::set<CCSprite*> boldLines{};
+        std::set<CCLabelBMFont*> labels{};
 };
