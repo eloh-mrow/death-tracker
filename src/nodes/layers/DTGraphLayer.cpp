@@ -50,34 +50,6 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     FontTextDisplayBG->setOpacity(125);
     alignmentNode->addChild(FontTextDisplayBG);
 
-    CCScale9Sprite* InfoBG = CCScale9Sprite::create("square02b_001.png", {0,0, 80, 80});
-    InfoBG->setPosition({-215, -85});
-    InfoBG->setContentSize({65, 83});
-    InfoBG->setColor({ 113, 167, 255 });
-    InfoBG->setOpacity(78);
-    alignmentNode->addChild(InfoBG);
-
-    auto InfoLabel = CCLabelBMFont::create("Point Info", "bigFont.fnt");
-    InfoLabel->setPosition({-215, -36});
-    InfoLabel->setScale(0.35f);
-    alignmentNode->addChild(InfoLabel);
-
-    npsLabel = CCLabelBMFont::create("No\nPoint\nSelected", "bigFont.fnt");
-    npsLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    npsLabel->setScale(0.35f);
-    npsLabel->setPosition({-215, -83});
-    npsLabel->setZOrder(1);
-    npsLabel->setPositionY(npsLabel->getPositionY());
-    alignmentNode->addChild(npsLabel);
-
-    PointInfoLabel = SimpleTextArea::create(fmt::format("Percent\n \nP{}:\nlol", "Passrate").c_str(), "bigFont.fnt");
-    PointInfoLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    PointInfoLabel->setPosition({-215, -83});
-    PointInfoLabel->setZOrder(1);
-    PointInfoLabel->setVisible(false);
-    PointInfoLabel->setScale(0.35f);
-    alignmentNode->addChild(PointInfoLabel);
-
     auto SessionSelectCont = CCNode::create();
     SessionSelectCont->setID("Session-Select-Container");
     SessionSelectCont->setPosition({-215, 50});
@@ -131,46 +103,6 @@ bool DTGraphLayer::setup(DTLayer* const& layer) {
     SessionSelectionLabel->setPosition({0, 16});
     SessionSelectionLabel->setScale(0.45f);
     SessionSelectCont->addChild(SessionSelectionLabel);
-
-    auto viewModeLabel = CCLabelBMFont::create("View Mode", "bigFont.fnt");
-    viewModeLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    viewModeLabel->setScale(0.35f);
-    viewModeLabel->setPosition({-215, 120});
-    alignmentNode->addChild(viewModeLabel);
-
-    viewModeButtonS = ButtonSprite::create("Normal");
-    viewModeButtonS->setScale(0.45f);
-    auto viewModeButton = CCMenuItemSpriteExtra::create(
-        viewModeButtonS,
-        nullptr,
-        this,
-        menu_selector(DTGraphLayer::onViewModeButton)
-    );
-    viewModeButton->setPosition({-215 + m_size.width / 2, 106 + m_size.height / 2});
-    this->m_buttonMenu->addChild(viewModeButton);
-
-    runViewModeButtonS = ButtonSprite::create("From 0");
-    runViewModeButtonS->setScale(0.45f);
-    auto runViewModeButton = CCMenuItemSpriteExtra::create(
-        runViewModeButtonS,
-        nullptr,
-        this,
-        menu_selector(DTGraphLayer::onRunViewModeButton)
-    );
-    runViewModeButton->setPosition({-215 + m_size.width / 2, 90 + m_size.height / 2});
-    this->m_buttonMenu->addChild(runViewModeButton);
-
-    typeViewModeButtonS = ButtonSprite::create("ReachRate");
-    typeViewModeButtonS->setScale(0.4f);
-    auto typeViewModeButton = CCMenuItemSpriteExtra::create(
-        typeViewModeButtonS,
-        nullptr,
-        this,
-        menu_selector(DTGraphLayer::onTypeViewModeButton)
-    );
-    typeViewModeButton->setPosition({-215 + m_size.width / 2, 75 + m_size.height / 2});
-    typeViewModeButtonS->m_label->setString("PassRate");
-    this->m_buttonMenu->addChild(typeViewModeButton);
 
     m_RunSelectInput = TextInput::create(120, "Run %");
     m_RunSelectInput->getInputNode()->setDelegate(this);
@@ -244,6 +176,9 @@ void DTGraphLayer::refreshGraph(){
     if (ViewModeNormal){
         if (RunViewModeFromZero){
             graph->addGraphForDeaths("from 0", m_DTLayer->m_DeathsInfo, DTGraphNode::GraphType::PassRate, 1, { Save::getNewBestColor().r, Save::getNewBestColor().g, Save::getNewBestColor().b, 255});
+            graph->addGraphForDeaths("from 0 reachrate", m_DTLayer->m_DeathsInfo, DTGraphNode::GraphType::ReachRate, 1, { Save::getNewBestColor().r, Save::getNewBestColor().g, Save::getNewBestColor().b, 255});
+            graph->addGraphForDeaths("session from 0", m_DTLayer->selectedSessionInfo, DTGraphNode::GraphType::PassRate, 1, { Save::getSessionBestColor().r, Save::getSessionBestColor().g, Save::getSessionBestColor().b, 255});
+            graph->addGraphForDeaths("session from 0 reachrate", m_DTLayer->selectedSessionInfo, DTGraphNode::GraphType::ReachRate, 1, { Save::getSessionBestColor().r, Save::getSessionBestColor().g, Save::getSessionBestColor().b, 255});
         }
         else{
             std::vector<DeathInfo> selectedPercentRunInfo;
@@ -438,3 +373,53 @@ void DTGraphLayer::onClose(cocos2d::CCObject*) {
     this->setTouchEnabled(false);
     this->removeFromParentAndCleanup(true);
 }
+
+/*
+- create graph feature:
+
+- name
+- color
+- type
+    - passrate
+    - reachrate
+- coverage
+    - from 0
+    - runs
+        - specify wether to use quickset runs start % or specific one
+            - allow to choose specific runs start % if chosen
+    - section
+        - specify wether to use quickset section or specific one
+            - allow to choose specific section if chosen
+- thickness
+
+
+type can be quick swapped for each specific graph
+
+- graph cell:
+
+- graph name
+- a dot in the color of the graph
+- delete button
+- hide/show button
+- edit button
+- type quickswap option
+
+- overall graph layer:
+
+- graph management
+    - big space for the graph
+    - a space for the list of graphs created
+    - hide/show all button
+    - create new graph button
+- run start % input
+    - a selection of preset % by user to set the input to
+- section selection
+
+
+//to add to the actual graph node//
+
+- graph point functionality
+    - hover/raw number displays
+
+- zoom in/out
+*/
