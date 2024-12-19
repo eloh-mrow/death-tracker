@@ -13,9 +13,9 @@ $execute {
             {
                 .labelName = "from 0",
                 .text = "From 0:{nl}{f0}{nl} ",
-                .line = 2,
+                .line = 3,
                 .position = 0,
-                .color = {255,255,255,255},
+                .color = {160,255,198,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -23,9 +23,9 @@ $execute {
             {
                 .labelName = "Session",
                 .text = "Session:{nl}{ssd}{nl}{s0}{nl} ",
-                .line = 2,
+                .line = 3,
                 .position = 1,
-                .color = {255,255,255,255},
+                .color = {255,217,166,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -33,9 +33,9 @@ $execute {
             {
                 .labelName = "Runs",
                 .text = "Runs:{nl}{runs}{nl} ",
-                .line = 3,
+                .line = 4,
                 .position = 0,
-                .color = {255,255,255,255},
+                .color = {85,168,112,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -43,9 +43,9 @@ $execute {
             {
                 .labelName = "SRuns",
                 .text = "Session Runs:{nl}{sruns}{nl} ",
-                .line = 3,
+                .line = 4,
                 .position = 1,
-                .color = {255,255,255,255},
+                .color = {251,176,94,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -63,12 +63,22 @@ $execute {
             {
                 .labelName = "att",
                 .text = "{att} attempts",
-                .line = 1,
+                .line = 2,
                 .position = 1,
                 .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 1,
                 .fontSize = 0.75f
+            },
+            {
+                .labelName =  "playtime",
+                .text = "playtime - {ptall}",
+                .line = 1,
+                .position = 1,
+                .color = {255,255,255,255},
+                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
+                .font = 19,
+                .fontSize = 0.45f
             }
         };
 

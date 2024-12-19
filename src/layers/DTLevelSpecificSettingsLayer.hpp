@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include "../layers/DTLayer.hpp"
+#include "DTLayer.hpp"
 
 using namespace geode::prelude;
 

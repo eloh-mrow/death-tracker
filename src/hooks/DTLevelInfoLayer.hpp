@@ -1,5 +1,5 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
-#include "../nodes/layers/DTLayer.hpp"
+#include "../layers/DTLayer.hpp"
 #include "../managers/StatsManager.hpp"
 #include "../utils/Settings.hpp"
 

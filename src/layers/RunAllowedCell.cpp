@@ -1,4 +1,4 @@
-#include "../cells/RunAllowedCell.hpp"
+#include "../layers/RunAllowedCell.hpp"
 
 RunAllowedCell* RunAllowedCell::create(const int& Percent, const float& scale, const std::function<void(const int&, cocos2d::CCNode*)>& callback) {
     auto ret = new RunAllowedCell();

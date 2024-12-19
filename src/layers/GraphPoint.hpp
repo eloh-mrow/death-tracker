@@ -32,6 +32,6 @@ class GraphPoint : public CCMenuItem {
 
         CCSprite* c;
 
-        GraphPointDelegate* m_Delegate = nullptr;
+        GraphPointDelegate* m_Delegate;
         bool m_oneTimeCall;
 };

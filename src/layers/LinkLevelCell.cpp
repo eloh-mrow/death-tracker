@@ -1,5 +1,5 @@
-#include "../cells/LinkLevelCell.hpp"
-#include "../../utils/Settings.hpp"
+#include "../layers/LinkLevelCell.hpp"
+#include "../utils/Settings.hpp"
 
 LinkLevelCell* LinkLevelCell::create(const float& cellW, const std::string& levelKey, const LevelStats& stats, const bool& linked, const std::function<void(const std::string, LevelStats , const bool &)>& callback) {
     auto ret = new LinkLevelCell();

@@ -1,5 +1,5 @@
 #include <Geode/modify/PauseLayer.hpp>
-#include "../nodes/layers/DTLayer.hpp"
+#include "../layers/DTLayer.hpp"
 #include "../managers/DTPopupManager.hpp"
 #include "../utils/Settings.hpp"
 #include "../hooks/DTPlayLayer.hpp"

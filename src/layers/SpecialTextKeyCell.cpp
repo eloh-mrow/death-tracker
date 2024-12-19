@@ -1,4 +1,4 @@
-#include "../cells/SpecialTextKeyCell.hpp"
+#include "../layers/SpecialTextKeyCell.hpp"
 
 SpecialTextKeyCell* SpecialTextKeyCell::create(const std::string& textKey, const std::string& description, const std::function<void(const std::string&)>& onAdd) {
     auto ret = new SpecialTextKeyCell();

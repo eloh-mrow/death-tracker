@@ -2,8 +2,8 @@
 
 #include <Geode/Geode.hpp>
 #include "../layers/DTLayer.hpp"
-#include "../GraphPoint.hpp"
-#include "../DTGraphNode.hpp"
+#include "../layers/GraphPoint.hpp"
+#include "Geode/ui/TextArea.hpp"
 
 using namespace geode::prelude;
 
@@ -16,6 +16,33 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
     private:
         //graph stuff
 
+        enum GraphType{
+            PassRate,
+            ReachRate
+        };
+
+        // creates a graph with a given deaths string
+        // @param deathsString the deaths info to make the graph out of
+        // @param bestRun the best run of the deaths info
+        // @param color the color the graph will be
+        // @param scaling determines the scale of the graph
+        // @param graphBoxOutlineColor the color of the graph outline
+        // @param graphBoxFillColor the color of the graph background
+        // @param graphBoxOutlineThickness the thickness of the graphs box outline
+        // @param labelLineColor the color of the small lines next to the numebrs
+        // @param labelColor color of the numbers displayed on the sides
+        // @param labelEvery how often a number label appears
+        // @param gridColor the color of the grid lines
+        // @param gridLineEvery how often a grid line appears
+        // @param type the type of graph to create
+        CCNode* CreateGraph(
+            const std::vector<DeathInfo>& deathsString, const int& bestRun, const ccColor3B& color,
+            const CCPoint& scaling, const ccColor4B& graphBoxOutlineColor, const ccColor4B& graphBoxFillColor, const float& graphBoxOutlineThickness,
+            const ccColor4B& labelLineColor, const ccColor4B& labelColor, const int& labelEvery, const ccColor4B& gridColor, const int& gridLineEvery, const GraphType& type
+        );
+        //get the best run in a runs vector
+        static int GetBestRun(const std::vector<DeathInfo>& selectedPercentRunInfo);
+
         //change the displayed point
         void OnPointSelected(cocos2d::CCNode* point) override;
         //have no point displayed if the deselected point was the was selected prior
@@ -24,6 +51,7 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
         //update the graph according to the other settings
         void refreshGraph();
 
+        CCNode* m_graph = nullptr;
         CCLabelBMFont* noGraphLabel;
         GraphPoint* pointToDisplay;
         CCLabelBMFont* npsLabel;
@@ -73,6 +101,5 @@ class DTGraphLayer : public Popup<DTLayer* const&>, public TextInputDelegate, pu
 
         DTLayer* m_DTLayer;
         CCNode* alignmentNode;
-        //GraphType currentType = GraphType::PassRate;
-        DTGraphNode* graph;
+        GraphType currentType = GraphType::PassRate;
 };

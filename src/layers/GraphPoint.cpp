@@ -1,4 +1,4 @@
-#include "../nodes/GraphPoint.hpp"
+#include "../layers/GraphPoint.hpp"
 
 GraphPoint* GraphPoint::create(const std::string& run, const float& passrate, const ccColor3B& color) {
     auto ret = new GraphPoint();
@@ -36,7 +36,6 @@ void GraphPoint::update(float delta){
         c->setScale(2);
         if (!m_oneTimeCall){
             m_oneTimeCall = true;
-            if (!m_Delegate) return;
             m_Delegate->OnPointSelected(this);
         }
     }
@@ -44,7 +43,6 @@ void GraphPoint::update(float delta){
         c->setScale(1);
         if (m_oneTimeCall){
             m_oneTimeCall = false;
-            if (!m_Delegate) return;
             m_Delegate->OnPointDeselected(this);
         }
     }

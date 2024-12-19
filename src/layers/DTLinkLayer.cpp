@@ -1,5 +1,5 @@
 #include "../layers/DTLinkLayer.hpp"
-#include "../cells/LinkLevelCell.hpp"
+#include "../layers/LinkLevelCell.hpp"
 
 DTLinkLayer* DTLinkLayer::create(DTLayer* const& layer) {
     auto ret = new DTLinkLayer();
