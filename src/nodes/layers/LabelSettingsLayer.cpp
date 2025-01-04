@@ -1,6 +1,6 @@
 #include "../layers/LabelSettingsLayer.hpp"
-#include "../managers/StatsManager.hpp"
-#include "../layers/SpecialTextKeyCell.hpp"
+#include "../../managers/StatsManager.hpp"
+#include "../cells/SpecialTextKeyCell.hpp"
 
 LabelSettingsLayer* LabelSettingsLayer::create(LabelLayoutWindow* const& labelWin, DTLayer* const& dtLayer) {
     auto ret = new LabelSettingsLayer();

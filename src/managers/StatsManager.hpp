@@ -166,7 +166,6 @@ typedef struct {
     std::string type;
 } prismSetting;
 
-// matjson fuckery
 template <>
 struct matjson::Serialize<prismSetting> {
     static Result<prismSetting> fromJson(const matjson::Value& value) {

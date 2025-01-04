@@ -1,13 +1,13 @@
 #include "../layers/DTLayer.hpp"
-#include "../managers/DTPopupManager.hpp"
-#include "../utils/Settings.hpp"
-#include "../layers/LabelLayoutWindow.hpp"
+#include "../../managers/DTPopupManager.hpp"
+#include "../../utils/Settings.hpp"
+#include "../LabelLayoutWindow.hpp"
 #include "../layers/DTGraphLayer.hpp"
 #include "../layers/DTLinkLayer.hpp"
-#include <Geode/ui/GeodeUI.hpp>
 #include <cvolton.level-id-api/include/EditorIDs.hpp>
-#include "../hooks/DTColorSelectPopup.hpp"
+#include "../../hooks/DTColorSelectPopup.hpp"
 #include "../layers/DTLevelSpecificSettingsLayer.hpp"
+#include <Geode/ui/GeodeUI.hpp>
 
 DTLayer* DTLayer::create(GJGameLevel* const& Level) {
     auto ret = new DTLayer();
@@ -343,9 +343,15 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
-            "{}/n{}",
-            "- <cg>added playtime calculation! (use special keys {ptf0},{ptrun} and {ptall} to see it!!)</c>",
-            "- <cg>changed default layout! (if you never changed your layout before, resetting it to default is recommended!)</c>"
+            "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+            "- <cg>fixed macos inline crash</c>",
+            "- <cg>fixed a TON of text alignment issues</c>",
+            "- <cg>made stat calculations happen in the background, should result in less lag when navigating the menus</c>",
+            "- <cg>added the \"hide runs by length\" to let you remove some clutter in the menu</c>",
+            "- <cg>now removing a run from zero completely will also erase it from your \"new bests\"</c>",
+            "- <cg>added the option to have the death tracker button on the left menu in the level page</c>",
+            "- <cg>added the option to change the graph points size</c>",
+            "- <cg>some bug fixes</c>"
         ), "OK", nullptr, 415, false, 200, 0.75f)->show();
     }
 
@@ -1264,9 +1270,9 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             {
                 .labelName = "from 0",
                 .text = "From 0:{nl}{f0}{nl} ",
-                .line = 3,
+                .line = 2,
                 .position = 0,
-                .color = {160,255,198,255},
+                .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -1274,9 +1280,9 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             {
                 .labelName = "Session",
                 .text = "Session:{nl}{ssd}{nl}{s0}{nl} ",
-                .line = 3,
+                .line = 2,
                 .position = 1,
-                .color = {255,217,166,255},
+                .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -1284,9 +1290,9 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             {
                 .labelName = "Runs",
                 .text = "Runs:{nl}{runs}{nl} ",
-                .line = 4,
+                .line = 3,
                 .position = 0,
-                .color = {85,168,112,255},
+                .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -1294,9 +1300,9 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             {
                 .labelName = "SRuns",
                 .text = "Session Runs:{nl}{sruns}{nl} ",
-                .line = 4,
+                .line = 3,
                 .position = 1,
-                .color = {251,176,94,255},
+                .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 0,
                 .fontSize = 0.5f
@@ -1314,22 +1320,12 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool selected){
             {
                 .labelName = "att",
                 .text = "{att} attempts",
-                .line = 2,
+                .line = 1,
                 .position = 1,
                 .color = {255,255,255,255},
                 .alignment = CCTextAlignment::kCCTextAlignmentCenter,
                 .font = 1,
                 .fontSize = 0.75f
-            },
-            {
-                .labelName =  "playtime",
-                .text = "playtime - {ptall}",
-                .line = 1,
-                .position = 1,
-                .color = {255,255,255,255},
-                .alignment = CCTextAlignment::kCCTextAlignmentCenter,
-                .font = 19,
-                .fontSize = 0.45f
             }
         };
 
