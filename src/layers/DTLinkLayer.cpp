@@ -50,7 +50,7 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTLinkLayer::levelsListMoveRight)
     );
-    levelsMoveRight->setPosition({-2, 0});
+    levelsMoveRight->setPosition({this->m_buttonMenu->getContentWidth() / 2 - 2, this->m_buttonMenu->getContentHeight() / 2});
     this->m_buttonMenu->addChild(levelsMoveRight);
 
     auto levelsMoveLeftS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -61,7 +61,7 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         this,
         menu_selector(DTLinkLayer::levelsListMoveLeft)
     );
-    levelsMoveLeft->setPosition({-252, 0});
+    levelsMoveLeft->setPosition({this->m_buttonMenu->getContentWidth() / 2 -252, this->m_buttonMenu->getContentHeight() / 2});
     this->m_buttonMenu->addChild(levelsMoveLeft);
 
     refreshLists();

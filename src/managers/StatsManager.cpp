@@ -653,12 +653,19 @@ Result<std::vector<std::pair<std::string, LevelStats>>> StatsManager::getAllLeve
     auto res = file::readDirectory(m_savesFolderPath);
     GEODE_UNWRAP_INTO(auto allLevels, res);
 
-    std::vector<std::pair<std::string, LevelStats>> toReturn;
+    std::vector<std::pair<std::string, LevelStats>> toReturn{};
 
     for (int i = 0; i < allLevels.size(); i++)
     {
         if (allLevels[i].extension().string() == ".json"){
-            GEODE_UNWRAP_INTO(auto stats, StatsManager::getLevelStats(allLevels[i]));
+            auto currentLevel = StatsManager::getLevelStats(allLevels[i]);
+            if (currentLevel.isErr()){
+                Notification::create(fmt::format("failed loading level: id-{} err-{}", allLevels[i].stem().string(), currentLevel.unwrapErr()), nullptr)->show();
+                log::warn("failed loading level: id-{} err-{}", allLevels[i].stem().string(), currentLevel.unwrapErr());
+                continue;
+            }
+
+            auto stats = currentLevel.unwrap();
 
             toReturn.push_back(std::make_pair(allLevels[i].stem().string(), stats));
         }
