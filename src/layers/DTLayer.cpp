@@ -343,9 +343,8 @@ bool DTLayer::setup(GJGameLevel* const& level) {
     if (Save::getLastOpenedVersion() != Mod::get()->getVersion().toNonVString()){
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
-            "{}/n{}",
-            "- <cg>added playtime calculation! (use special keys {ptf0},{ptrun} and {ptall} to see it!!)</c>",
-            "- <cg>changed default layout! (if you never changed your layout before, resetting it to default is recommended!)</c>"
+            "{}",
+            "- <cg>lots of link layer fixes :)</c>"
         ), "OK", nullptr, 415, false, 200, 0.75f)->show();
     }
 
