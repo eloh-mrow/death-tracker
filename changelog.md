@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.4.5
+- lots of link layer fixes :)
+
 ## v2.4.4
 - added playtime calculation! (use special keys {ptf0},{ptrun} and {ptall} to see it!!)
 - changed default layout! (if you never changed your layout before, resetting it to default is recommended!)

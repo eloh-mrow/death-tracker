@@ -655,13 +655,15 @@ Result<std::vector<std::pair<std::string, LevelStats>>> StatsManager::getAllLeve
 
     std::vector<std::pair<std::string, LevelStats>> toReturn{};
 
+    std::vector<std::string> failedKeys{};
+
     for (int i = 0; i < allLevels.size(); i++)
     {
         if (allLevels[i].extension().string() == ".json"){
             auto currentLevel = StatsManager::getLevelStats(allLevels[i]);
             if (currentLevel.isErr()){
-                Notification::create(fmt::format("failed loading level: id-{} err-{}", allLevels[i].stem().string(), currentLevel.unwrapErr()), nullptr)->show();
-                log::warn("failed loading level: id-{} err-{}", allLevels[i].stem().string(), currentLevel.unwrapErr());
+                Notification::create(fmt::format("failed getting some levels, errors send in logs.", allLevels[i].stem().string(), currentLevel.unwrapErr()), nullptr)->show();
+                failedKeys.push_back(allLevels[i].stem().string());
                 continue;
             }
 
@@ -669,6 +671,17 @@ Result<std::vector<std::pair<std::string, LevelStats>>> StatsManager::getAllLeve
 
             toReturn.push_back(std::make_pair(allLevels[i].stem().string(), stats));
         }
+    }
+
+    if (failedKeys.size()){
+        log::warn("Failed loading some level! failed level keys are:");
+        log::warn("------------");
+
+        for (const auto& failedKey : failedKeys)
+            log::warn("- {}", failedKey);
+        
+        log::warn("------------");
+        log::warn("Make sure to check these levels and revert to their backups if possible!");
     }
     
     return Ok(toReturn);

@@ -32,15 +32,6 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
 
     m_DTLayer = layer;
 
-    auto AllLevelsRes = StatsManager::getAllLevels();
-
-    if (AllLevelsRes.isOk()){
-        m_AllLevels = AllLevelsRes.unwrap();
-    }
-    else{
-        geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
-    }
-
     auto levelsMoveRightS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
     levelsMoveRightS->setScale(0.5f);
     levelsMoveRightS->setRotation(180);
@@ -51,6 +42,7 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         menu_selector(DTLinkLayer::levelsListMoveRight)
     );
     levelsMoveRight->setPosition({this->m_buttonMenu->getContentWidth() / 2 - 2, this->m_buttonMenu->getContentHeight() / 2});
+    levelsMoveRight->setVisible(false);
     this->m_buttonMenu->addChild(levelsMoveRight);
 
     auto levelsMoveLeftS = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -62,19 +54,46 @@ bool DTLinkLayer::setup(DTLayer* const& layer) {
         menu_selector(DTLinkLayer::levelsListMoveLeft)
     );
     levelsMoveLeft->setPosition({this->m_buttonMenu->getContentWidth() / 2 -252, this->m_buttonMenu->getContentHeight() / 2});
+    levelsMoveLeft->setVisible(false);
     this->m_buttonMenu->addChild(levelsMoveLeft);
 
-    refreshLists();
-
     seartchInput = TextInput::create(225, "Search");
-    seartchInput->getInputNode()->setDelegate(this);
     seartchInput->setPosition({0, 116});
     seartchInput->setScale(0.6f);
     alignmentNode->addChild(seartchInput);
-    
-    scheduleUpdate();
+
+    loading = LoadingCircle::create();
+    loading->setParentLayer(this);
+    loading->show();
+
+    std::thread levelsThread = std::thread([this](){
+        auto AllLevelsRes = StatsManager::getAllLevels();
+
+        if (AllLevelsRes.isOk()){
+            auto tempAllLevels = AllLevelsRes.unwrap();
+
+            geode::Loader::get()->queueInMainThread([tempAllLevels, this](){
+                onLevelsLoaded(tempAllLevels);
+            });
+        }
+        else{
+            geode::Notification::create("Data save path invalid!", CCSprite::createWithSpriteFrameName("GJ_deleteIcon_001.png"))->show();
+        }
+    });
+    levelsThread.detach();
 
     return true;
+}
+
+void DTLinkLayer::onLevelsLoaded(const std::vector<std::pair<std::string, LevelStats>>& levels){
+    if (isClosed) return;
+    m_AllLevels = levels;
+    this->refreshLists();
+    seartchInput->getInputNode()->setDelegate(this);
+    this->scheduleUpdate();
+    levelsMoveLeft->setVisible(true);
+    levelsMoveRight->setVisible(true);
+    loading->setVisible(false);
 }
 
 void DTLinkLayer::SpacialEditList(GJListLayer* const& list, const CCPoint& titlePos, const float& titleSize){
@@ -109,7 +128,6 @@ void DTLinkLayer::SpacialEditList(GJListLayer* const& list, const CCPoint& title
 }
 
 void DTLinkLayer::refreshLists(){
-
     if (!m_AllLevels.size()) return;
 
     auto levelsListItems = CCArray::create();
@@ -305,6 +323,7 @@ void DTLinkLayer::textChanged(CCTextInputNode* input){
 }
 
 void DTLinkLayer::onClose(CCObject*) {
+    isClosed = true;
     m_DTLayer->UpdateSharedStats();
     m_DTLayer->refreshAll(true);
     this->setKeypadEnabled(false);

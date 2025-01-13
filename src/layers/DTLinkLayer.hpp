@@ -16,6 +16,8 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
         static DTLinkLayer* create(DTLayer* const& layer);
 
     private:
+
+        void onLevelsLoaded(const std::vector<std::pair<std::string, LevelStats>>& levels);
     
         //edits a lists title position and tize
         void SpacialEditList(GJListLayer* const& list, const CCPoint& titlePos, const float& titleSize);
@@ -45,6 +47,8 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
 
         bool scrollSwitchLock;
 
+        bool isClosed = false;
+
         GJListLayer* m_LevelsList = nullptr;
         int levelPage = 1;
         GJListLayer* m_LinkedLevelsList = nullptr;
@@ -54,4 +58,6 @@ class DTLinkLayer : public Popup<DTLayer* const&>, public TextInputDelegate {
 
         CCMenuItemSpriteExtra* levelsMoveRight;
         CCMenuItemSpriteExtra* levelsMoveLeft;
+
+        LoadingCircle* loading;
 };
