@@ -31,7 +31,6 @@ jobs:
           os: macos-latest
           target: iOS
 
-    sdk: nightly
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
@@ -43,6 +42,7 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
+          sdk: nightly
           build-config: 'RelWithDebInfo'
           export-pdb: true
           bindings: 'geode-sdk/bindings'
