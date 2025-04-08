@@ -31,6 +31,7 @@ jobs:
           os: macos-latest
           target: iOS
 
+    sdk: nightly
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
