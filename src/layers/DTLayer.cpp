@@ -344,7 +344,7 @@ bool DTLayer::setup(GJGameLevel* const& level) {
         Save::setLastOpenedVersion(Mod::get()->getVersion().toNonVString());
         FLAlertLayer::create(nullptr, fmt::format("Death Tracker {} Changelog", Mod::get()->getVersion().toVString()).c_str(), fmt::format(
             "{}",
-            "- <cg>lots of link layer fixes :)</c>"
+            "- <cg>iOS support</c>"
         ), "OK", nullptr, 415, false, 200, 0.75f)->show();
     }
 

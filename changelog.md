@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.4.6
+- iOS support
+
 ## v2.4.5
 - lots of link layer fixes :)
 
