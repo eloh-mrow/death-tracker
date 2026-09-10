@@ -3,6 +3,7 @@ using namespace geode::prelude;
 #include "utils/Save.hpp"
 #include "managers/StatsManager.hpp"
 #include "utils/Settings.hpp"
+#include <Geode/utils/web.hpp>
 
 $execute {
     (void)file::createDirectory(Mod::get()->getSaveDir() / "levels");
@@ -12,6 +13,7 @@ $execute {
         return false;
     }).leak();
 
+    // StatsManager::logGameOpening();
 
     if (Save::getLayout().isEmpty()){
         Save::setLayout(Save::getDefaultLayout());

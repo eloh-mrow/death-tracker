@@ -152,7 +152,7 @@ typedef struct LevelMetadeta {
     int difficulty = 0;
     int hideUpto = 0;
     int realEndPercent = 100;
-    bool resetAsDeath = false;
+    bool resetAsDeath = true;
     bool autoBackup = true;
     std::vector<Section> sections{};
     bool hasGottenDataFromPT = false;

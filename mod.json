@@ -1,5 +1,5 @@
 {
-	"geode": "5.8.2",
+	"geode": "5.10.1",
 	"gd": {
         "android": "2.2081",
         "win": "2.2081",
@@ -69,6 +69,13 @@
 			"description": "Disables tracking deaths while playing in practice mode",
 			"type": "bool",
 			"default": false
+		},
+		"clock-format": {
+			"name": "Clock Format",
+			"description": "Select either 12-hour or 24-hour time display.",
+			"type": "string",
+			"default": "12-hour",
+			"one-of": ["12-hour", "24-hour"]
 		},
 		"bakcups-title":{
 			"type": "title",
@@ -146,7 +153,7 @@
 		"save-path-new": {
 			"type": "folder",
 			"name": "Save Path",
-			"default": "{mod_save_dir}/levels"
+			"default": "{mod_save_dir}\\levels"
 		},
 		"customazation-title":{
 			"type": "title",
