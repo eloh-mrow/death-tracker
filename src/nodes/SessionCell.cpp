@@ -27,10 +27,11 @@ bool SessionCell::init(float width, Session const& session){
     this->addChild(bg);
 
     std::tm tm{};
+    std::time_t time = static_cast<std::time_t>(session.sessionStartDate);
     #if defined(_WIN32)
-        localtime_s(&tm, &session.sessionStartDate);
+        localtime_s(&tm, &time);
     #else
-        localtime_r(&session.sessionStartDate, &tm);
+        localtime_r(&time, &tm);
     #endif
 
     std::string dateStr = DateFormatter::timeFormat(tm);
