@@ -1404,3 +1404,37 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
 
     return true;
 }
+
+// data collection for user count idea idk if i can add this yet :(
+// void StatsManager::logGameOpening() {
+//     std::string platform = "Unknown";
+    
+//     #ifdef GEODE_IS_WINDOWS
+//         platform = "Windows";
+//     #elif defined(GEODE_IS_ANDROID)
+//         platform = "Android";
+//     #elif defined(GEODE_IS_MACOS)
+//         platform = "MacOS";
+//     #elif defined(GEODE_IS_IOS)
+//         platform = "iOS";
+//     #endif
+
+//     matjson::Value payload{};
+//     payload["platform"] = platform;
+    
+//     auto req = web::WebRequest();
+//     req.bodyJSON(payload);
+//     async::spawn(req.post("https://api.abb2k.me/v1/log-opening"), [](web::WebResponse response){
+//         if (response.ok()){
+//             log::info("Request Good");
+
+//             auto res = response.string();
+//             if (res.isOk()){
+//                 log::info("aa {}", res.unwrap());
+//             }
+//         }
+//         else{
+//             log::info("Request Bad");
+//         }
+//     });
+// }

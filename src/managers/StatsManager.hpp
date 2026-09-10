@@ -162,6 +162,8 @@ public:
 
     static bool transferPlaytimeFromPT(GJGameLevel* level);
     static bool transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode>& data, GJGameLevel* level);
+
+    // static void logGameOpening();
 };
 
 template<typename K, typename V>
