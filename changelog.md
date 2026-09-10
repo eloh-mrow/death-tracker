@@ -17,7 +17,7 @@
 - added faded version text to bottom left of the screen
 - added a "skip tutorial" button to the tutorial dialogues
 - named my async tasks (about time)
-- re-added "real end precent"
+- re-added "real end percent"
 - added open save file directory button to save menu
 
 ## v3.0.7
