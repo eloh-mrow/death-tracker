@@ -3701,7 +3701,7 @@ UpdateFuture DTLayer::onSessionDateKey(std::map<std::string, std::any> payload){
         localtime_r(&time, &tp);
     #endif
 
-    auto dateStr = DateFormatter::format(tp);
+    auto dateStr = DateFormatter::timeFormat(tp);
 
     co_return Ok(dateStr);
 }

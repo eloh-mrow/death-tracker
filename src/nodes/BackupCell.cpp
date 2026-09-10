@@ -129,7 +129,7 @@ void BackupCell::onBackupLoaded(GetBackupFuture::Output out){
     gmtime_r(&timeTDate, &timeInfo);
 #endif
 
-    titleLabel->setString(DateFormatter::format(timeInfo).c_str());
+    titleLabel->setString(DateFormatter::timeFormat(timeInfo).c_str());
     descriptionLabel->setString(
         fmt::format(
             "Attempts: {}, Sessions: {}, Size: {:.2f} KB", 

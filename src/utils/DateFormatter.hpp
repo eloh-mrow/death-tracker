@@ -6,5 +6,5 @@ using namespace geode::prelude;
 
 class DateFormatter {
 public:
-    static std::string format(const tm& dateTime);
+    static std::string timeFormat(const tm& dateTime);
 };
